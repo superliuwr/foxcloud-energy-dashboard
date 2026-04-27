@@ -1,0 +1,16 @@
+services:
+  foxcloud-dashboard:
+    build: .
+    container_name: foxcloud-dashboard
+    restart: unless-stopped
+    user: "${CONTAINER_UID:-0}:${CONTAINER_GID:-0}"
+    ports:
+      - "${DASHBOARD_HOST_PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - TZ=${DASHBOARD_TIME_ZONE:-Australia/Sydney}
+      - DASHBOARD_TIME_ZONE=${DASHBOARD_TIME_ZONE:-Australia/Sydney}
+    volumes:
+      - ./data:/app/data

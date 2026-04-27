@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">FoxCloud Energy Dashboard demo preview</title>
+  <desc id="desc">A static preview image of the dashboard layout with sample energy cards and charts.</desc>
+  <rect width="1200" height="720" fill="#eef3f0"/>
+  <rect x="52" y="44" width="1096" height="124" rx="18" fill="#ffffff" opacity="0.9"/>
+  <text x="84" y="88" font-family="Avenir Next, Arial, sans-serif" font-size="18" fill="#5a6963">FOXCLOUD ENERGY DASHBOARD</text>
+  <text x="84" y="132" font-family="Avenir Next, Arial, sans-serif" font-size="42" font-weight="800" fill="#17231e">Home energy command center</text>
+  <rect x="788" y="70" width="140" height="52" rx="10" fill="#f7f7f1" stroke="#d5ded8"/>
+  <text x="812" y="103" font-family="Avenir Next, Arial, sans-serif" font-size="18" fill="#17231e">Demo mode</text>
+  <rect x="944" y="70" width="144" height="52" rx="10" fill="#1f6f5a"/>
+  <text x="984" y="103" font-family="Avenir Next, Arial, sans-serif" font-size="18" font-weight="800" fill="#ffffff">Refresh</text>
+  <rect x="52" y="196" width="520" height="270" rx="18" fill="#ffffff" opacity="0.9"/>
+  <text x="82" y="236" font-family="Avenir Next, Arial, sans-serif" font-size="16" fill="#5a6963">LIVE FLOW</text>
+  <text x="82" y="266" font-family="Avenir Next, Arial, sans-serif" font-size="28" font-weight="800" fill="#17231e">Energy distribution</text>
+  <circle cx="312" cy="300" r="48" fill="#ffffff" stroke="#f59e0b" stroke-width="6"/>
+  <circle cx="174" cy="374" r="48" fill="#ffffff" stroke="#2563eb" stroke-width="6"/>
+  <circle cx="450" cy="374" r="48" fill="#ffffff" stroke="#0f766e" stroke-width="6"/>
+  <circle cx="312" cy="430" r="48" fill="#ffffff" stroke="#14b8a6" stroke-width="6"/>
+  <path d="M312 348v34M360 326l51 28M264 326l-51 28M219 374h184" stroke="#ced8d2" stroke-width="5" stroke-dasharray="10 10"/>
+  <text x="281" y="307" font-family="Avenir Next, Arial, sans-serif" font-size="20" font-weight="800" fill="#f59e0b">4.8 kW</text>
+  <text x="148" y="381" font-family="Avenir Next, Arial, sans-serif" font-size="18" font-weight="800" fill="#2563eb">0.2 kW</text>
+  <text x="421" y="381" font-family="Avenir Next, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f766e">2.1 kW</text>
+  <text x="286" y="437" font-family="Avenir Next, Arial, sans-serif" font-size="18" font-weight="800" fill="#14b8a6">1.9 kW</text>
+  <rect x="604" y="196" width="544" height="270" rx="18" fill="#ffffff" opacity="0.9"/>
+  <text x="634" y="236" font-family="Avenir Next, Arial, sans-serif" font-size="16" fill="#5a6963">TODAY</text>
+  <text x="634" y="266" font-family="Avenir Next, Arial, sans-serif" font-size="28" font-weight="800" fill="#17231e">Production and usage</text>
+  <rect x="634" y="298" width="484" height="58" rx="12" fill="#fffaf0" stroke="#f59e0b"/>
+  <text x="656" y="334" font-family="Avenir Next, Arial, sans-serif" font-size="22" font-weight="800" fill="#17231e">PV produced</text>
+  <text x="980" y="336" font-family="Avenir Next, Arial, sans-serif" font-size="28" font-weight="900" fill="#17231e">28.4 kWh</text>
+  <g fill="#ffffff" stroke="#dce5df">
+    <rect x="634" y="378" width="146" height="62" rx="10"/>
+    <rect x="804" y="378" width="146" height="62" rx="10"/>
+    <rect x="974" y="378" width="146" height="62" rx="10"/>
+  </g>
+  <text x="654" y="416" font-family="Avenir Next, Arial, sans-serif" font-size="18" font-weight="800" fill="#17231e">18.2 kWh</text>
+  <text x="824" y="416" font-family="Avenir Next, Arial, sans-serif" font-size="18" font-weight="800" fill="#17231e">10.2 kWh</text>
+  <text x="994" y="416" font-family="Avenir Next, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f9f6e">83%</text>
+  <rect x="52" y="496" width="1096" height="176" rx="18" fill="#ffffff" opacity="0.9"/>
+  <text x="82" y="536" font-family="Avenir Next, Arial, sans-serif" font-size="16" fill="#5a6963">CHART</text>
+  <text x="82" y="566" font-family="Avenir Next, Arial, sans-serif" font-size="28" font-weight="800" fill="#17231e">Daily solar, grid, and home usage</text>
+  <path d="M90 636 C160 576 220 628 290 590 C370 548 420 646 510 584 C590 528 650 620 730 592 C820 560 910 616 1068 548" fill="none" stroke="#f59e0b" stroke-width="7"/>
+  <path d="M90 648 C190 630 264 640 340 610 C430 574 520 642 608 610 C720 578 820 632 1068 600" fill="none" stroke="#0f766e" stroke-width="6"/>
+</svg>

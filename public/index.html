@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FoxCloud Energy Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <main class="dashboard-layout">
+        <section class="dashboard-topline">
+          <div>
+            <p class="eyebrow" data-i18n="appEyebrow">FoxCloud Battery Dashboard</p>
+            <h1 data-i18n="appTitle">Home energy command center</h1>
+            <p id="currentDateTime" class="date-time">--</p>
+            <p id="deviceMeta" class="muted-copy" data-i18n="waitingForFoxCloud">Waiting for FoxCloud...</p>
+          </div>
+
+          <div class="toolbar">
+            <div class="control-row">
+              <label for="monthPicker" data-i18n="dashboardMonth">Dashboard month</label>
+              <input id="monthPicker" type="month" />
+            </div>
+            <div class="control-row">
+              <label for="languageSelect" data-i18n="language">Language</label>
+              <select id="languageSelect" class="language-select">
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+                <option value="th">ไทย</option>
+              </select>
+            </div>
+            <button id="refreshButton" class="refresh-button" type="button" data-i18n="refresh">Refresh</button>
+            <button id="exportPdfButton" class="secondary-button" type="button" data-i18n="exportPdf">Export PDF</button>
+            <p id="statusText" class="status-text">Loading dashboard data...</p>
+          </div>
+        </section>
+
+        <div id="warningBox" class="warning-box hidden"></div>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="period">Period</p>
+              <h2 data-i18n="periodTotals">Energy totals</h2>
+              <p id="periodTotalsMeta" class="muted-copy" data-i18n="periodTotalsHelp">
+                Choose a period to summarize daily energy data.
+              </p>
+            </div>
+            <div class="control-row compact-control">
+              <label for="periodRangeSelect" data-i18n="tableRange">Table range</label>
+              <select id="periodRangeSelect" class="language-select">
+                <option value="current_month" data-i18n="currentMonth">This month</option>
+                <option value="previous_month" data-i18n="previousMonth">Previous month</option>
+                <option value="last_2_months" data-i18n="last2Months">Last 2 months</option>
+                <option value="last_3_months" data-i18n="last3Months">Last 3 months</option>
+                <option value="last_6_months" data-i18n="last6Months">Last 6 months</option>
+                <option value="last_12_months" data-i18n="last12Months">Last 12 months</option>
+                <option value="all" data-i18n="allData">All data</option>
+              </select>
+            </div>
+          </div>
+          <div class="summary-grid totals-grid">
+            <article class="summary-card">
+              <span data-i18n="totalSolarProduction">Total solar production</span>
+              <strong id="periodSolarProduction">--</strong>
+            </article>
+            <article class="summary-card">
+              <span data-i18n="totalHomeUsage">Total home usage</span>
+              <strong id="periodHomeUsage">--</strong>
+            </article>
+            <article class="summary-card">
+              <span data-i18n="totalIntoBattery">Total into battery</span>
+              <strong id="periodIntoBattery">--</strong>
+            </article>
+            <article class="summary-card">
+              <span data-i18n="totalOutBattery">Total out of battery</span>
+              <strong id="periodOutBattery">--</strong>
+            </article>
+            <article class="summary-card">
+              <span data-i18n="totalReturnToGrid">Total return to grid</span>
+              <strong id="periodReturnToGrid">--</strong>
+            </article>
+            <article class="summary-card">
+              <span data-i18n="totalGridConsumption">Total grid consumption</span>
+              <strong id="periodGridConsumption">--</strong>
+            </article>
+            <article class="summary-card">
+              <span data-i18n="totalSelfConsumption">Total self-consumption</span>
+              <strong id="periodSelfConsumption">--</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="dashboard-overview">
+          <article class="energy-flow-panel">
+            <div class="panel-heading compact-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="liveFlow">Live Flow</p>
+                <h2 data-i18n="energyDistribution">Energy distribution</h2>
+              </div>
+              <div id="badgeRow" class="badge-row"></div>
+            </div>
+
+            <div class="flow-map" aria-label="Live energy distribution">
+              <svg class="flow-lines" viewBox="0 0 560 430" role="img">
+                <path id="solarToHomePath" class="flow-path solar-path" d="M280 98 C310 150 350 178 414 203" />
+                <path id="solarToBatteryPath" class="flow-path solar-path" d="M280 98 C275 160 280 235 280 306" />
+                <path id="solarToGridPath" class="flow-path export-path" d="M280 98 C238 158 187 186 142 203" />
+                <path id="gridToHomePath" class="flow-path import-path" d="M142 203 C215 196 326 196 414 203" />
+                <path id="batteryToHomePath" class="flow-path battery-out-path" d="M280 306 C320 278 366 234 414 203" />
+                <path id="gridToBatteryPath" class="flow-path grid-battery-path" d="M142 203 C170 256 210 292 280 306" />
+              </svg>
+
+              <div class="flow-node solar-node">
+                <span class="node-icon">SUN</span>
+                <strong id="flowSolar">--</strong>
+                <span data-i18n="solar">Solar</span>
+              </div>
+
+              <div class="flow-node grid-node">
+                <span class="node-icon">GRID</span>
+                <strong id="flowGrid">--</strong>
+                <span data-i18n="grid">Grid</span>
+                <small id="flowGridMode">Import / export</small>
+              </div>
+
+              <div class="flow-node home-node">
+                <span class="node-icon">HOME</span>
+                <strong id="flowHome">--</strong>
+                <span data-i18n="home">Home</span>
+              </div>
+
+              <div class="flow-node battery-node">
+                <span class="node-icon">BAT</span>
+                <strong id="flowBattery">--</strong>
+                <span data-i18n="battery">Battery</span>
+                <small id="flowBatteryMode">Charge / discharge</small>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel today-panel">
+            <div class="panel-heading compact-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="today">Today</p>
+                <h2 data-i18n="productionUsage">Production and usage</h2>
+              </div>
+              <p id="liveMeta" class="muted-copy"></p>
+            </div>
+
+            <div class="dashboard-total">
+              <span data-i18n="pvProduced">PV produced</span>
+              <strong id="todaySolar">--</strong>
+            </div>
+            <p class="data-note" data-i18n="pvProducedNote">
+              FoxCloud Analysis calculates Production as Self-consumption plus Export. This dashboard uses the public OpenAPI values, so it may differ from FoxCloud's internal web totals.
+            </p>
+
+            <div class="summary-grid">
+              <article class="summary-card">
+                <span data-i18n="selfConsumption">Self-consumption</span>
+                <strong id="todaySelfConsumption">--</strong>
+              </article>
+              <article class="summary-card">
+                <span data-i18n="returnToGrid">Return to grid</span>
+                <strong id="todayFeedin">--</strong>
+              </article>
+              <article class="summary-card">
+                <span data-i18n="homeUsage">Home usage</span>
+                <strong id="todayHome">--</strong>
+              </article>
+              <article class="summary-card">
+                <span data-i18n="gridConsumption">Grid consumption</span>
+                <strong id="todayGrid">--</strong>
+              </article>
+              <article class="summary-card">
+                <span data-i18n="batteryLevel">Battery level</span>
+                <strong id="batterySoc" class="battery-level-value">--</strong>
+              </article>
+              <article class="summary-card">
+                <span data-i18n="intoBattery">Into battery</span>
+                <strong id="todayBatteryCharge">--</strong>
+              </article>
+              <article class="summary-card">
+                <span data-i18n="outOfBattery">Out of battery</span>
+                <strong id="todayBatteryDischarge">--</strong>
+              </article>
+              <article class="summary-card">
+                <span data-i18n="batteryTemp">Battery temp</span>
+                <strong id="batteryTemp">--</strong>
+              </article>
+              <article class="summary-card">
+                <span data-i18n="inverterTemp">Inverter temp</span>
+                <strong id="inverterTemp">--</strong>
+              </article>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel history-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="last24Hours">Last 24 Hours</p>
+              <h2 data-i18n="last24Title">Battery level, home usage, and battery discharge</h2>
+            </div>
+          </div>
+          <div class="chart-body history-chart-body">
+            <canvas id="last24HoursChart"></canvas>
+          </div>
+        </section>
+
+        <section class="panel system-panel">
+          <div class="panel-heading compact-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="system">System</p>
+              <h2 id="deviceTitle" data-i18n="waitingForFoxCloud">Waiting for FoxCloud...</h2>
+            </div>
+          </div>
+        </section>
+
+        <section class="metrics-grid">
+          <article class="metric-card accent-solar">
+            <span class="metric-label" data-i18n="solarGeneratedNow">Solar generated now</span>
+            <strong id="solarNow" class="metric-value">--</strong>
+            <span class="metric-subtext" data-i18n="solarNowHelp">Instant solar power, not hourly total</span>
+          </article>
+          <article class="metric-card accent-home">
+            <span class="metric-label" data-i18n="homeUsageNow">Home usage now</span>
+            <strong id="homeNow" class="metric-value">--</strong>
+            <span class="metric-subtext" data-i18n="homeNowHelp">Instant household demand</span>
+          </article>
+          <article class="metric-card accent-grid">
+            <span class="metric-label" data-i18n="gridImportNow">Grid import now</span>
+            <strong id="gridImportNow" class="metric-value">--</strong>
+            <span class="metric-subtext" data-i18n="gridImportHelp">Instant power taken from grid</span>
+          </article>
+          <article class="metric-card accent-grid-export">
+            <span class="metric-label" data-i18n="gridExportNow">Grid export now</span>
+            <strong id="gridExportNow" class="metric-value">--</strong>
+            <span class="metric-subtext" data-i18n="gridExportHelp">Instant power sent to grid</span>
+          </article>
+          <article class="metric-card accent-battery-in">
+            <span class="metric-label" data-i18n="batteryChargeNow">Battery charge now</span>
+            <strong id="batteryChargeNow" class="metric-value">--</strong>
+            <span class="metric-subtext" data-i18n="batteryChargeHelp">Instant charging power</span>
+          </article>
+          <article class="metric-card accent-battery-out">
+            <span class="metric-label" data-i18n="batteryDischargeNow">Battery discharge now</span>
+            <strong id="batteryDischargeNow" class="metric-value">--</strong>
+            <span class="metric-subtext" data-i18n="batteryDischargeHelp">Instant discharging power</span>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading compact-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="lastHour">Past Hour</p>
+              <h2 data-i18n="lastHourTitle">Energy over the last hour</h2>
+              <p class="muted-copy" data-i18n="lastHourHelp">
+                These are estimated kWh totals calculated from FoxCloud power samples over the last 60 minutes.
+              </p>
+            </div>
+          </div>
+          <div class="metrics-grid">
+            <article class="metric-card accent-solar">
+              <span class="metric-label" data-i18n="solarGeneratedLastHour">Solar generated last hour</span>
+              <strong id="solarLastHour" class="metric-value">--</strong>
+              <span class="metric-subtext" data-i18n="lastHourTotalHelp">Estimated energy in the last 60 minutes</span>
+            </article>
+            <article class="metric-card accent-home">
+              <span class="metric-label" data-i18n="homeUsageLastHour">Home usage last hour</span>
+              <strong id="homeLastHour" class="metric-value">--</strong>
+              <span class="metric-subtext" data-i18n="lastHourTotalHelp">Estimated energy in the last 60 minutes</span>
+            </article>
+            <article class="metric-card accent-grid">
+              <span class="metric-label" data-i18n="gridImportLastHour">Grid import last hour</span>
+              <strong id="gridImportLastHour" class="metric-value">--</strong>
+              <span class="metric-subtext" data-i18n="lastHourTotalHelp">Estimated energy in the last 60 minutes</span>
+            </article>
+            <article class="metric-card accent-grid-export">
+              <span class="metric-label" data-i18n="gridExportLastHour">Grid export last hour</span>
+              <strong id="gridExportLastHour" class="metric-value">--</strong>
+              <span class="metric-subtext" data-i18n="lastHourTotalHelp">Estimated energy in the last 60 minutes</span>
+            </article>
+            <article class="metric-card accent-battery-in">
+              <span class="metric-label" data-i18n="batteryChargeLastHour">Battery charge last hour</span>
+              <strong id="batteryChargeLastHour" class="metric-value">--</strong>
+              <span class="metric-subtext" data-i18n="lastHourTotalHelp">Estimated energy in the last 60 minutes</span>
+            </article>
+            <article class="metric-card accent-battery-out">
+              <span class="metric-label" data-i18n="batteryDischargeLastHour">Battery discharge last hour</span>
+              <strong id="batteryDischargeLastHour" class="metric-value">--</strong>
+              <span class="metric-subtext" data-i18n="lastHourTotalHelp">Estimated energy in the last 60 minutes</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="chart-grid">
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="chart">Chart</p>
+                <h2 data-i18n="dailyEnergyChart">Daily solar, grid, and home usage</h2>
+              </div>
+            </div>
+            <div class="chart-body">
+              <canvas id="energyChart"></canvas>
+            </div>
+          </article>
+
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="chart">Chart</p>
+                <h2 data-i18n="batteryChart">Battery charge and discharge</h2>
+              </div>
+            </div>
+            <div class="chart-body">
+              <canvas id="batteryChart"></canvas>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="table">Table</p>
+              <h2 data-i18n="dailyEnergyData">Daily energy data</h2>
+            </div>
+            <div class="table-actions">
+              <div class="control-row compact-control">
+                <label for="tableRangeSelect" data-i18n="tableRange">Table range</label>
+                <select id="tableRangeSelect" class="language-select">
+                  <option value="current_month" data-i18n="currentMonth">This month</option>
+                  <option value="previous_month" data-i18n="previousMonth">Previous month</option>
+                  <option value="last_2_months" data-i18n="last2Months">Last 2 months</option>
+                  <option value="last_3_months" data-i18n="last3Months">Last 3 months</option>
+                  <option value="last_6_months" data-i18n="last6Months">Last 6 months</option>
+                  <option value="last_12_months" data-i18n="last12Months">Last 12 months</option>
+                  <option value="all" data-i18n="allData">All data</option>
+                </select>
+              </div>
+              <button id="exportCsvButton" class="secondary-button" type="button" data-i18n="exportCsv">Export CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th><button class="sort-button" type="button" data-sort-key="date" data-i18n="date">Date</button></th>
+                  <th><button class="sort-button" type="button" data-sort-key="pv_production" data-i18n="pvProduced">PV produced</button></th>
+                  <th><button class="sort-button" type="button" data-sort-key="self_consumption" data-i18n="selfConsumption">Self-consumption</button></th>
+                  <th><button class="sort-button" type="button" data-sort-key="daily_feedin" data-i18n="returnToGrid">Return to grid</button></th>
+                  <th><button class="sort-button" type="button" data-sort-key="home_usage" data-i18n="homeUsage">Home usage</button></th>
+                  <th><button class="sort-button" type="button" data-sort-key="grid_consumption" data-i18n="gridConsumption">Grid consumption</button></th>
+                  <th><button class="sort-button" type="button" data-sort-key="daily_charged_energy_total" data-i18n="energyIntoBattery">Energy going into the battery</button></th>
+                  <th><button class="sort-button" type="button" data-sort-key="daily_discharged_energy_total" data-i18n="energyOutBattery">Energy coming out of the battery</button></th>
+                </tr>
+              </thead>
+              <tbody id="dailyTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/vendor/chartjs/chart.umd.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
