@@ -15,6 +15,11 @@
 - Historical rows can now be recalculated so `PV produced`, self-consumption, return to grid, home usage, grid consumption, and battery charge/discharge use the same 5-minute history approach where data is available.
 - Regular dashboard refreshes now preserve rebuilt historical rows and only refresh today's live row, avoiding accidental overwrite by monthly report data.
 
+### Fixed
+
+- Fixed overnight `PV produced` over-counting by only calculating solar production during intervals where FoxCloud history shows real PV/export activity.
+- Fixed current-month refreshes overwriting rebuilt historical rows with older monthly report values.
+
 ### Notes
 
 - `Rebuild cache` is intentionally manual because it can make many FoxCloud API calls.

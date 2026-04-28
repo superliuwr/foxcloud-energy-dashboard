@@ -46,7 +46,6 @@ const REPORT_VARIABLES = [
 
 const HISTORY_VARIABLES = ["SoC_1", "SoC", "loadsPower", "batDischargePower"] as const;
 const ENERGY_HISTORY_VARIABLES = [
-  "generationPower",
   "pvPower",
   "loadsPower",
   "feedinPower",
@@ -63,6 +62,7 @@ const ENERGY_HISTORY_VARIABLES = [
 ] as const;
 const CURRENT_MONTH_CACHE_TTL_MS = 10 * 60 * 1000;
 const MAX_REBUILD_DAYS = 31;
+const SOLAR_ACTIVE_POWER_THRESHOLD_KW = 0.05;
 
 const client = new FoxCloudClient({
   apiKey: env.foxCloud.apiKey,
@@ -306,6 +306,132 @@ const integratePowerSince = (
   return round(totalKwh);
 };
 
+const normalizePower = (value: number, threshold = 0): number => {
+  const normalized = Math.max(Number(value) || 0, 0);
+  return normalized >= threshold ? normalized : 0;
+};
+
+const buildPointMap = (
+  historyResults: FoxCloudHistoryDeviceResult[],
+  variable: string,
+): Map<number, number> => {
+  const points = getHistoryPointsSince(getHistorySeries(historyResults, variable), 0);
+
+  return new Map(points.map((point) => [point.timeMs, point.value]));
+};
+
+const averageIntervalValue = (
+  pointMap: Map<number, number>,
+  previousTimeMs: number,
+  currentTimeMs: number,
+): number => {
+  const previous = pointMap.get(previousTimeMs);
+  const current = pointMap.get(currentTimeMs);
+
+  if (previous === undefined || current === undefined) {
+    return 0;
+  }
+
+  return (previous + current) / 2;
+};
+
+const buildRowFromAnalysisHistory = (
+  existing: DashboardDailyRow,
+  historyResults: FoxCloudHistoryDeviceResult[],
+  dayStart: number,
+): DashboardDailyRow | null => {
+  const pvPoints = getHistoryPointsSince(getHistorySeries(historyResults, "pvPower"), dayStart);
+
+  if (pvPoints.length < 2) {
+    return null;
+  }
+
+  const maps = {
+    pv: buildPointMap(historyResults, "pvPower"),
+    feedin: buildPointMap(historyResults, "feedinPower"),
+    loads: buildPointMap(historyResults, "loadsPower"),
+    grid: buildPointMap(historyResults, "gridConsumptionPower"),
+    charge: buildPointMap(historyResults, "batChargePower"),
+    discharge: buildPointMap(historyResults, "batDischargePower"),
+  };
+  const totals = pvPoints.slice(1).reduce(
+    (accumulator, point, index) => {
+      const previous = pvPoints[index];
+      const hours = (point.timeMs - previous.timeMs) / 3_600_000;
+
+      if (hours <= 0 || hours > 1) {
+        return accumulator;
+      }
+
+      const pvKw = normalizePower(
+        (previous.value + point.value) / 2,
+        SOLAR_ACTIVE_POWER_THRESHOLD_KW,
+      );
+      const feedinKw = normalizePower(
+        averageIntervalValue(maps.feedin, previous.timeMs, point.timeMs),
+        SOLAR_ACTIVE_POWER_THRESHOLD_KW,
+      );
+      const homeKw = normalizePower(averageIntervalValue(maps.loads, previous.timeMs, point.timeMs));
+      const gridKw = normalizePower(averageIntervalValue(maps.grid, previous.timeMs, point.timeMs));
+      const dischargeKw = normalizePower(averageIntervalValue(maps.discharge, previous.timeMs, point.timeMs));
+      const isSolarActive = pvKw > 0 || feedinKw > 0;
+      const chargeKw = isSolarActive
+        ? normalizePower(averageIntervalValue(maps.charge, previous.timeMs, point.timeMs))
+        : 0;
+      const selfConsumptionKw = isSolarActive
+        ? Math.max(homeKw + chargeKw - dischargeKw - gridKw, 0)
+        : 0;
+
+      accumulator.pvEnergyTotal += pvKw * hours;
+      accumulator.returnToGrid += feedinKw * hours;
+      accumulator.selfConsumption += selfConsumptionKw * hours;
+      accumulator.homeUsage += homeKw * hours;
+      accumulator.gridConsumption += gridKw * hours;
+      accumulator.batteryCharged += chargeKw * hours;
+      accumulator.batteryDischarged += dischargeKw * hours;
+
+      return accumulator;
+    },
+    {
+      pvEnergyTotal: 0,
+      returnToGrid: 0,
+      selfConsumption: 0,
+      homeUsage: 0,
+      gridConsumption: 0,
+      batteryCharged: 0,
+      batteryDischarged: 0,
+    },
+  );
+  const pvProduction = round(totals.selfConsumption + totals.returnToGrid);
+
+  if (
+    [
+      pvProduction,
+      totals.returnToGrid,
+      totals.selfConsumption,
+      totals.homeUsage,
+      totals.gridConsumption,
+      totals.batteryCharged,
+      totals.batteryDischarged,
+    ].every((value) => value <= 0)
+  ) {
+    return null;
+  }
+
+  return {
+    ...existing,
+    generation: round(totals.selfConsumption),
+    pv_production: pvProduction,
+    pv_energy_total: round(totals.pvEnergyTotal),
+    daily_feedin: round(totals.returnToGrid),
+    self_consumption: round(totals.selfConsumption),
+    home_usage: round(totals.homeUsage),
+    grid_consumption: round(totals.gridConsumption),
+    daily_charged_energy_total: round(totals.batteryCharged),
+    daily_discharged_energy_total: round(totals.batteryDischarged),
+  };
+};
+
 const buildLast24Hours = (historyResults: FoxCloudHistoryDeviceResult[]): DashboardPayload["last24Hours"] => {
   const series = historyResults[0]?.datas ?? [];
   const batteryLevel = findHistorySeries(series, ["SoC_1", "SoC"]);
@@ -479,9 +605,17 @@ const fetchMonthRowsWithCache = async (
     dimension: "month",
     variables: [...REPORT_VARIABLES],
   });
-  const rows = applyCurrentDayHistoryOverride(buildDailyRows(year, month, report), historyResults, year, month);
+  const freshRows = applyCurrentDayHistoryOverride(buildDailyRows(year, month, report), historyResults, year, month);
+  const todayKey = getLocalDateKey(new Date());
+  const cachedHistoricalRows = isCurrentMonth(year, month)
+    ? readDailyEnergyRowsByMonth(device.deviceSN, year, month).filter((row) => row.date < todayKey)
+    : [];
+  const rows = mergeRowsByDate(freshRows, cachedHistoricalRows);
+  const rowsToSave = isCurrentMonth(year, month)
+    ? freshRows.filter((row) => row.date === todayKey)
+    : rows;
 
-  saveDailyEnergyRows(device.deviceSN, rows);
+  saveDailyEnergyRows(device.deviceSN, rowsToSave);
 
   return filterRowsUpToToday(rows);
 };
@@ -591,48 +725,12 @@ function applyCurrentDayHistoryOverride(
     return rows;
   }
 
-  const selfConsumptionFromPower = integratePowerSince(historyResults, "generationPower", todayStart);
-  const productionFromPower = round(selfConsumptionFromPower + integratePowerSince(historyResults, "feedinPower", todayStart));
-  const homeUsageFromPower = integratePowerSince(historyResults, "loadsPower", todayStart);
-  const gridConsumptionFromPower = integratePowerSince(historyResults, "gridConsumptionPower", todayStart);
-  const batteryChargedFromPower = integratePowerSince(historyResults, "batChargePower", todayStart);
-  const batteryDischargedFromPower = integratePowerSince(historyResults, "batDischargePower", todayStart);
-  const hasAnalysisPowerData = [
-    productionFromPower,
-    selfConsumptionFromPower,
-    homeUsageFromPower,
-    gridConsumptionFromPower,
-    batteryChargedFromPower,
-    batteryDischargedFromPower,
-  ].some((value) => value > 0);
+  const analysisRow = buildRowFromAnalysisHistory(existing, historyResults, todayStart);
 
-  if (hasAnalysisPowerData) {
-    const returnToGridFromPower = round(Math.max(productionFromPower - selfConsumptionFromPower, 0));
-    const batteryDischarged = preferReportValue(existing.daily_discharged_energy_total, batteryDischargedFromPower);
-    const batteryCharged = round(
-      Math.max(
-        productionFromPower +
-          gridConsumptionFromPower +
-          batteryDischarged -
-          homeUsageFromPower -
-          returnToGridFromPower,
-        0,
-      ),
-    );
+  if (analysisRow) {
     const updatedRows = [...rows];
 
-    updatedRows[todayIndex] = {
-      ...existing,
-      generation: selfConsumptionFromPower,
-      pv_production: productionFromPower,
-      pv_energy_total: integratePowerSince(historyResults, "pvPower", todayStart),
-      daily_feedin: returnToGridFromPower,
-      self_consumption: selfConsumptionFromPower,
-      home_usage: homeUsageFromPower,
-      grid_consumption: gridConsumptionFromPower,
-      daily_charged_energy_total: batteryCharged > 0 ? batteryCharged : batteryChargedFromPower,
-      daily_discharged_energy_total: batteryDischarged,
-    };
+    updatedRows[todayIndex] = analysisRow;
 
     return updatedRows;
   }
@@ -691,62 +789,6 @@ function applyCurrentDayHistoryOverride(
 
   return updatedRows;
 }
-
-const buildRowFromPowerHistory = (
-  existing: DashboardDailyRow,
-  historyResults: FoxCloudHistoryDeviceResult[],
-  dayStart: number,
-): DashboardDailyRow | null => {
-  const selfConsumptionFromPower = integratePowerSince(historyResults, "generationPower", dayStart);
-  const returnToGridFromPower = integratePowerSince(historyResults, "feedinPower", dayStart);
-  const productionFromPower = round(selfConsumptionFromPower + returnToGridFromPower);
-  const homeUsageFromPower = integratePowerSince(historyResults, "loadsPower", dayStart);
-  const gridConsumptionFromPower = integratePowerSince(historyResults, "gridConsumptionPower", dayStart);
-  const batteryChargedFromPower = integratePowerSince(historyResults, "batChargePower", dayStart);
-  const batteryDischargedFromPower = integratePowerSince(historyResults, "batDischargePower", dayStart);
-
-  if (
-    [
-      productionFromPower,
-      selfConsumptionFromPower,
-      returnToGridFromPower,
-      homeUsageFromPower,
-      gridConsumptionFromPower,
-      batteryChargedFromPower,
-      batteryDischargedFromPower,
-    ].every((value) => value <= 0)
-  ) {
-    return null;
-  }
-
-  const batteryDischarged = preferReportValue(
-    existing.daily_discharged_energy_total,
-    batteryDischargedFromPower,
-  );
-  const balancedBatteryCharged = round(
-    Math.max(
-      productionFromPower +
-        gridConsumptionFromPower +
-        batteryDischarged -
-        homeUsageFromPower -
-        returnToGridFromPower,
-      0,
-    ),
-  );
-
-  return {
-    ...existing,
-    generation: selfConsumptionFromPower,
-    pv_production: productionFromPower,
-    pv_energy_total: integratePowerSince(historyResults, "pvPower", dayStart),
-    daily_feedin: returnToGridFromPower,
-    self_consumption: selfConsumptionFromPower,
-    home_usage: homeUsageFromPower,
-    grid_consumption: gridConsumptionFromPower,
-    daily_charged_energy_total: balancedBatteryCharged > 0 ? balancedBatteryCharged : batteryChargedFromPower,
-    daily_discharged_energy_total: batteryDischarged,
-  };
-};
 
 function buildLastHour(historyResults: FoxCloudHistoryDeviceResult[]): DashboardPayload["lastHour"] {
   const oneHourAgo = Date.now() - 60 * 60 * 1000;
@@ -1263,7 +1305,7 @@ export async function rebuildEnergyRangeCache(
       begin: dayStart,
       end: dayEnd,
     });
-    const rebuiltRow = buildRowFromPowerHistory(row, historyResults, dayStart);
+    const rebuiltRow = buildRowFromAnalysisHistory(row, historyResults, dayStart);
 
     if (rebuiltRow) {
       rebuiltRows.push(rebuiltRow);
