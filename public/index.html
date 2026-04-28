@@ -31,6 +31,7 @@
               </select>
             </div>
             <button id="refreshButton" class="refresh-button" type="button" data-i18n="refresh">Refresh</button>
+            <button id="rebuildCacheButton" class="secondary-button" type="button" data-i18n="rebuildCache">Rebuild cache</button>
             <button id="exportPdfButton" class="secondary-button" type="button" data-i18n="exportPdf">Export PDF</button>
             <p id="statusText" class="status-text">Loading dashboard data...</p>
           </div>
@@ -50,7 +51,8 @@
             <div class="control-row compact-control">
               <label for="periodRangeSelect" data-i18n="tableRange">Table range</label>
               <select id="periodRangeSelect" class="language-select">
-                <option value="current_month" data-i18n="currentMonth">This month</option>
+                <option value="current_week" data-i18n="currentWeek">This week</option>
+                <option value="current_month" data-i18n="currentMonth" selected>This month</option>
                 <option value="previous_month" data-i18n="previousMonth">Previous month</option>
                 <option value="last_2_months" data-i18n="last2Months">Last 2 months</option>
                 <option value="last_3_months" data-i18n="last3Months">Last 3 months</option>
@@ -332,7 +334,8 @@
               <div class="control-row compact-control">
                 <label for="tableRangeSelect" data-i18n="tableRange">Table range</label>
                 <select id="tableRangeSelect" class="language-select">
-                  <option value="current_month" data-i18n="currentMonth">This month</option>
+                  <option value="current_week" data-i18n="currentWeek">This week</option>
+                  <option value="current_month" data-i18n="currentMonth" selected>This month</option>
                   <option value="previous_month" data-i18n="previousMonth">Previous month</option>
                   <option value="last_2_months" data-i18n="last2Months">Last 2 months</option>
                   <option value="last_3_months" data-i18n="last3Months">Last 3 months</option>

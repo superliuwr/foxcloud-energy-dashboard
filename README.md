@@ -8,6 +8,8 @@ This project is designed so other FoxCloud users can clone it, add their own cre
 
 New users should start with [README_FIRST.md](README_FIRST.md).
 
+Recent project changes are tracked in [CHANGELOG.md](CHANGELOG.md).
+
 ![Dashboard demo preview](docs/demo-preview.svg)
 
 ## Why this stack
@@ -94,6 +96,8 @@ The cache helps reduce FoxCloud API calls:
 - missing months are fetched from FoxCloud and then saved locally
 - the current month is refreshed periodically so today's values stay useful
 - range views such as 3 months, 6 months, 1 year, and all data avoid re-fetching data that is already cached
+
+The dashboard also includes a manual `Rebuild cache` button. It recalculates the selected range from FoxCloud 5-minute history samples so daily rows better match the FoxCloud Analysis day view. Use it only when you want to refresh historical values because it can call the FoxCloud API many times.
 
 For open-source use, each person who clones the project gets their own local database after running the app.
 
@@ -210,6 +214,8 @@ The main flow is:
 3. Backend calls FoxCloud API with signed headers
 4. Backend returns only safe dashboard data to the browser
 5. Frontend renders cards, charts, and tables
+
+For live/today values, the dashboard can use FoxCloud 5-minute history samples so `PV produced` follows the FoxCloud Analysis day-view formula: self-consumption plus export. For historical rows, use `Rebuild cache` to recalculate the selected range with the same history-based approach.
 
 ## FoxCloud API endpoints used
 

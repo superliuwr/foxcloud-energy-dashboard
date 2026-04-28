@@ -5,7 +5,11 @@ import path from "node:path";
 
 import { env } from "./config/env.js";
 import { FoxCloudApiError } from "./lib/foxcloudClient.js";
-import { getDashboardData, getEnergyRangeData } from "./services/dashboardService.js";
+import {
+  getDashboardData,
+  getEnergyRangeData,
+  rebuildEnergyRangeCache,
+} from "./services/dashboardService.js";
 
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");
@@ -96,6 +100,20 @@ app.get("/api/energy-range", async (req, res, next) => {
     const month = Number(req.query.month ?? now.getMonth() + 1);
     const range = String(req.query.range ?? "current_month");
     const payload = await getEnergyRangeData(range, year, month);
+
+    res.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/rebuild-cache", async (req, res, next) => {
+  try {
+    const now = new Date();
+    const year = Number(req.body?.year ?? now.getFullYear());
+    const month = Number(req.body?.month ?? now.getMonth() + 1);
+    const range = String(req.body?.range ?? "current_month");
+    const payload = await rebuildEnergyRangeCache(range, year, month);
 
     res.json(payload);
   } catch (error) {

@@ -1,5 +1,6 @@
 const statusText = document.getElementById("statusText");
 const refreshButton = document.getElementById("refreshButton");
+const rebuildCacheButton = document.getElementById("rebuildCacheButton");
 const exportPdfButton = document.getElementById("exportPdfButton");
 const exportCsvButton = document.getElementById("exportCsvButton");
 const monthPicker = document.getElementById("monthPicker");
@@ -86,6 +87,7 @@ const translations = {
     dashboardMonth: "Dashboard month",
     language: "Language",
     refresh: "Refresh",
+    rebuildCache: "Rebuild cache",
     exportPdf: "Export PDF",
     exportCsv: "Export CSV",
     loading: "Loading dashboard data...",
@@ -94,11 +96,15 @@ const translations = {
     demoData: "Demo data",
     loadingRange: "Loading selected table range...",
     loadedRange: "Selected range loaded.",
+    rebuildingCache: "Rebuilding selected range cache. This can take a little while...",
+    rebuiltCache: "Cache rebuilt.",
+    rebuildCacheConfirm: "Rebuild the selected range using FoxCloud 5-minute history data? This may call the FoxCloud API many times.",
     unableToLoad: "Unable to load the dashboard",
     period: "Period",
     periodTotals: "Energy totals",
     periodTotalsHelp: "Choose a period to summarize daily energy data.",
     tableRange: "Table range",
+    currentWeek: "This week",
     currentMonth: "This month",
     previousMonth: "Previous month",
     last2Months: "Last 2 months",
@@ -128,7 +134,7 @@ const translations = {
     productionUsage: "Production and usage",
     solarProduction: "Solar production",
     pvProduced: "PV produced",
-    pvProducedNote: "FoxCloud Analysis calculates Production as Self-consumption plus Export. This dashboard uses the public OpenAPI values, so it may differ from FoxCloud's internal web totals.",
+    pvProducedNote: "For today, PV produced follows FoxCloud Analysis: Self-consumption plus Export from the 5-minute power curve. Older days use the FoxCloud daily report values.",
     selfConsumption: "Self-consumption",
     returnToGrid: "Return to grid",
     homeUsage: "Home usage",
@@ -200,6 +206,7 @@ const translations = {
     dashboardMonth: "仪表板月份",
     language: "语言",
     refresh: "刷新",
+    rebuildCache: "重算缓存",
     exportPdf: "导出 PDF",
     exportCsv: "导出 CSV",
     loading: "正在加载仪表板数据...",
@@ -208,11 +215,15 @@ const translations = {
     demoData: "演示数据",
     loadingRange: "正在加载所选表格范围...",
     loadedRange: "所选范围已加载。",
+    rebuildingCache: "正在按所选范围重算缓存，可能需要一点时间...",
+    rebuiltCache: "缓存已重算。",
+    rebuildCacheConfirm: "确定要用 FoxCloud 5 分钟历史数据重算所选范围吗？这可能会调用较多 FoxCloud API。",
     unableToLoad: "无法加载仪表板",
     period: "周期",
     periodTotals: "能源总计",
     periodTotalsHelp: "选择一个周期来汇总每日能源数据。",
     tableRange: "表格范围",
+    currentWeek: "本周",
     currentMonth: "这个月",
     previousMonth: "上一个月",
     last2Months: "近 2 个月",
@@ -242,7 +253,7 @@ const translations = {
     productionUsage: "发电与用电",
     solarProduction: "太阳能发电",
     pvProduced: "光伏总发电",
-    pvProducedNote: "FoxCloud Analysis 的 Production = Self-consumption + Export。本仪表板使用公开 OpenAPI 数据，因此可能和 FoxCloud 网页内部统计有差异。",
+    pvProducedNote: "今天的光伏总发电按 FoxCloud Analysis 口径计算：5 分钟功率曲线里的自发自用 + 回馈电网。过去日期使用 FoxCloud 每日报表数据。",
     selfConsumption: "自发自用",
     returnToGrid: "回馈电网",
     homeUsage: "家庭用电",
@@ -314,6 +325,7 @@ const translations = {
     dashboardMonth: "เดือนของแดชบอร์ด",
     language: "ภาษา",
     refresh: "รีเฟรช",
+    rebuildCache: "สร้างแคชใหม่",
     exportPdf: "ส่งออก PDF",
     exportCsv: "ส่งออก CSV",
     loading: "กำลังโหลดข้อมูลแดชบอร์ด...",
@@ -322,11 +334,15 @@ const translations = {
     demoData: "ข้อมูลตัวอย่าง",
     loadingRange: "กำลังโหลดช่วงตารางที่เลือก...",
     loadedRange: "โหลดช่วงที่เลือกแล้ว",
+    rebuildingCache: "กำลังสร้างแคชของช่วงที่เลือกใหม่ อาจใช้เวลาสักครู่...",
+    rebuiltCache: "สร้างแคชใหม่แล้ว",
+    rebuildCacheConfirm: "ต้องการสร้างแคชของช่วงที่เลือกใหม่ด้วยข้อมูลประวัติทุก 5 นาทีจาก FoxCloud หรือไม่? การทำงานนี้อาจเรียก API หลายครั้ง",
     unableToLoad: "ไม่สามารถโหลดแดชบอร์ดได้",
     period: "ช่วงเวลา",
     periodTotals: "ยอดรวมพลังงาน",
     periodTotalsHelp: "เลือกช่วงเวลาเพื่อสรุปข้อมูลพลังงานรายวัน",
     tableRange: "ช่วงของตาราง",
+    currentWeek: "สัปดาห์นี้",
     currentMonth: "เดือนนี้",
     previousMonth: "เดือนก่อน",
     last2Months: "2 เดือนล่าสุด",
@@ -356,7 +372,7 @@ const translations = {
     productionUsage: "การผลิตและการใช้งาน",
     solarProduction: "การผลิตไฟฟ้าจากโซลาร์",
     pvProduced: "ไฟฟ้าที่ผลิตจาก PV",
-    pvProducedNote: "หน้า FoxCloud Analysis คำนวณ Production = Self-consumption + Export แดชบอร์ดนี้ใช้ข้อมูล OpenAPI สาธารณะ จึงอาจต่างจากยอดรวมภายในของเว็บ FoxCloud",
+    pvProducedNote: "สำหรับวันนี้ PV produced ใช้วิธีเดียวกับ FoxCloud Analysis คือ Self-consumption + Export จากกราฟกำลังไฟทุก 5 นาที ส่วนวันก่อนหน้าใช้ค่ารายงานรายวันของ FoxCloud",
     selfConsumption: "ใช้เองจากโซลาร์",
     returnToGrid: "ส่งกลับเข้ากริด",
     homeUsage: "การใช้ไฟในบ้าน",
@@ -672,13 +688,187 @@ function exportTableToCsv() {
   downloadBlob(`\uFEFF${csv}`, filename, "text/csv;charset=utf-8");
 }
 
+function pdfText(value) {
+  return String(value ?? "")
+    .normalize("NFKD")
+    .replace(/[^\x20-\x7E]/g, "?")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("(", "\\(")
+    .replaceAll(")", "\\)");
+}
+
+function createPdfLine(text, options = {}) {
+  return {
+    text,
+    size: options.size ?? 10,
+    bold: Boolean(options.bold),
+    gapAfter: options.gapAfter ?? 14,
+  };
+}
+
+function wrapPdfText(text, maxLength = 92) {
+  const words = String(text ?? "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = "";
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+
+    if (candidate.length > maxLength && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+
+  if (current) {
+    lines.push(current);
+  }
+
+  return lines.length ? lines : [""];
+}
+
+function buildSimplePdf(lines) {
+  const pageWidth = 595.28;
+  const pageHeight = 841.89;
+  const marginX = 44;
+  const startY = 800;
+  const bottomY = 48;
+  const objects = [];
+  const pageIds = [];
+
+  const setObject = (id, content) => {
+    objects[id] = content;
+  };
+  const addObject = (content) => {
+    objects.push(content);
+    return objects.length - 1;
+  };
+
+  setObject(1, "");
+  setObject(2, "");
+  setObject(3, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+  setObject(4, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+
+  let pageCommands = [];
+  let y = startY;
+
+  const flushPage = () => {
+    if (!pageCommands.length) {
+      return;
+    }
+
+    const content = pageCommands.join("\n");
+    const contentId = addObject(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+    const pageId = addObject(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] ` +
+      `/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentId} 0 R >>`,
+    );
+    pageIds.push(pageId);
+    pageCommands = [];
+    y = startY;
+  };
+
+  const addLine = (line) => {
+    if (y < bottomY) {
+      flushPage();
+    }
+
+    const font = line.bold ? "F2" : "F1";
+    pageCommands.push(`BT /${font} ${line.size} Tf ${marginX} ${y} Td (${pdfText(line.text)}) Tj ET`);
+    y -= line.gapAfter;
+  };
+
+  for (const line of lines) {
+    const wrapped = wrapPdfText(line.text, line.size >= 16 ? 58 : 92);
+
+    wrapped.forEach((wrappedLine, index) => {
+      addLine({
+        ...line,
+        text: wrappedLine,
+        gapAfter: index === wrapped.length - 1 ? line.gapAfter : line.size + 3,
+      });
+    });
+  }
+
+  flushPage();
+  setObject(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  setObject(2, `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageIds.length} >>`);
+
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+
+  for (let index = 1; index < objects.length; index += 1) {
+    offsets[index] = pdf.length;
+    pdf += `${index} 0 obj\n${objects[index]}\nendobj\n`;
+  }
+
+  const xrefOffset = pdf.length;
+  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+
+  for (let index = 1; index < objects.length; index += 1) {
+    pdf += `${String(offsets[index]).padStart(10, "0")} 00000 n \n`;
+  }
+
+  pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+  return pdf;
+}
+
+function buildPdfLines() {
+  const rows = sortRows(currentRows).slice(0, 42);
+  const payload = lastPayload ?? {};
+  const totals = lastRangePayload?.totals ?? {};
+  const lines = [
+    createPdfLine("FoxCloud Energy Dashboard", { size: 20, bold: true, gapAfter: 24 }),
+    createPdfLine(`Generated: ${new Date().toLocaleString("en-AU")}`),
+    createPdfLine(`Dashboard month: ${getSelectedMonthLabel()}`),
+    createPdfLine(`Range: ${getSelectedRangeLabel()}`, { gapAfter: 22 }),
+    createPdfLine("Today", { size: 15, bold: true, gapAfter: 18 }),
+    createPdfLine(`PV produced: ${formatKwh(payload.today?.solarProductionKwh)}`),
+    createPdfLine(`Self-consumption: ${formatKwh(payload.today?.selfConsumptionKwh)}`),
+    createPdfLine(`Return to grid: ${formatKwh(payload.today?.returnToGridKwh)}`),
+    createPdfLine(`Home usage: ${formatKwh(payload.today?.homeUsageKwh)}`),
+    createPdfLine(`Grid consumption: ${formatKwh(payload.today?.gridConsumptionKwh)}`),
+    createPdfLine(`Into battery: ${formatKwh(payload.today?.energyGoingIntoBatteryKwh)}`),
+    createPdfLine(`Out of battery: ${formatKwh(payload.today?.energyComingOutOfBatteryKwh)}`, { gapAfter: 22 }),
+    createPdfLine("Selected Range Totals", { size: 15, bold: true, gapAfter: 18 }),
+    createPdfLine(`Total PV produced: ${formatKwh(totals.solarProductionKwh)}`),
+    createPdfLine(`Total self-consumption: ${formatKwh(totals.selfConsumptionKwh)}`),
+    createPdfLine(`Total return to grid: ${formatKwh(totals.returnToGridKwh)}`),
+    createPdfLine(`Total home usage: ${formatKwh(totals.homeUsageKwh)}`),
+    createPdfLine(`Total grid consumption: ${formatKwh(totals.gridConsumptionKwh)}`),
+    createPdfLine(`Total into battery: ${formatKwh(totals.energyGoingIntoBatteryKwh)}`),
+    createPdfLine(`Total out of battery: ${formatKwh(totals.energyComingOutOfBatteryKwh)}`, { gapAfter: 22 }),
+    createPdfLine("Daily Energy Data", { size: 15, bold: true, gapAfter: 18 }),
+    createPdfLine("Date | PV produced | Self-consumption | Return to grid | Home usage | Grid consumption", { bold: true }),
+  ];
+
+  rows.forEach((row) => {
+    lines.push(createPdfLine(
+      `${row.date} | ${formatKwh(row.pv_production)} | ${formatKwh(row.self_consumption)} | ` +
+      `${formatKwh(row.daily_feedin)} | ${formatKwh(row.home_usage)} | ${formatKwh(row.grid_consumption)}`,
+    ));
+  });
+
+  if (sortRows(currentRows).length > rows.length) {
+    lines.push(createPdfLine(`Showing first ${rows.length} table rows in this PDF. Use Export CSV for the full table.`));
+  }
+
+  return lines;
+}
+
 function exportDashboardToPdf() {
-  const previousTitle = document.title;
-  document.title = `foxcloud-dashboard-${getSelectedMonthLabel()}`;
-  window.print();
-  window.setTimeout(() => {
-    document.title = previousTitle;
-  }, 500);
+  if (!lastPayload) {
+    statusText.textContent = t("noTableData");
+    return;
+  }
+
+  const pdf = buildSimplePdf(buildPdfLines());
+  const filename = `foxcloud-dashboard-${getSelectedMonthLabel()}.pdf`;
+
+  downloadBlob(pdf, filename, "application/pdf");
 }
 
 function getSelectedRangeLabel() {
@@ -725,6 +915,49 @@ async function loadEnergyRange(silent = false) {
 
   if (!silent) {
     statusText.textContent = t("loadedRange");
+  }
+}
+
+async function rebuildSelectedCache() {
+  if (!window.confirm(t("rebuildCacheConfirm"))) {
+    return;
+  }
+
+  rebuildCacheButton.disabled = true;
+  refreshButton.disabled = true;
+  statusText.textContent = t("rebuildingCache");
+
+  try {
+    const [year, month] = monthPicker.value.split("-");
+    const response = await fetch("/api/rebuild-cache", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        year: Number(year),
+        month: Number(month),
+        range: tableRangeSelect.value,
+      }),
+    });
+    const payload = await response.json();
+
+    if (!response.ok || payload.error) {
+      throw new Error(payload.error || "Cache rebuild request failed.");
+    }
+
+    currentRows = payload.dailyTable ?? [];
+    lastRangePayload = payload;
+    renderTable(currentRows);
+    renderPeriodTotals(payload);
+    statusText.textContent = `${t("rebuiltCache")} ${payload.processedDays ?? 0} days processed.`;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    statusText.textContent = `${t("unableToLoad")}: ${message}`;
+    renderWarnings([message]);
+  } finally {
+    rebuildCacheButton.disabled = false;
+    refreshButton.disabled = false;
   }
 }
 
@@ -1107,6 +1340,7 @@ function setDefaultMonth() {
 }
 
 refreshButton.addEventListener("click", loadDashboard);
+rebuildCacheButton.addEventListener("click", rebuildSelectedCache);
 exportPdfButton.addEventListener("click", exportDashboardToPdf);
 exportCsvButton.addEventListener("click", exportTableToCsv);
 monthPicker.addEventListener("change", loadDashboard);
