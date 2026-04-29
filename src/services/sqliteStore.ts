@@ -35,7 +35,41 @@ database.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_daily_energy_device_date
     ON daily_energy (device_sn, date);
+
+  CREATE TABLE IF NOT EXISTS live_samples (
+    device_sn TEXT NOT NULL,
+    sampled_at TEXT NOT NULL,
+    solar_generated_kw REAL NOT NULL DEFAULT 0,
+    home_usage_kw REAL NOT NULL DEFAULT 0,
+    grid_import_kw REAL NOT NULL DEFAULT 0,
+    grid_export_kw REAL NOT NULL DEFAULT 0,
+    battery_charge_kw REAL NOT NULL DEFAULT 0,
+    battery_discharge_kw REAL NOT NULL DEFAULT 0,
+    battery_soc_percent REAL,
+    battery_temperature_celsius REAL,
+    battery_min_temperature_celsius REAL,
+    battery_max_temperature_celsius REAL,
+    battery_pack_temperature_celsius REAL,
+    inverter_temperature_celsius REAL,
+    source TEXT NOT NULL DEFAULT 'modbus',
+    PRIMARY KEY (device_sn, sampled_at)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_live_samples_device_time
+    ON live_samples (device_sn, sampled_at);
 `);
+
+const ensureColumn = (tableName: string, columnName: string, definition: string): void => {
+  const columns = database.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
+
+  if (!columns.some((column) => column.name === columnName)) {
+    database.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+  }
+};
+
+ensureColumn("live_samples", "battery_min_temperature_celsius", "REAL");
+ensureColumn("live_samples", "battery_max_temperature_celsius", "REAL");
+ensureColumn("live_samples", "battery_pack_temperature_celsius", "REAL");
 
 interface DailyEnergyRecord {
   date: string;
@@ -211,3 +245,114 @@ export function getLatestDailyEnergyUpdate(
   return record?.updated_at ?? null;
 }
 
+export interface LiveSample {
+  sampled_at: string;
+  solar_generated_kw: number;
+  home_usage_kw: number;
+  grid_import_kw: number;
+  grid_export_kw: number;
+  battery_charge_kw: number;
+  battery_discharge_kw: number;
+  battery_soc_percent: number | null;
+  battery_temperature_celsius: number | null;
+  battery_min_temperature_celsius: number | null;
+  battery_max_temperature_celsius: number | null;
+  battery_pack_temperature_celsius: number | null;
+  inverter_temperature_celsius: number | null;
+}
+
+const insertLiveSample = database.prepare(`
+  INSERT OR REPLACE INTO live_samples (
+    device_sn,
+    sampled_at,
+    solar_generated_kw,
+    home_usage_kw,
+    grid_import_kw,
+    grid_export_kw,
+    battery_charge_kw,
+    battery_discharge_kw,
+    battery_soc_percent,
+    battery_temperature_celsius,
+    battery_min_temperature_celsius,
+    battery_max_temperature_celsius,
+    battery_pack_temperature_celsius,
+    inverter_temperature_celsius,
+    source
+  )
+  VALUES (
+    @deviceSn,
+    @sampledAt,
+    @solarGeneratedKw,
+    @homeUsageKw,
+    @gridImportKw,
+    @gridExportKw,
+    @batteryChargeKw,
+    @batteryDischargeKw,
+    @batterySocPercent,
+    @batteryTemperatureCelsius,
+    @batteryMinTemperatureCelsius,
+    @batteryMaxTemperatureCelsius,
+    @batteryPackTemperatureCelsius,
+    @inverterTemperatureCelsius,
+    @source
+  )
+`);
+
+export function saveLiveSample(
+  deviceSn: string,
+  sample: {
+    sampledAt: string;
+    solarGeneratedKw: number;
+    homeUsageKw: number;
+    gridImportKw: number;
+    gridExportKw: number;
+    batteryChargeKw: number;
+    batteryDischargeKw: number;
+    batterySocPercent: number | null;
+    batteryTemperatureCelsius: number | null;
+    batteryMinTemperatureCelsius: number | null;
+    batteryMaxTemperatureCelsius: number | null;
+    batteryPackTemperatureCelsius: number | null;
+    inverterTemperatureCelsius: number | null;
+  },
+  source = "modbus",
+): void {
+  insertLiveSample.run({
+    deviceSn,
+    sampledAt: sample.sampledAt,
+    solarGeneratedKw: sample.solarGeneratedKw,
+    homeUsageKw: sample.homeUsageKw,
+    gridImportKw: sample.gridImportKw,
+    gridExportKw: sample.gridExportKw,
+    batteryChargeKw: sample.batteryChargeKw,
+    batteryDischargeKw: sample.batteryDischargeKw,
+    batterySocPercent: sample.batterySocPercent,
+    batteryTemperatureCelsius: sample.batteryTemperatureCelsius,
+    batteryMinTemperatureCelsius: sample.batteryMinTemperatureCelsius,
+    batteryMaxTemperatureCelsius: sample.batteryMaxTemperatureCelsius,
+    batteryPackTemperatureCelsius: sample.batteryPackTemperatureCelsius,
+    inverterTemperatureCelsius: sample.inverterTemperatureCelsius,
+    source,
+  });
+}
+
+export function readLiveSamplesSince(deviceSn: string, sinceIso: string): LiveSample[] {
+  return database
+    .prepare(
+      `
+        SELECT *
+        FROM live_samples
+        WHERE device_sn = ? AND sampled_at >= ?
+        ORDER BY sampled_at ASC
+      `,
+    )
+    .all(deviceSn, sinceIso) as LiveSample[];
+}
+
+export function getDatabasePath(): string {
+  return databasePath;
+}
+
+export async function backupDatabase(destinationPath: string): Promise<void> {
+  await database.backup(destinationPath);
+}

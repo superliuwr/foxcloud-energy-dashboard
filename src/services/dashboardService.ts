@@ -13,6 +13,10 @@ import type {
 } from "../types/foxcloud.js";
 import { readLatestDashboardPayload, saveDashboardPayload } from "./cacheStore.js";
 import {
+  getModbusDashboardData,
+  getModbusEnergyRangeData,
+} from "./modbusDashboardService.js";
+import {
   getLatestDailyEnergyUpdate,
   readDailyEnergyRowsByMonth,
   saveDailyEnergyRows,
@@ -870,6 +874,13 @@ function toPayload(
         "batTemperature_1",
         "batTemperature_2",
       ]),
+      batteryMinTemperatureCelsius: getFirstRealtimeValue(liveData, [
+        "batTemperature",
+        "batTemperature_1",
+        "batTemperature_2",
+      ]),
+      batteryMaxTemperatureCelsius: null,
+      batteryPackTemperatureCelsius: null,
       inverterTemperatureCelsius: getFirstRealtimeValue(liveData, [
         "invTemperation",
         "inverterTemperature",
@@ -1023,6 +1034,9 @@ const buildDemoPayload = (year: number, month: number): DashboardPayload => {
       batteryDischargeKw: batteryDischargeNow,
       batterySocPercent: last24Hours.batteryLevelPercent.at(-1) ?? 80,
       batteryTemperatureCelsius: 25.5,
+      batteryMinTemperatureCelsius: 23.4,
+      batteryMaxTemperatureCelsius: 28.1,
+      batteryPackTemperatureCelsius: 25.5,
       inverterTemperatureCelsius: 31.2,
       updatedAt: now.toISOString(),
     },
@@ -1085,6 +1099,10 @@ const getDemoRangeStartMonth = (range: string, anchorYear: number, anchorMonth: 
 export async function getDashboardData(year: number, month: number): Promise<DashboardPayload> {
   if (!isValidYearMonth(year, month)) {
     throw new Error("The requested year or month is invalid.");
+  }
+
+  if (env.dataProvider === "modbus") {
+    return getModbusDashboardData(year, month);
   }
 
   if (env.foxCloud.demoMode) {
@@ -1173,6 +1191,10 @@ export async function getEnergyRangeData(
     throw new Error("The requested year or month is invalid.");
   }
 
+  if (env.dataProvider === "modbus") {
+    return getModbusEnergyRangeData(range, year, month);
+  }
+
   if (env.foxCloud.demoMode) {
     const startMonth = getDemoRangeStartMonth(range, year, month);
     const endMonth = getRangeEndMonth(range, year, month);
@@ -1255,6 +1277,18 @@ export async function rebuildEnergyRangeCache(
 }> {
   if (!isValidYearMonth(year, month)) {
     throw new Error("The requested year or month is invalid.");
+  }
+
+  if (env.dataProvider === "modbus") {
+    const payload = await getModbusEnergyRangeData(range, year, month);
+
+    return {
+      ...payload,
+      processedDays: payload.dailyTable.length,
+      skippedDays: 0,
+      limited: false,
+      limitDays: 0,
+    };
   }
 
   if (env.foxCloud.demoMode) {

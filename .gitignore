@@ -10,4 +10,5 @@ yarn-error.log*
 coverage/
 data/*
 !data/.gitkeep
+backups/
 *.log

@@ -45,11 +45,21 @@ console.log("Do not share this terminal while typing secrets.\n");
 const port = await ask("Local dashboard port", "3000");
 const host = await ask("Host for LAN access", "0.0.0.0");
 const timeZone = await ask("Dashboard time zone", "Australia/Sydney");
+const dataProviderAnswer = await ask("Data provider: foxcloud or modbus", "foxcloud");
+const dataProvider = dataProviderAnswer.toLowerCase() === "modbus" ? "modbus" : "foxcloud";
 const baseUrl = await ask("FoxCloud base URL", "https://www.foxesscloud.com");
-const demoMode = await ask("Use demo mode with sample data? yes/no", "no");
+const demoMode = dataProvider === "modbus" ? "no" : await ask("Use demo mode with sample data? yes/no", "no");
 const isDemoMode = ["y", "yes", "true", "1"].includes(demoMode.toLowerCase());
-const apiKey = isDemoMode ? await ask("FoxCloud API key, optional in demo mode") : await askRequired("FoxCloud API key");
+const apiKey =
+  dataProvider === "modbus"
+    ? ""
+    : isDemoMode
+      ? await ask("FoxCloud API key, optional in demo mode")
+      : await askRequired("FoxCloud API key");
 const deviceSn = await ask("FoxCloud device serial number, optional");
+const modbusHost = dataProvider === "modbus" ? await askRequired("Modbus inverter/datalogger LAN IP") : "";
+const modbusPort = dataProvider === "modbus" ? await ask("Modbus TCP port", "502") : "502";
+const modbusUnitId = dataProvider === "modbus" ? await ask("Modbus unit/slave ID", "1") : "1";
 const dashboardUsername = await askRequired("Dashboard login username");
 const dashboardPassword = await askRequired("Dashboard login password");
 const extraUsers = await ask(
@@ -60,6 +70,7 @@ const lines = [
   `PORT=${port}`,
   `HOST=${host}`,
   `DASHBOARD_TIME_ZONE=${timeZone}`,
+  `DATA_PROVIDER=${dataProvider}`,
   `FOXCLOUD_BASE_URL=${envValue(baseUrl)}`,
   `FOXCLOUD_DEMO_MODE=${isDemoMode ? "true" : "false"}`,
   `FOXCLOUD_API_KEY=${envValue(apiKey)}`,
@@ -67,6 +78,19 @@ const lines = [
   "FOXCLOUD_PASSWORD=",
   `FOXCLOUD_DEVICE_SN=${envValue(deviceSn)}`,
   "FOXCLOUD_TIMEOUT_MS=15000",
+  `MODBUS_HOST=${envValue(modbusHost)}`,
+  `MODBUS_PORT=${modbusPort}`,
+  `MODBUS_UNIT_ID=${modbusUnitId}`,
+  "MODBUS_TIMEOUT_MS=3000",
+  "MODBUS_SAMPLE_INTERVAL_MS=60000",
+  "MODBUS_DEVICE_ID=local-modbus-inverter",
+  "MODBUS_STATION_NAME=Local Modbus inverter",
+  "MODBUS_INVERTER_MODEL=FoxESS H3 Smart",
+  "MODBUS_READ_ONLY=true",
+  "SQLITE_BACKUP_ENABLED=true",
+  "SQLITE_BACKUP_DIR=/app/backups",
+  "SQLITE_BACKUP_INTERVAL_MS=3600000",
+  "SQLITE_BACKUP_RETENTION_COUNT=72",
   `DASHBOARD_USERNAME=${envValue(dashboardUsername)}`,
   `DASHBOARD_PASSWORD=${envValue(dashboardPassword)}`,
   `DASHBOARD_USERS=${envValue(extraUsers)}`,

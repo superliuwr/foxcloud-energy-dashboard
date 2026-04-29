@@ -91,7 +91,7 @@ export interface DashboardPayload {
   generatedAt: string;
   isStale: boolean;
   warnings: string[];
-  source: "live" | "cache" | "demo";
+  source: "live" | "cache" | "demo" | "modbus";
   requestedPeriod: {
     year: number;
     month: number;
@@ -114,6 +114,9 @@ export interface DashboardPayload {
     batteryDischargeKw: number;
     batterySocPercent: number | null;
     batteryTemperatureCelsius: number | null;
+    batteryMinTemperatureCelsius: number | null;
+    batteryMaxTemperatureCelsius: number | null;
+    batteryPackTemperatureCelsius: number | null;
     inverterTemperatureCelsius: number | null;
     updatedAt: string | null;
   };

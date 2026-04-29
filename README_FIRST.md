@@ -12,8 +12,8 @@ This guide does not cover NAS hosting or Internet publishing. Start here first, 
 
 ## What You Need
 
-- A Fox ESS / FoxCloud account with OpenAPI access.
-- Your own FoxCloud API key.
+- Either a Fox ESS / FoxCloud account with OpenAPI access, or a supported inverter/datalogger with local Modbus TCP enabled.
+- Your own FoxCloud API key if you use FoxCloud mode.
 - Node.js 20 or newer.
 - A computer that can stay on while you test the dashboard.
 
@@ -96,6 +96,7 @@ Minimum example:
 PORT=3000
 HOST=0.0.0.0
 DASHBOARD_TIME_ZONE=Australia/Sydney
+DATA_PROVIDER=foxcloud
 FOXCLOUD_BASE_URL=https://www.foxesscloud.com
 FOXCLOUD_DEMO_MODE=false
 FOXCLOUD_API_KEY=your-own-api-key
@@ -112,6 +113,27 @@ Demo mode example:
 FOXCLOUD_DEMO_MODE=true
 FOXCLOUD_API_KEY=
 ```
+
+Local Modbus example:
+
+```dotenv
+DATA_PROVIDER=modbus
+MODBUS_HOST=your-inverter-lan-ip
+MODBUS_PORT=502
+MODBUS_UNIT_ID=1
+MODBUS_SAMPLE_INTERVAL_MS=60000
+MODBUS_READ_ONLY=true
+DASHBOARD_USERNAME=your-dashboard-login-name
+DASHBOARD_PASSWORD=your-dashboard-password
+```
+
+Before using Modbus mode, test that your computer can reach the inverter:
+
+```bash
+nc -zv your-inverter-lan-ip 502
+```
+
+If the connection succeeds, the dashboard can try reading local Modbus data. The first Modbus version is read-only and currently targets FoxESS H3 Smart style registers. Other inverter models may need register-map updates.
 
 To add a test user:
 
@@ -172,6 +194,18 @@ data/foxcloud-dashboard.sqlite
 ```
 
 This database is private to your installation and is ignored by Git.
+
+If you use Docker, the app can also write safe SQLite backups to:
+
+```text
+backups/
+```
+
+On the NAS project folder, that is:
+
+```text
+/Volumes/Newhome/docker/foxcloud-dashboard/backups
+```
 
 ## 8. Safety Notes
 

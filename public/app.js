@@ -26,6 +26,8 @@ const metricFields = {
   todayBatteryDischarge: document.getElementById("todayBatteryDischarge"),
   batterySoc: document.getElementById("batterySoc"),
   batteryTemp: document.getElementById("batteryTemp"),
+  batteryMaxTemp: document.getElementById("batteryMaxTemp"),
+  batteryPackTemp: document.getElementById("batteryPackTemp"),
   inverterTemp: document.getElementById("inverterTemp"),
   solarLastHour: document.getElementById("solarLastHour"),
   homeLastHour: document.getElementById("homeLastHour"),
@@ -142,7 +144,9 @@ const translations = {
     batteryLevel: "Battery level",
     intoBattery: "Into battery",
     outOfBattery: "Out of battery",
-    batteryTemp: "Battery temp",
+    batteryTemp: "Min battery temp",
+    batteryMaxTemp: "Max battery temp",
+    batteryPackTemp: "Battery pack temp",
     inverterTemp: "Inverter temp",
     last24Hours: "Last 24 Hours",
     last24Title: "Battery level, home usage, and battery discharge",
@@ -261,7 +265,9 @@ const translations = {
     batteryLevel: "电池电量",
     intoBattery: "充入电池",
     outOfBattery: "电池放电",
-    batteryTemp: "电池温度",
+    batteryTemp: "最低电池温度",
+    batteryMaxTemp: "最高电池温度",
+    batteryPackTemp: "电池包温度",
     inverterTemp: "逆变器温度",
     last24Hours: "过去 24 小时",
     last24Title: "电池电量、家庭用电与电池放电",
@@ -380,7 +386,9 @@ const translations = {
     batteryLevel: "ระดับแบตเตอรี่",
     intoBattery: "เข้าแบตเตอรี่",
     outOfBattery: "ออกจากแบตเตอรี่",
-    batteryTemp: "อุณหภูมิแบตเตอรี่",
+    batteryTemp: "อุณหภูมิแบตเตอรี่ต่ำสุด",
+    batteryMaxTemp: "อุณหภูมิแบตเตอรี่สูงสุด",
+    batteryPackTemp: "อุณหภูมิแพ็กแบตเตอรี่",
     inverterTemp: "อุณหภูมิอินเวอร์เตอร์",
     last24Hours: "24 ชั่วโมงที่ผ่านมา",
     last24Title: "ระดับแบตเตอรี่ การใช้ไฟในบ้าน และการคายประจุแบตเตอรี่",
@@ -1283,7 +1291,9 @@ function renderMetrics(payload) {
     "battery-level-good",
     payload.live.batterySocPercent !== null && payload.live.batterySocPercent !== undefined && Number(payload.live.batterySocPercent) >= 50,
   );
-  metricFields.batteryTemp.textContent = formatTemperature(payload.live.batteryTemperatureCelsius);
+  metricFields.batteryTemp.textContent = formatTemperature(payload.live.batteryMinTemperatureCelsius ?? payload.live.batteryTemperatureCelsius);
+  metricFields.batteryMaxTemp.textContent = formatTemperature(payload.live.batteryMaxTemperatureCelsius);
+  metricFields.batteryPackTemp.textContent = formatTemperature(payload.live.batteryPackTemperatureCelsius);
   metricFields.inverterTemp.textContent = formatTemperature(payload.live.inverterTemperatureCelsius);
   metricFields.solarLastHour.textContent = formatKwh(payload.lastHour?.solarGeneratedKwh);
   metricFields.homeLastHour.textContent = formatKwh(payload.lastHour?.homeUsageKwh);

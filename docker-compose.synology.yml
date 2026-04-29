@@ -12,8 +12,10 @@ services:
       - PORT=3000
       - TZ=${DASHBOARD_TIME_ZONE:-Australia/Sydney}
       - DASHBOARD_TIME_ZONE=${DASHBOARD_TIME_ZONE:-Australia/Sydney}
+      - SQLITE_BACKUP_DIR=${SQLITE_BACKUP_DIR:-/app/backups}
     volumes:
       - foxcloud_dashboard_data:/app/data
+      - ./backups:/app/backups
 
 volumes:
   foxcloud_dashboard_data:

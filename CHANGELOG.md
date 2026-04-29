@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-04-29
+
+### Added
+
+- Added an experimental read-only local Modbus TCP provider with `DATA_PROVIDER=modbus`.
+- Added Modbus environment variables for inverter LAN host, port, unit ID, timeout, local device label, and read-only mode.
+- Added SQLite live sample storage for Modbus-powered last-hour and last-24-hour dashboard charts.
+- Added a Modbus background sampler that stores live samples every minute while the server is running.
+- Added automatic SQLite backups with Docker/NAS-friendly `./backups` storage.
+- Added README setup notes for users who want to run without FoxCloud API keys.
+
+### Fixed
+
+- Added safe signed 32-bit Modbus register decoding so battery charge/discharge power does not show impossible values.
+- Aligned the dashboard battery temperature card with FoxCloud's minimum battery temperature by reading the Modbus low cell temperature register.
+- Added separate minimum battery, maximum battery, and battery pack temperature values for Modbus dashboards.
+
+### Notes
+
+- The first Modbus register map targets FoxESS H3 Smart style holding registers and must be verified by users with other inverter models.
+- Modbus setting writes are intentionally not enabled.
+
 ## 2026-04-28
 
 ### Added

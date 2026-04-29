@@ -10,6 +10,8 @@ import {
   getEnergyRangeData,
   rebuildEnergyRangeCache,
 } from "./services/dashboardService.js";
+import { startModbusSampler } from "./services/modbusSampler.js";
+import { startSqliteBackupScheduler } from "./services/sqliteBackup.js";
 
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");
@@ -70,11 +72,14 @@ app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
     timestamp: new Date().toISOString(),
+    dataProvider: env.dataProvider,
     baseUrl: env.foxCloud.baseUrl,
     dashboardTimeZone: env.dashboardTimeZone,
     demoMode: env.foxCloud.demoMode,
     hasConfiguredDeviceSn: Boolean(env.foxCloud.deviceSn),
-    usingApiKeyAuth: true,
+    usingApiKeyAuth: env.dataProvider === "foxcloud",
+    modbusConfigured: env.dataProvider === "modbus" && Boolean(env.modbus.host),
+    modbusReadOnly: env.modbus.readOnly,
     dashboardAuthEnabled: env.dashboardAuth.enabled,
     dashboardAuthUserCount: env.dashboardAuth.users.length,
   });
@@ -164,4 +169,7 @@ app.listen(env.port, env.host, () => {
   if (env.foxCloud.demoMode) {
     console.log("FoxCloud demo mode is enabled. The dashboard is using sample data.");
   }
+
+  startSqliteBackupScheduler();
+  startModbusSampler();
 });

@@ -21,14 +21,15 @@ This starter uses:
 - TypeScript
 - Plain HTML/CSS/JavaScript for the frontend
 - Chart.js for charts
-- SQLite for local daily energy history and API-call reduction
+- SQLite for local daily energy/history caching
 - Local JSON fallback caching for the latest dashboard snapshot
 - Demo mode with sample data for users who do not have an API key yet
+- Optional local Modbus TCP mode for supported inverters on the same LAN
 
 This is a good beginner-friendly balance because:
 
 - there is only one server process to run
-- your FoxCloud API key stays on the server
+- your FoxCloud API key stays on the server, or you can avoid FoxCloud entirely with Modbus mode
 - the frontend stays simple and easy to edit
 - long range views can use local SQLite data instead of repeatedly calling FoxCloud
 - the project is easy to deploy to common Node hosting providers
@@ -39,6 +40,7 @@ Your secrets are never put into frontend code.
 
 - The browser only calls your local backend at `/api/dashboard`.
 - The backend signs requests to FoxCloud using `FOXCLOUD_API_KEY`.
+- In Modbus mode, the backend reads your inverter/datalogger on the local network and no FoxCloud API key is required.
 - `.env` is ignored by Git so secrets are not committed.
 - The sample `.env.example` contains placeholders only.
 
@@ -101,6 +103,31 @@ The dashboard also includes a manual `Rebuild cache` button. It recalculates the
 
 For open-source use, each person who clones the project gets their own local database after running the app.
 
+## SQLite backups
+
+The server can automatically back up SQLite while it is running. In Docker, `/app/backups` is mapped to the host folder:
+
+```text
+./backups
+```
+
+For your NAS project folder, that means backups appear under:
+
+```text
+/Volumes/Newhome/docker/foxcloud-dashboard/backups
+```
+
+Useful backup settings:
+
+```dotenv
+SQLITE_BACKUP_ENABLED=true
+SQLITE_BACKUP_DIR=/app/backups
+SQLITE_BACKUP_INTERVAL_MS=3600000
+SQLITE_BACKUP_RETENTION_COUNT=72
+```
+
+The backup uses SQLite's backup API, not a raw file copy, so it is safer while the app is running. Keep the `backups` folder private because it contains household energy history.
+
 ## Environment variables
 
 Copy the example file first:
@@ -115,6 +142,7 @@ Then edit `.env` and add your own values:
 PORT=3000
 HOST=0.0.0.0
 DASHBOARD_TIME_ZONE=Australia/Sydney
+DATA_PROVIDER=foxcloud
 FOXCLOUD_BASE_URL=https://www.foxesscloud.com
 FOXCLOUD_DEMO_MODE=false
 FOXCLOUD_API_KEY=your-real-api-key-here
@@ -129,7 +157,9 @@ DASHBOARD_USERS=Foxtester=choose-a-strong-test-password
 
 Notes:
 
-- `FOXCLOUD_API_KEY` is required for this starter.
+- `DATA_PROVIDER=foxcloud` uses FoxCloud OpenAPI.
+- `DATA_PROVIDER=modbus` uses local Modbus TCP and does not require a FoxCloud API key.
+- `FOXCLOUD_API_KEY` is required only for FoxCloud mode.
 - `FOXCLOUD_DEMO_MODE=true` lets users preview the dashboard with sample data and no API key.
 - `HOST=0.0.0.0` allows other devices on the same home network to open the dashboard.
 - `FOXCLOUD_BASE_URL` defaults to `https://www.foxesscloud.com`.
@@ -138,12 +168,36 @@ Notes:
 - `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` enable basic dashboard login protection for your main account. Set both before exposing the app outside your home network.
 - `DASHBOARD_USERS` is optional and adds extra dashboard-only users. Use comma-separated entries such as `Foxtester=strong-password,Friend2=another-strong-password`.
 
+For local Modbus mode:
+
+```dotenv
+DATA_PROVIDER=modbus
+MODBUS_HOST=replace-with-your-inverter-lan-ip
+MODBUS_PORT=502
+MODBUS_UNIT_ID=1
+MODBUS_TIMEOUT_MS=3000
+MODBUS_SAMPLE_INTERVAL_MS=60000
+MODBUS_DEVICE_ID=local-modbus-inverter
+MODBUS_STATION_NAME=Local Modbus inverter
+MODBUS_INVERTER_MODEL=FoxESS H3 Smart
+MODBUS_READ_ONLY=true
+```
+
+Notes for Modbus mode:
+
+- The dashboard server must be on the same LAN/Wi-Fi as the inverter or datalogger.
+- The app currently implements a read-only FoxESS H3 Smart register map, based on local testing plus community register references.
+- It stores sampled live values and daily totals in SQLite. Historical rows begin from the time you start using Modbus mode unless you import or rebuild history separately.
+- `MODBUS_SAMPLE_INTERVAL_MS=60000` runs a background sampler every minute so the last-24-hours chart keeps filling even when nobody has the browser open.
+- Keep `MODBUS_READ_ONLY=true`. Writing inverter settings is intentionally not enabled in this dashboard yet.
+- You can quickly test connectivity with `nc -zv YOUR_INVERTER_IP 502`.
+
 ## Local setup
 
 1. Install Node.js 20 or newer.
 2. Clone the repository.
 3. Copy `.env.example` to `.env`.
-4. Add your own FoxCloud API key in `.env`.
+4. Add your own FoxCloud API key in `.env`, or set `DATA_PROVIDER=modbus` and add your inverter LAN IP.
 5. Or run `npm run setup` to create `.env` with a guided prompt.
 5. Run:
 
@@ -211,11 +265,13 @@ The main flow is:
 
 1. Browser requests `/api/dashboard`
 2. Express backend reads secrets from environment variables
-3. Backend calls FoxCloud API with signed headers
+3. Backend calls FoxCloud API with signed headers, or reads local Modbus TCP registers if `DATA_PROVIDER=modbus`
 4. Backend returns only safe dashboard data to the browser
 5. Frontend renders cards, charts, and tables
 
-For live/today values, the dashboard can use FoxCloud 5-minute history samples so `PV produced` follows the FoxCloud Analysis day-view formula: self-consumption plus export. For historical rows, use `Rebuild cache` to recalculate the selected range with the same history-based approach.
+For live/today values in FoxCloud mode, the dashboard can use FoxCloud 5-minute history samples so `PV produced` follows the FoxCloud Analysis day-view formula: self-consumption plus export. For historical rows, use `Rebuild cache` to recalculate the selected range with the same history-based approach.
+
+In Modbus mode, the dashboard reads live holding registers directly from the inverter/datalogger. This is faster and avoids API request limits, but register layouts vary by inverter model and firmware, so more models will need community testing before they are marked as supported.
 
 ## FoxCloud API endpoints used
 
@@ -232,6 +288,15 @@ Official references:
 - [Fox ESS Open API documentation](https://www.foxesscloud.com/public/i18n/en/OpenApiDocument.html)
 - [Fox ESS FAQ linking to the API docs](https://us.fox-ess.com/us-faq/)
 
+## Modbus references
+
+The first Modbus implementation is read-only and uses community register mappings as a starting point:
+
+- [nathanmarlor/foxess_modbus](https://github.com/nathanmarlor/foxess_modbus)
+- [H3 Modbus register wiki](https://github-wiki-see.page/m/rsaemann/HA-FoxESS-H3-Modbus/wiki/H3-Modbus-Registers)
+
+Always verify values against your inverter/app before trusting financial or billing calculations.
+
 ## Error handling
 
 The backend handles:
@@ -239,6 +304,7 @@ The backend handles:
 - invalid or missing environment variables
 - network timeouts
 - FoxCloud API errors
+- Modbus connection timeouts or missing `MODBUS_HOST`
 - non-JSON responses
 - empty device lists
 

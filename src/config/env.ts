@@ -28,6 +28,34 @@ const parseTimeout = (value: string | undefined): number => {
   return parsed;
 };
 
+const parsePositiveInteger = (
+  value: string | undefined,
+  fallback: number,
+  envName: string,
+): number => {
+  const parsed = Number(value ?? String(fallback));
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${envName} must be a positive integer.`);
+  }
+
+  return parsed;
+};
+
+const parseNonNegativeInteger = (
+  value: string | undefined,
+  fallback: number,
+  envName: string,
+): number => {
+  const parsed = Number(value ?? String(fallback));
+
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${envName} must be a non-negative integer.`);
+  }
+
+  return parsed;
+};
+
 const parseBaseUrl = (value: string | undefined): string => {
   const baseUrl = value?.trim() || "https://www.foxesscloud.com";
 
@@ -68,12 +96,20 @@ const parseDashboardUsers = (value: string | undefined): DashboardCredential[] =
 const dashboardTimeZone = process.env.DASHBOARD_TIME_ZONE?.trim() || "Australia/Sydney";
 process.env.TZ = dashboardTimeZone;
 
+const dataProvider = (process.env.DATA_PROVIDER?.trim().toLowerCase() || "foxcloud") as
+  | "foxcloud"
+  | "modbus";
 const demoMode = parseBoolean(process.env.FOXCLOUD_DEMO_MODE);
 const apiKey = process.env.FOXCLOUD_API_KEY?.trim();
+const foxCloudDeviceSn = process.env.FOXCLOUD_DEVICE_SN?.trim() || "";
 const dashboardUsername = process.env.DASHBOARD_USERNAME?.trim() || "";
 const dashboardPassword = process.env.DASHBOARD_PASSWORD?.trim() || "";
 
-if (!apiKey && !demoMode) {
+if (!["foxcloud", "modbus"].includes(dataProvider)) {
+  throw new Error("DATA_PROVIDER must be either foxcloud or modbus.");
+}
+
+if (!apiKey && !demoMode && dataProvider === "foxcloud") {
   throw new Error(
     "FOXCLOUD_API_KEY is missing. Add it to your local .env file before starting the server, or set FOXCLOUD_DEMO_MODE=true.",
   );
@@ -98,6 +134,7 @@ export const env = {
   port: parsePort(process.env.PORT),
   host: parseHost(process.env.HOST),
   dashboardTimeZone,
+  dataProvider,
   dashboardAuth: {
     users: dashboardUsers,
     enabled: dashboardUsers.length > 0,
@@ -108,7 +145,40 @@ export const env = {
     baseUrl: parseBaseUrl(process.env.FOXCLOUD_BASE_URL),
     username: process.env.FOXCLOUD_USERNAME?.trim() || "",
     password: process.env.FOXCLOUD_PASSWORD?.trim() || "",
-    deviceSn: process.env.FOXCLOUD_DEVICE_SN?.trim() || "",
+    deviceSn: foxCloudDeviceSn,
     timeoutMs: parseTimeout(process.env.FOXCLOUD_TIMEOUT_MS),
+  },
+  modbus: {
+    host: process.env.MODBUS_HOST?.trim() || "",
+    port: parsePositiveInteger(process.env.MODBUS_PORT, 502, "MODBUS_PORT"),
+    unitId: parsePositiveInteger(process.env.MODBUS_UNIT_ID, 1, "MODBUS_UNIT_ID"),
+    timeoutMs: parsePositiveInteger(process.env.MODBUS_TIMEOUT_MS, 3000, "MODBUS_TIMEOUT_MS"),
+    sampleIntervalMs: parsePositiveInteger(
+      process.env.MODBUS_SAMPLE_INTERVAL_MS,
+      60_000,
+      "MODBUS_SAMPLE_INTERVAL_MS",
+    ),
+    deviceId: process.env.MODBUS_DEVICE_ID?.trim() || foxCloudDeviceSn || "local-modbus-inverter",
+    stationName: process.env.MODBUS_STATION_NAME?.trim() || "Local Modbus inverter",
+    inverterModel: process.env.MODBUS_INVERTER_MODEL?.trim() || "FoxESS H3 Smart",
+    readOnly: !["0", "false", "no", "off"].includes(
+      (process.env.MODBUS_READ_ONLY ?? "true").trim().toLowerCase(),
+    ),
+  },
+  sqliteBackup: {
+    enabled: !["0", "false", "no", "off"].includes(
+      (process.env.SQLITE_BACKUP_ENABLED ?? "true").trim().toLowerCase(),
+    ),
+    dir: process.env.SQLITE_BACKUP_DIR?.trim() || "data/backups",
+    intervalMs: parsePositiveInteger(
+      process.env.SQLITE_BACKUP_INTERVAL_MS,
+      60 * 60 * 1000,
+      "SQLITE_BACKUP_INTERVAL_MS",
+    ),
+    retentionCount: parseNonNegativeInteger(
+      process.env.SQLITE_BACKUP_RETENTION_COUNT,
+      72,
+      "SQLITE_BACKUP_RETENTION_COUNT",
+    ),
   },
 };
