@@ -208,6 +208,14 @@ npm run dev
 
 6. Open [http://localhost:3000](http://localhost:3000)
 
+Do not open the dashboard with credentials embedded in the URL, such as
+`http://username:password@localhost:3000`. Browsers can block `fetch` from pages opened
+this way. Open the URL normally and enter the dashboard login in the browser's Basic
+Auth popup.
+
+When using `npm run dev`, restart the command after editing `.env`; `tsx watch` does
+not reload environment variable changes automatically.
+
 ## Production build
 
 ```bash
@@ -302,11 +310,15 @@ Always verify values against your inverter/app before trusting financial or bill
 The backend handles:
 
 - invalid or missing environment variables
+- invalid `year`, `month`, and `range` request parameters
 - network timeouts
 - FoxCloud API errors
 - Modbus connection timeouts or missing `MODBUS_HOST`
 - non-JSON responses
 - empty device lists
+
+A public lightweight liveness endpoint is available at `/api/livez`. The fuller
+`/api/health` endpoint remains behind dashboard authentication.
 
 If the live FoxCloud request fails and a previous successful response exists, the app serves cached data from `data/cache/dashboard-latest.json` and shows a warning in the UI.
 

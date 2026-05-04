@@ -97,3 +97,13 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - `maintenance/rebuild-cache-progress`
 - `maintenance/troubleshooting-docs`
 
+## Completed Maintenance Notes
+
+- Added a public `/api/livez` liveness endpoint while keeping `/api/health` protected.
+- Added backend validation for dashboard `year`, `month`, and `range` parameters.
+- Added basic request limiting for failed dashboard auth attempts and cache rebuilds.
+- Added security headers with `helmet`.
+- Replaced the most obvious frontend `innerHTML` render paths with DOM APIs.
+- Added CSV formula-injection protection for exports.
+- Left the FoxCloud request signature separator unchanged because available examples conflict; verify with a real FoxCloud request before changing it.
+- Documented browser Basic Auth URL and `.env` reload caveats.

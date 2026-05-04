@@ -166,6 +166,11 @@ http://localhost:3000
 
 You should see a login prompt. Use the dashboard username and password from your `.env`.
 
+Do not put the username and password in the URL, for example
+`http://username:password@localhost:3000`. Some browsers block `fetch` requests from
+pages opened this way. Open `http://localhost:3000` normally and type the login details
+into the browser login popup.
+
 ## 6. Open From Another Device on Your Home Network
 
 When the server starts, it prints LAN URLs such as:
@@ -214,6 +219,7 @@ On the NAS project folder, that is:
 - Never put API keys in frontend/browser code.
 - Use a dashboard password even on your home network.
 - For Internet access, use HTTPS and a reverse proxy. Do not expose port `3000` directly.
+- A public lightweight health check is available at `/api/livez`.
 
 ## 9. How To Give Feedback
 
@@ -241,6 +247,10 @@ Start development mode:
 ```bash
 npm run dev
 ```
+
+If you change `.env` while `npm run dev` is running, stop it with `Ctrl+C` and start it
+again. The development watcher does not automatically reload environment variable
+changes.
 
 Build production files:
 
