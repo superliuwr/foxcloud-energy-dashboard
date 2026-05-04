@@ -17,8 +17,13 @@ RUN npm prune --omit=dev
 
 FROM node:22-bookworm-slim AS runtime
 
+ARG APP_VERSION=0.1.0
+ARG GIT_SHA=unknown
+
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV APP_VERSION=${APP_VERSION}
+ENV GIT_SHA=${GIT_SHA}
 
 WORKDIR /app
 
@@ -35,4 +40,3 @@ USER node
 EXPOSE 3000
 
 CMD ["npm", "start"]
-

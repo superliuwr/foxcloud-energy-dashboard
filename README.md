@@ -385,6 +385,15 @@ For deployment:
 5. run `npm run build`
 6. start with `npm start`
 
+For Docker builds, set optional `APP_VERSION` and `GIT_SHA` environment variables before
+building if you want `/api/health` to show the exact deployed revision.
+
+You can update those non-secret values in `.env` with:
+
+```bash
+npm run metadata
+```
+
 ## First steps if this is your first Codex project
 
 If you are learning step by step, use this sequence:

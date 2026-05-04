@@ -1,6 +1,10 @@
 services:
   foxcloud-dashboard:
-    build: .
+    build:
+      context: .
+      args:
+        APP_VERSION: ${APP_VERSION:-0.1.0}
+        GIT_SHA: ${GIT_SHA:-unknown}
     container_name: foxcloud-dashboard
     restart: unless-stopped
     user: "${CONTAINER_UID:-0}:${CONTAINER_GID:-0}"

@@ -125,3 +125,7 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   without exposing detailed configuration.
 - Added protected `/api/health` operational metadata for version, optional git SHA,
   start time, and uptime.
+- Passed optional Docker build metadata (`APP_VERSION`, `GIT_SHA`) into the runtime
+  image so `/api/health` can identify deployed revisions.
+- Added `npm run metadata` to update non-secret build metadata in `.env` before Docker
+  rebuilds.
