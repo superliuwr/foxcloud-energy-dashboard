@@ -640,7 +640,11 @@ function renderTable(rows) {
 }
 
 function escapeCsvValue(value) {
-  const text = String(value ?? "");
+  let text = String(value ?? "");
+
+  if (/^[=+\-@]/.test(text)) {
+    text = `'${text}`;
+  }
 
   if (/[",\n\r]/.test(text)) {
     return `"${text.replaceAll('"', '""')}"`;

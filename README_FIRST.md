@@ -242,6 +242,10 @@ Start development mode:
 npm run dev
 ```
 
+If you change `.env` while `npm run dev` is running, stop it with `Ctrl+C` and start it
+again. The development watcher does not automatically reload environment variable
+changes.
+
 Build production files:
 
 ```bash

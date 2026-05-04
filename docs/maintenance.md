@@ -97,3 +97,19 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - `maintenance/rebuild-cache-progress`
 - `maintenance/troubleshooting-docs`
 
+## Maintenance Incident Notes
+
+- 2026-05-04: A first attempt to add `helmet` security headers broke the Synology LAN
+  HTTP deployment. The page loaded as unstyled HTML because browser resource loading was
+  affected by the default security header behavior, most likely
+  `upgrade-insecure-requests` on `http://192.168.0.19:3080`.
+- Do not reintroduce `helmet` or a Content Security Policy as a broad change until it has
+  been tested on both local HTTP/LAN access and HTTPS reverse-proxy access.
+- Safer first steps are backend parameter validation, API 404 handling, CSV export
+  hardening, and frontend rendering cleanup without changing response security headers.
+
+## Completed Maintenance Notes
+
+- Added backend validation for dashboard `year`, `month`, and `range` parameters.
+- Returned JSON 404 responses for unknown `/api/*` routes instead of serving the SPA HTML.
+- Added CSV formula-injection protection for exports.

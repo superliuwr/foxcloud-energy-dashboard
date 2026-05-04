@@ -16,6 +16,18 @@ import { startSqliteBackupScheduler } from "./services/sqliteBackup.js";
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");
 const chartJsDir = path.resolve(process.cwd(), "node_modules/chart.js/dist");
+const validRanges = new Set([
+  "current_week",
+  "current_month",
+  "previous_month",
+  "last_2_months",
+  "last_3_months",
+  "last_6_months",
+  "last_12_months",
+  "all",
+]);
+
+class BadRequestError extends Error {}
 
 const safeEqual = (first: string, second: string): boolean => {
   const firstBuffer = Buffer.from(first);
@@ -63,6 +75,36 @@ const requireDashboardAuth = (req: Request, res: Response, next: NextFunction): 
   res.status(401).send("Authentication required.");
 };
 
+const parseYear = (value: unknown, fallback: number): number => {
+  const year = Number(value ?? fallback);
+
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+    throw new BadRequestError("year must be an integer between 2000 and 2100.");
+  }
+
+  return year;
+};
+
+const parseMonth = (value: unknown, fallback: number): number => {
+  const month = Number(value ?? fallback);
+
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    throw new BadRequestError("month must be an integer between 1 and 12.");
+  }
+
+  return month;
+};
+
+const parseRange = (value: unknown): string => {
+  const range = String(value ?? "current_month");
+
+  if (!validRanges.has(range)) {
+    throw new BadRequestError("range must be one of the supported dashboard ranges.");
+  }
+
+  return range;
+};
+
 app.use(express.json());
 app.use(requireDashboardAuth);
 app.use(express.static(publicDir));
@@ -88,8 +130,8 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/dashboard", async (req, res, next) => {
   try {
     const now = new Date();
-    const year = Number(req.query.year ?? now.getFullYear());
-    const month = Number(req.query.month ?? now.getMonth() + 1);
+    const year = parseYear(req.query.year, now.getFullYear());
+    const month = parseMonth(req.query.month, now.getMonth() + 1);
     const payload = await getDashboardData(year, month);
 
     res.json(payload);
@@ -101,9 +143,9 @@ app.get("/api/dashboard", async (req, res, next) => {
 app.get("/api/energy-range", async (req, res, next) => {
   try {
     const now = new Date();
-    const year = Number(req.query.year ?? now.getFullYear());
-    const month = Number(req.query.month ?? now.getMonth() + 1);
-    const range = String(req.query.range ?? "current_month");
+    const year = parseYear(req.query.year, now.getFullYear());
+    const month = parseMonth(req.query.month, now.getMonth() + 1);
+    const range = parseRange(req.query.range);
     const payload = await getEnergyRangeData(range, year, month);
 
     res.json(payload);
@@ -115,9 +157,9 @@ app.get("/api/energy-range", async (req, res, next) => {
 app.post("/api/rebuild-cache", async (req, res, next) => {
   try {
     const now = new Date();
-    const year = Number(req.body?.year ?? now.getFullYear());
-    const month = Number(req.body?.month ?? now.getMonth() + 1);
-    const range = String(req.body?.range ?? "current_month");
+    const year = parseYear(req.body?.year, now.getFullYear());
+    const month = parseMonth(req.body?.month, now.getMonth() + 1);
+    const range = parseRange(req.body?.range);
     const payload = await rebuildEnergyRangeCache(range, year, month);
 
     res.json(payload);
@@ -126,7 +168,12 @@ app.post("/api/rebuild-cache", async (req, res, next) => {
   }
 });
 
-app.use((_req, res) => {
+app.use((req, res) => {
+  if (req.path.startsWith("/api/")) {
+    res.status(404).json({ error: "API endpoint not found." });
+    return;
+  }
+
   res.sendFile(path.join(publicDir, "index.html"));
 });
 
@@ -135,6 +182,13 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
     res.status(error.statusCode).json({
       error: error.message,
       errno: error.errno ?? null,
+    });
+    return;
+  }
+
+  if (error instanceof BadRequestError) {
+    res.status(400).json({
+      error: error.message,
     });
     return;
   }

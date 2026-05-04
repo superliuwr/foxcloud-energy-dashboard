@@ -208,6 +208,9 @@ npm run dev
 
 6. Open [http://localhost:3000](http://localhost:3000)
 
+When using `npm run dev`, restart the command after editing `.env`; `tsx watch` does
+not reload environment variable changes automatically.
+
 ## Production build
 
 ```bash
@@ -302,6 +305,7 @@ Always verify values against your inverter/app before trusting financial or bill
 The backend handles:
 
 - invalid or missing environment variables
+- invalid `year`, `month`, and `range` request parameters
 - network timeouts
 - FoxCloud API errors
 - Modbus connection timeouts or missing `MODBUS_HOST`
