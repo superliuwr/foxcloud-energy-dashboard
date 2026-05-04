@@ -123,3 +123,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   fallbacks.
 - Added public lightweight `/api/livez` for reverse-proxy or container liveness checks
   without exposing detailed configuration.
+- Added protected `/api/health` operational metadata for version, optional git SHA,
+  start time, and uptime.

@@ -159,7 +159,7 @@ data/backups/
 /api/livez
 ```
 
-它只返回 `ok` 和时间戳。更完整的 `/api/health` 仍然需要仪表盘登录。
+它只返回 `ok` 和时间戳。更完整的 `/api/health` 仍然需要仪表盘登录，并会显示版本号、可选 git SHA、启动时间和运行时长。
 
 ## Docker / Synology 简要说明
 

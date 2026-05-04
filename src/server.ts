@@ -17,6 +17,17 @@ import { startSqliteBackupScheduler } from "./services/sqliteBackup.js";
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");
 const chartJsDir = path.resolve(process.cwd(), "node_modules/chart.js/dist");
+const startedAt = new Date();
+
+const getAppVersion = (): string => {
+  return process.env.APP_VERSION?.trim() || process.env.npm_package_version || "0.1.0";
+};
+
+const getGitSha = (): string | null => {
+  const gitSha = process.env.GIT_SHA?.trim();
+
+  return gitSha || null;
+};
 
 const safeEqual = (first: string, second: string): boolean => {
   const firstBuffer = Buffer.from(first);
@@ -81,6 +92,10 @@ app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
     timestamp: new Date().toISOString(),
+    version: getAppVersion(),
+    gitSha: getGitSha(),
+    startedAt: startedAt.toISOString(),
+    uptimeSeconds: Math.round(process.uptime()),
     dataProvider: env.dataProvider,
     baseUrl: env.foxCloud.baseUrl,
     dashboardTimeZone: env.dashboardTimeZone,

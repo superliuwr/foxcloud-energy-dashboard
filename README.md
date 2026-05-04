@@ -317,7 +317,9 @@ The backend handles:
 - empty device lists
 
 A public lightweight liveness endpoint is available at `/api/livez`. It only returns
-`ok` and a timestamp. The fuller `/api/health` endpoint remains behind dashboard login.
+`ok` and a timestamp. The fuller `/api/health` endpoint remains behind dashboard login
+and includes operational metadata such as app version, optional git SHA, start time, and
+uptime.
 
 If the live FoxCloud request fails and a previous successful response exists, the app serves cached data from `data/cache/dashboard-latest.json` and shows a warning in the UI.
 
