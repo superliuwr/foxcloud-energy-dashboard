@@ -1,6 +1,4 @@
 import express, { type NextFunction, type Request, type Response } from "express";
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
 import { timingSafeEqual } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
@@ -18,25 +16,6 @@ import { startSqliteBackupScheduler } from "./services/sqliteBackup.js";
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");
 const chartJsDir = path.resolve(process.cwd(), "node_modules/chart.js/dist");
-const validRanges = new Set([
-  "current_week",
-  "current_month",
-  "previous_month",
-  "last_2_months",
-  "last_3_months",
-  "last_6_months",
-  "last_12_months",
-  "all",
-]);
-
-class HttpError extends Error {
-  constructor(
-    public readonly statusCode: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
 
 const safeEqual = (first: string, second: string): boolean => {
   const firstBuffer = Buffer.from(first);
@@ -84,82 +63,8 @@ const requireDashboardAuth = (req: Request, res: Response, next: NextFunction): 
   res.status(401).send("Authentication required.");
 };
 
-const parseYear = (value: unknown, fallback: number): number => {
-  const rawValue = value ?? fallback;
-  const year = Number(rawValue);
-
-  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
-    throw new HttpError(400, "year must be an integer between 2000 and 2100.");
-  }
-
-  return year;
-};
-
-const parseMonth = (value: unknown, fallback: number): number => {
-  const rawValue = value ?? fallback;
-  const month = Number(rawValue);
-
-  if (!Number.isInteger(month) || month < 1 || month > 12) {
-    throw new HttpError(400, "month must be an integer between 1 and 12.");
-  }
-
-  return month;
-};
-
-const parseRange = (value: unknown, fallback = "current_month"): string => {
-  const range = String(value ?? fallback);
-
-  if (!validRanges.has(range)) {
-    throw new HttpError(400, "range must be one of the supported dashboard ranges.");
-  }
-
-  return range;
-};
-
-const authLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: true,
-  message: "Too many failed login attempts. Please wait a minute and try again.",
-});
-
-const rebuildCacheLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    error: "Too many rebuild requests. Please wait a minute and try again.",
-  },
-});
-
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'"],
-        imgSrc: ["'self'", "data:"],
-        connectSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
-      },
-    },
-  }),
-);
 app.use(express.json());
-
-app.get("/api/livez", (_req, res) => {
-  res.json({
-    ok: true,
-    timestamp: new Date().toISOString(),
-  });
-});
-
-app.use(authLimiter, requireDashboardAuth);
+app.use(requireDashboardAuth);
 app.use(express.static(publicDir));
 app.use("/vendor/chartjs", express.static(chartJsDir));
 
@@ -183,8 +88,8 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/dashboard", async (req, res, next) => {
   try {
     const now = new Date();
-    const year = parseYear(req.query.year, now.getFullYear());
-    const month = parseMonth(req.query.month, now.getMonth() + 1);
+    const year = Number(req.query.year ?? now.getFullYear());
+    const month = Number(req.query.month ?? now.getMonth() + 1);
     const payload = await getDashboardData(year, month);
 
     res.json(payload);
@@ -196,9 +101,9 @@ app.get("/api/dashboard", async (req, res, next) => {
 app.get("/api/energy-range", async (req, res, next) => {
   try {
     const now = new Date();
-    const year = parseYear(req.query.year, now.getFullYear());
-    const month = parseMonth(req.query.month, now.getMonth() + 1);
-    const range = parseRange(req.query.range);
+    const year = Number(req.query.year ?? now.getFullYear());
+    const month = Number(req.query.month ?? now.getMonth() + 1);
+    const range = String(req.query.range ?? "current_month");
     const payload = await getEnergyRangeData(range, year, month);
 
     res.json(payload);
@@ -207,12 +112,12 @@ app.get("/api/energy-range", async (req, res, next) => {
   }
 });
 
-app.post("/api/rebuild-cache", rebuildCacheLimiter, async (req, res, next) => {
+app.post("/api/rebuild-cache", async (req, res, next) => {
   try {
     const now = new Date();
-    const year = parseYear(req.body?.year, now.getFullYear());
-    const month = parseMonth(req.body?.month, now.getMonth() + 1);
-    const range = parseRange(req.body?.range);
+    const year = Number(req.body?.year ?? now.getFullYear());
+    const month = Number(req.body?.month ?? now.getMonth() + 1);
+    const range = String(req.body?.range ?? "current_month");
     const payload = await rebuildEnergyRangeCache(range, year, month);
 
     res.json(payload);
@@ -221,12 +126,7 @@ app.post("/api/rebuild-cache", rebuildCacheLimiter, async (req, res, next) => {
   }
 });
 
-app.use((req, res) => {
-  if (req.path.startsWith("/api/")) {
-    res.status(404).json({ error: "API endpoint not found." });
-    return;
-  }
-
+app.use((_req, res) => {
   res.sendFile(path.join(publicDir, "index.html"));
 });
 
@@ -235,13 +135,6 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
     res.status(error.statusCode).json({
       error: error.message,
       errno: error.errno ?? null,
-    });
-    return;
-  }
-
-  if (error instanceof HttpError) {
-    res.status(error.statusCode).json({
-      error: error.message,
     });
     return;
   }

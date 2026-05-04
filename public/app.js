@@ -540,18 +540,8 @@ function applyLanguage() {
   }
 }
 
-function getBadgeTone(tone) {
-  const allowedTones = new Set(["online", "offline", "warning", "battery", "solar", "neutral", "live"]);
-
-  return allowedTones.has(tone) ? tone : "neutral";
-}
-
 function buildBadge(label, tone) {
-  const badge = document.createElement("span");
-  badge.classList.add("badge", `badge-${getBadgeTone(tone)}`);
-  badge.textContent = label;
-
-  return badge;
+  return `<span class="badge badge-${tone}">${label}</span>`;
 }
 
 function renderBadges(payload) {
@@ -572,24 +562,18 @@ function renderBadges(payload) {
     buildBadge(dataBadgeLabel, dataBadgeTone),
   ];
 
-  textFields.badgeRow.replaceChildren(...badges);
+  textFields.badgeRow.innerHTML = badges.join("");
 }
 
 function renderWarnings(warnings) {
   if (!warnings || warnings.length === 0) {
     warningBox.classList.add("hidden");
-    warningBox.replaceChildren();
+    warningBox.innerHTML = "";
     return;
   }
 
   warningBox.classList.remove("hidden");
-  warningBox.replaceChildren(
-    ...warnings.map((item) => {
-      const warning = document.createElement("p");
-      warning.textContent = item;
-      return warning;
-    }),
-  );
+  warningBox.innerHTML = warnings.map((item) => `<p>${item}</p>`).join("");
 }
 
 function getMaxValues(rows) {
@@ -636,51 +620,27 @@ function renderTable(rows) {
   const sortedRows = sortRows(rows);
   const valueClass = (key, value) => (Number(value) === maxValues[key] && Number(value) > 0 ? "table-max" : "");
 
-  const tableRows = sortedRows.map((row) => {
-    const tableRow = document.createElement("tr");
-    const cells = [
-      { value: row.date },
-      { key: "pv_production", value: formatKwh(row.pv_production), rawValue: row.pv_production },
-      { key: "self_consumption", value: formatKwh(row.self_consumption), rawValue: row.self_consumption },
-      { key: "daily_feedin", value: formatKwh(row.daily_feedin), rawValue: row.daily_feedin },
-      { key: "home_usage", value: formatKwh(row.home_usage), rawValue: row.home_usage },
-      { key: "grid_consumption", value: formatKwh(row.grid_consumption), rawValue: row.grid_consumption },
-      {
-        key: "daily_charged_energy_total",
-        value: formatKwh(row.daily_charged_energy_total),
-        rawValue: row.daily_charged_energy_total,
-      },
-      {
-        key: "daily_discharged_energy_total",
-        value: formatKwh(row.daily_discharged_energy_total),
-        rawValue: row.daily_discharged_energy_total,
-      },
-    ];
-
-    cells.forEach((cell) => {
-      const tableCell = document.createElement("td");
-
-      if (cell.key) {
-        tableCell.className = valueClass(cell.key, cell.rawValue);
-      }
-
-      tableCell.textContent = cell.value;
-      tableRow.append(tableCell);
-    });
-
-    return tableRow;
-  });
-
-  dailyTableBody.replaceChildren(...tableRows);
+  dailyTableBody.innerHTML = sortedRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${row.date}</td>
+          <td class="${valueClass("pv_production", row.pv_production)}">${formatKwh(row.pv_production)}</td>
+          <td class="${valueClass("self_consumption", row.self_consumption)}">${formatKwh(row.self_consumption)}</td>
+          <td class="${valueClass("daily_feedin", row.daily_feedin)}">${formatKwh(row.daily_feedin)}</td>
+          <td class="${valueClass("home_usage", row.home_usage)}">${formatKwh(row.home_usage)}</td>
+          <td class="${valueClass("grid_consumption", row.grid_consumption)}">${formatKwh(row.grid_consumption)}</td>
+          <td class="${valueClass("daily_charged_energy_total", row.daily_charged_energy_total)}">${formatKwh(row.daily_charged_energy_total)}</td>
+          <td class="${valueClass("daily_discharged_energy_total", row.daily_discharged_energy_total)}">${formatKwh(row.daily_discharged_energy_total)}</td>
+        </tr>
+      `,
+    )
+    .join("");
   renderSortButtons();
 }
 
 function escapeCsvValue(value) {
-  let text = String(value ?? "");
-
-  if (/^[=+\-@]/.test(text)) {
-    text = `'${text}`;
-  }
+  const text = String(value ?? "");
 
   if (/[",\n\r]/.test(text)) {
     return `"${text.replaceAll('"', '""')}"`;
