@@ -214,6 +214,7 @@ On the NAS project folder, that is:
 - Never put API keys in frontend/browser code.
 - Use a dashboard password even on your home network.
 - For Internet access, use HTTPS and a reverse proxy. Do not expose port `3000` directly.
+- A public lightweight liveness endpoint is available at `/api/livez`.
 
 ## 9. How To Give Feedback
 

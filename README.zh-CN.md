@@ -151,6 +151,16 @@ data/foxcloud-dashboard.sqlite
 data/backups/
 ```
 
+## 健康检查
+
+公开的轻量探活接口：
+
+```text
+/api/livez
+```
+
+它只返回 `ok` 和时间戳。更完整的 `/api/health` 仍然需要仪表盘登录。
+
 ## Docker / Synology 简要说明
 
 Synology 推荐使用 Container Manager / Docker 部署。项目目录中已有：

@@ -121,3 +121,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - Extracted request parameter validation into a tested helper module.
 - Persisted each browser's selected language and table range in local storage with safe
   fallbacks.
+- Added public lightweight `/api/livez` for reverse-proxy or container liveness checks
+  without exposing detailed configuration.

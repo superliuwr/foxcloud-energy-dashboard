@@ -65,6 +65,14 @@ const requireDashboardAuth = (req: Request, res: Response, next: NextFunction): 
 };
 
 app.use(express.json());
+
+app.get("/api/livez", (_req, res) => {
+  res.json({
+    ok: true,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use(requireDashboardAuth);
 app.use(express.static(publicDir));
 app.use("/vendor/chartjs", express.static(chartJsDir));

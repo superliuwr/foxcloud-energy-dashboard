@@ -316,6 +316,9 @@ The backend handles:
 - non-JSON responses
 - empty device lists
 
+A public lightweight liveness endpoint is available at `/api/livez`. It only returns
+`ok` and a timestamp. The fuller `/api/health` endpoint remains behind dashboard login.
+
 If the live FoxCloud request fails and a previous successful response exists, the app serves cached data from `data/cache/dashboard-latest.json` and shows a warning in the UI.
 
 ## Historical data strategy
