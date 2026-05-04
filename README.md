@@ -12,6 +12,8 @@ Chinese users can also read [README.zh-CN.md](README.zh-CN.md).
 
 Recent project changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
+The dashboard remembers each browser's selected language and table range locally.
+
 ![Dashboard demo preview](docs/demo-preview.svg)
 
 ## Why this stack

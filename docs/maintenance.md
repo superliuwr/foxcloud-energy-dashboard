@@ -119,3 +119,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   table with DOM APIs and `textContent`.
 - Added `README.zh-CN.md` and linked it from the English README.
 - Extracted request parameter validation into a tested helper module.
+- Persisted each browser's selected language and table range in local storage with safe
+  fallbacks.

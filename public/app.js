@@ -9,6 +9,10 @@ const tableRangeSelect = document.getElementById("tableRangeSelect");
 const periodRangeSelect = document.getElementById("periodRangeSelect");
 const warningBox = document.getElementById("warningBox");
 const dailyTableBody = document.getElementById("dailyTableBody");
+const storageKeys = {
+  language: "foxcloud-dashboard-language",
+  tableRange: "foxcloud-dashboard-table-range",
+};
 
 const metricFields = {
   solarNow: document.getElementById("solarNow"),
@@ -76,9 +80,32 @@ let sortState = {
   key: "date",
   direction: "desc",
 };
-let currentLanguage = localStorage.getItem("foxcloud-dashboard-language") || "en";
 let lastPayload = null;
 let lastRangePayload = null;
+
+function getSelectValues(selectElement) {
+  return new Set(Array.from(selectElement.options).map((option) => option.value));
+}
+
+function getStoredSelectValue(key, selectElement, fallback) {
+  try {
+    const storedValue = localStorage.getItem(key);
+
+    return storedValue && getSelectValues(selectElement).has(storedValue) ? storedValue : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function setStoredValue(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Some browsers disable localStorage in private or restricted modes.
+  }
+}
+
+let currentLanguage = getStoredSelectValue(storageKeys.language, languageSelect, "en");
 
 const translations = {
   en: {
@@ -1389,12 +1416,22 @@ function setDefaultMonth() {
   monthPicker.value = `${now.getFullYear()}-${month}`;
 }
 
+function applyStoredPreferences() {
+  tableRangeSelect.value = getStoredSelectValue(
+    storageKeys.tableRange,
+    tableRangeSelect,
+    tableRangeSelect.value,
+  );
+  periodRangeSelect.value = tableRangeSelect.value;
+}
+
 refreshButton.addEventListener("click", loadDashboard);
 rebuildCacheButton.addEventListener("click", rebuildSelectedCache);
 exportPdfButton.addEventListener("click", exportDashboardToPdf);
 exportCsvButton.addEventListener("click", exportTableToCsv);
 monthPicker.addEventListener("change", loadDashboard);
 tableRangeSelect.addEventListener("change", () => {
+  setStoredValue(storageKeys.tableRange, tableRangeSelect.value);
   loadEnergyRange().catch((error) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     statusText.textContent = `${t("unableToLoad")}: ${message}`;
@@ -1403,6 +1440,7 @@ tableRangeSelect.addEventListener("change", () => {
 });
 periodRangeSelect.addEventListener("change", () => {
   tableRangeSelect.value = periodRangeSelect.value;
+  setStoredValue(storageKeys.tableRange, tableRangeSelect.value);
   loadEnergyRange().catch((error) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     statusText.textContent = `${t("unableToLoad")}: ${message}`;
@@ -1411,7 +1449,7 @@ periodRangeSelect.addEventListener("change", () => {
 });
 languageSelect.addEventListener("change", () => {
   currentLanguage = languageSelect.value;
-  localStorage.setItem("foxcloud-dashboard-language", currentLanguage);
+  setStoredValue(storageKeys.language, currentLanguage);
   applyLanguage();
 
   if (lastPayload) {
@@ -1445,5 +1483,6 @@ document.querySelectorAll(".sort-button").forEach((button) => {
 });
 
 setDefaultMonth();
+applyStoredPreferences();
 applyLanguage();
 loadDashboard();
