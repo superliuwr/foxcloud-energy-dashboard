@@ -8,6 +8,8 @@ This project is designed so other FoxCloud users can clone it, add their own cre
 
 New users should start with [README_FIRST.md](README_FIRST.md).
 
+Chinese users can also read [README.zh-CN.md](README.zh-CN.md).
+
 Recent project changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ![Dashboard demo preview](docs/demo-preview.svg)

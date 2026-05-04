@@ -113,3 +113,6 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - Added backend validation for dashboard `year`, `month`, and `range` parameters.
 - Returned JSON 404 responses for unknown `/api/*` routes instead of serving the SPA HTML.
 - Added CSV formula-injection protection for exports.
+- Replaced remaining frontend `innerHTML` rendering in badges, warnings, and the daily
+  table with DOM APIs and `textContent`.
+- Added `README.zh-CN.md` and linked it from the English README.
