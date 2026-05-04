@@ -12,7 +12,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json",
     "start": "node dist/server.js",
-    "check": "node ./node_modules/typescript/lib/tsc.js --noEmit -p tsconfig.json"
+    "check": "node ./node_modules/typescript/lib/tsc.js --noEmit -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^12.9.0",

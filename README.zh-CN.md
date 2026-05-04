@@ -167,6 +167,7 @@ Synology 推荐使用 Container Manager / Docker 部署。项目目录中已有�
 
 ```bash
 npm run check
+npm test
 npm run build
 npm start
 ```

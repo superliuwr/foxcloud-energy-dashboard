@@ -5,6 +5,7 @@ import path from "node:path";
 
 import { env } from "./config/env.js";
 import { FoxCloudApiError } from "./lib/foxcloudClient.js";
+import { BadRequestError, parseMonth, parseRange, parseYear } from "./lib/requestParams.js";
 import {
   getDashboardData,
   getEnergyRangeData,
@@ -16,18 +17,6 @@ import { startSqliteBackupScheduler } from "./services/sqliteBackup.js";
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");
 const chartJsDir = path.resolve(process.cwd(), "node_modules/chart.js/dist");
-const validRanges = new Set([
-  "current_week",
-  "current_month",
-  "previous_month",
-  "last_2_months",
-  "last_3_months",
-  "last_6_months",
-  "last_12_months",
-  "all",
-]);
-
-class BadRequestError extends Error {}
 
 const safeEqual = (first: string, second: string): boolean => {
   const firstBuffer = Buffer.from(first);
@@ -73,36 +62,6 @@ const requireDashboardAuth = (req: Request, res: Response, next: NextFunction): 
 
   res.setHeader("WWW-Authenticate", 'Basic realm="FoxCloud Dashboard"');
   res.status(401).send("Authentication required.");
-};
-
-const parseYear = (value: unknown, fallback: number): number => {
-  const year = Number(value ?? fallback);
-
-  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
-    throw new BadRequestError("year must be an integer between 2000 and 2100.");
-  }
-
-  return year;
-};
-
-const parseMonth = (value: unknown, fallback: number): number => {
-  const month = Number(value ?? fallback);
-
-  if (!Number.isInteger(month) || month < 1 || month > 12) {
-    throw new BadRequestError("month must be an integer between 1 and 12.");
-  }
-
-  return month;
-};
-
-const parseRange = (value: unknown): string => {
-  const range = String(value ?? "current_month");
-
-  if (!validRanges.has(range)) {
-    throw new BadRequestError("range must be one of the supported dashboard ranges.");
-  }
-
-  return range;
 };
 
 app.use(express.json());

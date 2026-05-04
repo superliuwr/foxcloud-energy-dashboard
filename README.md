@@ -373,8 +373,10 @@ For deployment:
 
 1. set the same environment variables in your hosting provider
 2. run `npm install`
-3. run `npm run build`
-4. start with `npm start`
+3. run `npm run check`
+4. run `npm test`
+5. run `npm run build`
+6. start with `npm start`
 
 ## First steps if this is your first Codex project
 

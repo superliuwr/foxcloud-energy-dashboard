@@ -34,6 +34,7 @@ Run these before and after maintenance changes:
 
 ```bash
 npm run check
+npm test
 npm run build
 npm audit --audit-level=moderate
 ```
@@ -41,6 +42,7 @@ npm audit --audit-level=moderate
 Current baseline at stream creation:
 
 - `npm run check`: passing
+- `npm test`: passing
 - `npm run build`: passing
 - `npm audit --audit-level=moderate`: 0 vulnerabilities
 
@@ -52,7 +54,7 @@ Current baseline at stream creation:
 - `rebuild-cache` can make many FoxCloud API calls and needs better progress, rate-limit handling, and user feedback.
 - `range`, `year`, and `month` request parameters need stricter validation and clearer errors.
 - PDF export is intentionally simple and does not include rendered charts.
-- There are no real unit tests yet; TypeScript build/check is the only automated verification.
+- Request parameter parsing has unit tests. More tests are still needed for energy calculations, Modbus decoding, and export helpers.
 
 ## FoxCloud API Integration Notes
 
@@ -116,3 +118,4 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - Replaced remaining frontend `innerHTML` rendering in badges, warnings, and the daily
   table with DOM APIs and `textContent`.
 - Added `README.zh-CN.md` and linked it from the English README.
+- Extracted request parameter validation into a tested helper module.

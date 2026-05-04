@@ -264,6 +264,12 @@ Check TypeScript:
 npm run check
 ```
 
+Run tests:
+
+```bash
+npm test
+```
+
 Run setup again:
 
 ```bash
