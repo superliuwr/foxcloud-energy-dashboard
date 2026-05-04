@@ -6,6 +6,8 @@
 
 网页会在当前浏览器本地记住你选择的语言和表格范围。
 
+如果遇到问题，请先看 [Troubleshooting Guide](docs/troubleshooting.md)。
+
 ## 重要安全提醒
 
 - 不要把真实 API key、FoxCloud 密码、GitHub 密码、逆变器完整序列号提交到 GitHub。

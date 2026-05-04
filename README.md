@@ -14,6 +14,8 @@ Recent project changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 The dashboard remembers each browser's selected language and table range locally.
 
+If something does not work, use the [Troubleshooting Guide](docs/troubleshooting.md).
+
 ![Dashboard demo preview](docs/demo-preview.svg)
 
 ## Why this stack
