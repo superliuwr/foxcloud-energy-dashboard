@@ -703,17 +703,7 @@ function renderTable(rows) {
 }
 
 function escapeCsvValue(value) {
-  let text = String(value ?? "");
-
-  if (/^[=+\-@]/.test(text)) {
-    text = `'${text}`;
-  }
-
-  if (/[",\n\r]/.test(text)) {
-    return `"${text.replaceAll('"', '""')}"`;
-  }
-
-  return text;
+  return window.FoxCloudCsv.escapeCsvValue(value);
 }
 
 function downloadBlob(content, filename, type) {

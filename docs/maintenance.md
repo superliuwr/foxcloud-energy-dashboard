@@ -131,3 +131,4 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   rebuilds.
 - Added `docs/troubleshooting.md` with checks for local installs, Synology, Docker,
   reverse proxy, Modbus, FoxCloud, SQLite, and safe GitHub issue reports.
+- Added tests for the browser CSV export escaping helper.

@@ -7,6 +7,7 @@
 - Added a maintenance stream branch and maintenance documentation for small, reviewable fixes.
 - Added `README.zh-CN.md` and linked it from the English README.
 - Added `npm test` using Node's built-in test runner for request parameter parsing.
+- Added test coverage for browser CSV export escaping.
 - Added a public lightweight `/api/livez` endpoint for reverse proxy and container liveness checks.
 - Added protected `/api/health` metadata for app version, optional git SHA, server start time, and uptime.
 - Added optional Docker build metadata (`APP_VERSION`, `GIT_SHA`) and `npm run metadata` to update non-secret deployment metadata.
