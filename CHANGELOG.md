@@ -11,12 +11,15 @@
 - Added shared Modbus register decoding helpers for signed, unsigned, and scaled register values.
 - Added tests for Modbus 16-bit/32-bit decoding, low-word-first ordering, missing registers, scaling, and signed negative values.
 - Added a FoxCloud request-signing helper and regression test for the literal `\\r\\n` signature separator format.
+- Added shared date-range helpers for dashboard table ranges and month list generation.
+- Added tests for current week, current month, previous month, multi-month, all-data, leap-year, and inclusive month-list behavior.
 
 ### Changed
 
 - FoxCloud last-hour totals and Modbus last-hour totals now use the same tested integration helper to reduce calculation drift.
 - Modbus dashboard register reads now use the shared decoding helper, preparing the codebase for profile-based register maps.
 - FoxCloud request signing now routes through a named helper so the separator format is explicit and tested.
+- FoxCloud and Modbus dashboard services now share common date/month utility functions instead of carrying duplicate range logic.
 
 ## 2026-05-05
 

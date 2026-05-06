@@ -144,3 +144,6 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - Extracted FoxCloud request signing into `createFoxCloudSignature()` and added a
   regression test documenting the literal `\\r\\n` separator format used by working
   FoxCloud examples.
+- Extracted shared date/month range helpers into `src/lib/dateRanges.ts` and added
+  tests for week, month, previous-month, multi-month, all-data, leap-year, and
+  inclusive month-list behavior.

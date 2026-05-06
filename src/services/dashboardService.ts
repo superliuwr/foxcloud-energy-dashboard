@@ -1,4 +1,13 @@
 import { env } from "../config/env.js";
+import {
+  buildMonthList,
+  daysInMonth,
+  formatDateKey,
+  fromMonthIndex,
+  getCurrentWeekBounds,
+  getLocalDateKey,
+  toMonthIndex,
+} from "../lib/dateRanges.js";
 import { integratePowerSamples } from "../lib/energyMath.js";
 import { FoxCloudApiError, FoxCloudClient } from "../lib/foxcloudClient.js";
 import type {
@@ -95,21 +104,6 @@ const toStatus = (status: 1 | 2 | 3): "online" | "fault" | "offline" => {
 const isValidYearMonth = (year: number, month: number): boolean =>
   Number.isInteger(year) && Number.isInteger(month) && year >= 2020 && month >= 1 && month <= 12;
 
-const daysInMonth = (year: number, month: number): number => new Date(year, month, 0).getDate();
-
-const formatDateKey = (year: number, month: number, day: number): string =>
-  `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-
-const formatDate = (date: Date): string =>
-  formatDateKey(date.getFullYear(), date.getMonth() + 1, date.getDate());
-
-const toMonthIndex = (year: number, month: number): number => year * 12 + month - 1;
-
-const fromMonthIndex = (monthIndex: number): { year: number; month: number } => ({
-  year: Math.floor(monthIndex / 12),
-  month: (monthIndex % 12) + 1,
-});
-
 const getRealtimeValue = (data: FoxCloudRealtimeDataPoint[], variable: string): number | null => {
   const match = data.find((item) => item.variable === variable);
   return typeof match?.value === "number" ? match.value : null;
@@ -175,23 +169,6 @@ const parseHistoryTime = (rawTime: string): number => {
     Number(minute),
     Number(second),
   ).getTime();
-};
-
-const getLocalDateKey = (date: Date): string =>
-  formatDateKey(date.getFullYear(), date.getMonth() + 1, date.getDate());
-
-const getCurrentWeekBounds = (): { startDate: string; endDate: string } => {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dayOfWeek = start.getDay();
-  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-  start.setDate(start.getDate() - daysSinceMonday);
-
-  return {
-    startDate: formatDate(start),
-    endDate: formatDate(now),
-  };
 };
 
 const filterRowsByDateRange = (
@@ -686,22 +663,6 @@ const getRangeEndMonth = (range: string, anchorYear: number, anchorMonth: number
   }
 
   return { year: anchorYear, month: anchorMonth };
-};
-
-const buildMonthList = (
-  start: { year: number; month: number },
-  end: { year: number; month: number },
-): Array<{ year: number; month: number }> => {
-  const startIndex = toMonthIndex(start.year, start.month);
-  const endIndex = toMonthIndex(end.year, end.month);
-
-  if (startIndex > endIndex) {
-    return [end];
-  }
-
-  return Array.from({ length: endIndex - startIndex + 1 }, (_, index) =>
-    fromMonthIndex(startIndex + index),
-  );
 };
 
 function applyCurrentDayHistoryOverride(

@@ -1,6 +1,15 @@
 import { createRequire } from "node:module";
 
 import { env } from "../config/env.js";
+import {
+  formatDateKey,
+  fromMonthIndex,
+  getLocalDateKey,
+  getMonthCountForDateRange,
+  getRangeEndDate,
+  getRangeStartDate,
+  toMonthIndex,
+} from "../lib/dateRanges.js";
 import { integratePowerSamples } from "../lib/energyMath.js";
 import { FoxCloudClient } from "../lib/foxcloudClient.js";
 import {
@@ -54,21 +63,6 @@ const round = (value: number | null | undefined, decimals = 2): number => {
   const normalized = Number(value ?? 0);
   return Number(normalized.toFixed(decimals));
 };
-
-const formatDateKey = (year: number, month: number, day: number): string =>
-  `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-
-const getLocalDateKey = (date: Date): string =>
-  formatDateKey(date.getFullYear(), date.getMonth() + 1, date.getDate());
-
-const daysInMonth = (year: number, month: number): number => new Date(year, month, 0).getDate();
-
-const toMonthIndex = (year: number, month: number): number => year * 12 + month - 1;
-
-const fromMonthIndex = (monthIndex: number): { year: number; month: number } => ({
-  year: Math.floor(monthIndex / 12),
-  month: (monthIndex % 12) + 1,
-});
 
 const isValidYearMonth = (year: number, month: number): boolean =>
   Number.isInteger(year) && Number.isInteger(month) && year >= 2020 && month >= 1 && month <= 12;
@@ -638,49 +632,6 @@ export async function getModbusDashboardData(year: number, month: number): Promi
   };
 }
 
-const getRangeStartDate = (range: string, year: number, month: number): string => {
-  const now = new Date();
-  const anchor = toMonthIndex(year, month);
-
-  if (range === "current_week") {
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const dayOfWeek = start.getDay();
-    start.setDate(start.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-    return getLocalDateKey(start);
-  }
-
-  if (range === "previous_month") {
-    const previous = fromMonthIndex(anchor - 1);
-    return formatDateKey(previous.year, previous.month, 1);
-  }
-
-  const monthCounts: Record<string, number> = {
-    current_month: 1,
-    last_2_months: 2,
-    last_3_months: 3,
-    last_6_months: 6,
-    last_12_months: 12,
-    all: 120,
-  };
-  const start = fromMonthIndex(anchor - (monthCounts[range] ?? 1) + 1);
-
-  return formatDateKey(start.year, start.month, 1);
-};
-
-const getRangeEndDate = (range: string, year: number, month: number): string => {
-  if (range === "previous_month") {
-    const previous = fromMonthIndex(toMonthIndex(year, month) - 1);
-    return formatDateKey(previous.year, previous.month, daysInMonth(previous.year, previous.month));
-  }
-
-  return getLocalDateKey(new Date());
-};
-
-const getMonthCountForRange = (startDate: string, year: number, month: number): number => {
-  const [startYear, startMonth] = startDate.split("-").map(Number);
-  return Math.max(1, toMonthIndex(year, month) - toMonthIndex(startYear, startMonth) + 1);
-};
-
 export async function getModbusEnergyRangeData(
   range: string,
   year: number,
@@ -704,7 +655,7 @@ export async function getModbusEnergyRangeData(
     generatedAt: new Date().toISOString(),
     range,
     requestedPeriod: dashboard.requestedPeriod,
-    monthCount: getMonthCountForRange(startDate, year, month),
+    monthCount: getMonthCountForDateRange(startDate, year, month),
     dailyTable: rows,
     totals: buildTotals(rows),
   };
