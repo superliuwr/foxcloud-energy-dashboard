@@ -34,6 +34,16 @@ const delay = (durationMs: number): Promise<void> =>
     setTimeout(resolve, durationMs);
   });
 
+export const createFoxCloudSignature = (
+  path: string,
+  apiKey: string,
+  timestamp: string,
+): string =>
+  createHash("md5")
+    // FoxCloud community examples use literal backslash-r/backslash-n separators.
+    .update(`${path}\\r\\n${apiKey}\\r\\n${timestamp}`)
+    .digest("hex");
+
 export class FoxCloudApiError extends Error {
   constructor(
     message: string,
@@ -115,9 +125,7 @@ export class FoxCloudClient {
 
   private buildHeaders(path: string): Record<string, string> {
     const timestamp = Date.now().toString();
-    const signature = createHash("md5")
-      .update(`${path}\\r\\n${this.options.apiKey}\\r\\n${timestamp}`)
-      .digest("hex");
+    const signature = createFoxCloudSignature(path, this.options.apiKey, timestamp);
 
     return {
       token: this.options.apiKey,

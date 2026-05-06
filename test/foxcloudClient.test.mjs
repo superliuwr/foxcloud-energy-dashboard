@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { afterEach, describe, it } from "node:test";
 
 import {
+  createFoxCloudSignature,
   FoxCloudApiError,
   FoxCloudClient,
 } from "../dist/lib/foxcloudClient.js";
@@ -25,6 +27,24 @@ const jsonResponse = (body, status = 200) =>
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
+});
+
+describe("FoxCloud request signing", () => {
+  it("uses literal backslash-r/backslash-n separators", () => {
+    const path = "/op/v0/device/list";
+    const apiKey = "test-api-key";
+    const timestamp = "1700000000000";
+    const realCrlfSignature = createHash("md5")
+      .update(`${path}\r\n${apiKey}\r\n${timestamp}`)
+      .digest("hex");
+
+    assert.equal(
+      createFoxCloudSignature(path, apiKey, timestamp),
+      "f5705a541476b35d5bd65be8ca8bfa25",
+    );
+    assert.equal(realCrlfSignature, "3d1e7466c58444ff4577f7aeb2df1054");
+    assert.notEqual(createFoxCloudSignature(path, apiKey, timestamp), realCrlfSignature);
+  });
 });
 
 describe("FoxCloudClient retry handling", () => {

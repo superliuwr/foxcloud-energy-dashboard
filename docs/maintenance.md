@@ -141,3 +141,6 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - Extracted Modbus register decoding into `src/lib/modbusRegisters.ts` and added tests
   for signed/unsigned multi-register reads, scaling, missing registers, and negative
   signed values.
+- Extracted FoxCloud request signing into `createFoxCloudSignature()` and added a
+  regression test documenting the literal `\\r\\n` separator format used by working
+  FoxCloud examples.
