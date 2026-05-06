@@ -3,6 +3,10 @@ import { createRequire } from "node:module";
 import { env } from "../config/env.js";
 import { integratePowerSamples } from "../lib/energyMath.js";
 import { FoxCloudClient } from "../lib/foxcloudClient.js";
+import {
+  readScaledSignedRegisters,
+  readScaledUnsignedRegisters,
+} from "../lib/modbusRegisters.js";
 import type {
   DashboardDailyRow,
   DashboardPayload,
@@ -75,35 +79,6 @@ const validateModbusConfig = (): void => {
   }
 };
 
-const readSigned = (registers: Map<number, number>, addresses: number[]): number | null => {
-  const value = readUnsigned(registers, addresses);
-
-  if (value === null) {
-    return null;
-  }
-
-  const bits = addresses.length * 16;
-  const signBit = 2 ** (bits - 1);
-
-  return value >= signBit ? value - 2 ** bits : value;
-};
-
-const readUnsigned = (registers: Map<number, number>, addresses: number[]): number | null => {
-  let value = 0;
-
-  for (const [index, address] of addresses.entries()) {
-    const register = registers.get(address);
-
-    if (register === undefined) {
-      return null;
-    }
-
-    value += (register & 0xffff) * 2 ** (index * 16);
-  }
-
-  return value;
-};
-
 class ModbusReader {
   private readonly client: ModbusRTUClient = new ModbusRTU();
   private readonly registers = new Map<number, number>();
@@ -127,11 +102,11 @@ class ModbusReader {
   }
 
   getInt(addresses: number[], scale = 1): number {
-    return round((readSigned(this.registers, addresses) ?? 0) * scale);
+    return readScaledSignedRegisters(this.registers, addresses, scale);
   }
 
   getUInt(addresses: number[], scale = 1): number {
-    return round((readUnsigned(this.registers, addresses) ?? 0) * scale);
+    return readScaledUnsignedRegisters(this.registers, addresses, scale);
   }
 }
 

@@ -8,10 +8,13 @@
 - Added tests for energy rounding, trapezoid integration, sample sorting, long sample gaps, and invalid/negative power values.
 - Added conservative FoxCloud API retry/backoff handling for transient network errors, HTTP 429, and HTTP 5xx responses.
 - Added tests for FoxCloud retry behavior and non-retryable application errors.
+- Added shared Modbus register decoding helpers for signed, unsigned, and scaled register values.
+- Added tests for Modbus 16-bit/32-bit decoding, low-word-first ordering, missing registers, scaling, and signed negative values.
 
 ### Changed
 
 - FoxCloud last-hour totals and Modbus last-hour totals now use the same tested integration helper to reduce calculation drift.
+- Modbus dashboard register reads now use the shared decoding helper, preparing the codebase for profile-based register maps.
 
 ## 2026-05-05
 

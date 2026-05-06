@@ -138,3 +138,6 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   regression tests for rounding, sample order, long gaps, and invalid values.
 - Added conservative FoxCloud retry/backoff handling for transient network errors, 429
   rate limits, and HTTP 5xx responses, with regression tests.
+- Extracted Modbus register decoding into `src/lib/modbusRegisters.ts` and added tests
+  for signed/unsigned multi-register reads, scaling, missing registers, and negative
+  signed values.
