@@ -134,3 +134,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - Added tests for the browser CSV export escaping helper.
 - Extracted Basic Auth parsing into a tested helper and preserved passwords containing
   colons.
+- Extracted shared kW-to-kWh sample integration into `src/lib/energyMath.ts` and added
+  regression tests for rounding, sample order, long gaps, and invalid values.

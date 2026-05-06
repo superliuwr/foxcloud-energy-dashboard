@@ -1,4 +1,5 @@
 import { env } from "../config/env.js";
+import { integratePowerSamples } from "../lib/energyMath.js";
 import { FoxCloudApiError, FoxCloudClient } from "../lib/foxcloudClient.js";
 import type {
   DashboardDailyRow,
@@ -300,14 +301,9 @@ const integratePowerSince = (
     return 0;
   }
 
-  const totalKwh = points.slice(1).reduce((total, point, index) => {
-    const previous = points[index];
-    const hours = (point.timeMs - previous.timeMs) / 3_600_000;
-    const averageKw = (Math.max(previous.value, 0) + Math.max(point.value, 0)) / 2;
-    return total + averageKw * hours;
-  }, 0);
-
-  return round(totalKwh);
+  return integratePowerSamples(
+    points.map((point) => ({ sampledAt: point.timeMs, kw: point.value })),
+  );
 };
 
 const normalizePower = (value: number, threshold = 0): number => {

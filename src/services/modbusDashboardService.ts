@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 
 import { env } from "../config/env.js";
+import { integratePowerSamples } from "../lib/energyMath.js";
 import { FoxCloudClient } from "../lib/foxcloudClient.js";
 import type {
   DashboardDailyRow,
@@ -549,25 +550,9 @@ const integrateSamples = (
   samples: LiveSample[],
   key: keyof Omit<LiveSample, "sampled_at">,
 ): number => {
-  if (samples.length < 2) {
-    return 0;
-  }
-
-  const total = samples.slice(1).reduce((accumulator, sample, index) => {
-    const previous = samples[index];
-    const previousTime = new Date(previous.sampled_at).getTime();
-    const sampleTime = new Date(sample.sampled_at).getTime();
-    const hours = (sampleTime - previousTime) / 3_600_000;
-
-    if (hours <= 0 || hours > 1) {
-      return accumulator;
-    }
-
-    const averageKw = (Number(previous[key] ?? 0) + Number(sample[key] ?? 0)) / 2;
-    return accumulator + Math.max(averageKw, 0) * hours;
-  }, 0);
-
-  return round(total);
+  return integratePowerSamples(
+    samples.map((sample) => ({ sampledAt: sample.sampled_at, kw: Number(sample[key] ?? 0) })),
+  );
 };
 
 const buildLast24Hours = (deviceSn: string): DashboardPayload["last24Hours"] => {

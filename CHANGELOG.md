@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-05-06
+
+### Added
+
+- Added shared energy math helpers for converting timestamped kW samples into kWh totals.
+- Added tests for energy rounding, trapezoid integration, sample sorting, long sample gaps, and invalid/negative power values.
+
+### Changed
+
+- FoxCloud last-hour totals and Modbus last-hour totals now use the same tested integration helper to reduce calculation drift.
+
 ## 2026-05-05
 
 ### Added
