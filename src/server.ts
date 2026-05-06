@@ -1,9 +1,9 @@
 import express, { type NextFunction, type Request, type Response } from "express";
-import { timingSafeEqual } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
 import { env } from "./config/env.js";
+import { hasMatchingCredential, parseBasicAuthHeader } from "./lib/basicAuth.js";
 import { FoxCloudApiError } from "./lib/foxcloudClient.js";
 import { BadRequestError, parseMonth, parseRange, parseYear } from "./lib/requestParams.js";
 import {
@@ -29,20 +29,6 @@ const getGitSha = (): string | null => {
   return gitSha || null;
 };
 
-const safeEqual = (first: string, second: string): boolean => {
-  const firstBuffer = Buffer.from(first);
-  const secondBuffer = Buffer.from(second);
-
-  return firstBuffer.length === secondBuffer.length && timingSafeEqual(firstBuffer, secondBuffer);
-};
-
-const hasValidDashboardCredential = (username: string, password: string): boolean => {
-  return env.dashboardAuth.users.some(
-    (credential) =>
-      safeEqual(username, credential.username) && safeEqual(password, credential.password),
-  );
-};
-
 const getLanUrls = (): string[] => {
   const interfaces = Object.values(os.networkInterfaces()).flat();
 
@@ -58,14 +44,10 @@ const requireDashboardAuth = (req: Request, res: Response, next: NextFunction): 
     return;
   }
 
-  const encodedCredentials = req.headers.authorization?.match(/^Basic\s+(.+)$/i)?.[1];
+  const credential = parseBasicAuthHeader(req.headers.authorization);
 
-  if (encodedCredentials) {
-    const [username = "", password = ""] = Buffer.from(encodedCredentials, "base64")
-      .toString("utf8")
-      .split(":", 2);
-
-    if (hasValidDashboardCredential(username, password)) {
+  if (credential) {
+    if (hasMatchingCredential(env.dashboardAuth.users, credential.username, credential.password)) {
       next();
       return;
     }

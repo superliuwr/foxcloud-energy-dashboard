@@ -8,6 +8,7 @@
 - Added `README.zh-CN.md` and linked it from the English README.
 - Added `npm test` using Node's built-in test runner for request parameter parsing.
 - Added test coverage for browser CSV export escaping.
+- Added test coverage for Basic Auth parsing.
 - Added a public lightweight `/api/livez` endpoint for reverse proxy and container liveness checks.
 - Added protected `/api/health` metadata for app version, optional git SHA, server start time, and uptime.
 - Added optional Docker build metadata (`APP_VERSION`, `GIT_SHA`) and `npm run metadata` to update non-secret deployment metadata.
@@ -17,6 +18,7 @@
 - Dashboard language and table range selections are now remembered per browser with safe local storage fallbacks.
 - Request parameter parsing for `year`, `month`, and `range` was moved into a small tested helper module.
 - Unknown `/api/*` routes now return JSON `404` responses instead of falling back to the frontend HTML page.
+- Basic Auth parsing now preserves colons inside passwords.
 
 ### Security
 
