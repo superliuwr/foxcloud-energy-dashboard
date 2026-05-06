@@ -6,6 +6,8 @@
 
 - Added shared energy math helpers for converting timestamped kW samples into kWh totals.
 - Added tests for energy rounding, trapezoid integration, sample sorting, long sample gaps, and invalid/negative power values.
+- Added conservative FoxCloud API retry/backoff handling for transient network errors, HTTP 429, and HTTP 5xx responses.
+- Added tests for FoxCloud retry behavior and non-retryable application errors.
 
 ### Changed
 

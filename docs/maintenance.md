@@ -136,3 +136,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   colons.
 - Extracted shared kW-to-kWh sample integration into `src/lib/energyMath.ts` and added
   regression tests for rounding, sample order, long gaps, and invalid values.
+- Added conservative FoxCloud retry/backoff handling for transient network errors, 429
+  rate limits, and HTTP 5xx responses, with regression tests.

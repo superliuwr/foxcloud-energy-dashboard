@@ -16,6 +16,8 @@ interface FoxCloudClientOptions {
   apiKey: string;
   baseUrl: string;
   timeoutMs: number;
+  retryAttempts?: number;
+  retryBaseDelayMs?: number;
 }
 
 interface RequestOptions {
@@ -24,6 +26,13 @@ interface RequestOptions {
   body?: unknown;
   query?: Record<string, string | number>;
 }
+
+const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
+
+const delay = (durationMs: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, durationMs);
+  });
 
 export class FoxCloudApiError extends Error {
   constructor(
@@ -120,6 +129,49 @@ export class FoxCloudClient {
   }
 
   private async request<T>({ method, path, body, query }: RequestOptions): Promise<T> {
+    const retryAttempts = Math.max(0, this.options.retryAttempts ?? 2);
+    let lastError: FoxCloudApiError | null = null;
+
+    for (let attempt = 0; attempt <= retryAttempts; attempt += 1) {
+      try {
+        return await this.requestOnce<T>({ method, path, body, query });
+      } catch (error) {
+        if (!(error instanceof FoxCloudApiError)) {
+          throw error;
+        }
+
+        lastError = error;
+
+        if (!this.shouldRetry(error, attempt, retryAttempts)) {
+          throw error;
+        }
+
+        await delay(this.retryDelayMs(attempt));
+      }
+    }
+
+    throw lastError ?? new FoxCloudApiError("FoxCloud request failed.", 502);
+  }
+
+  private shouldRetry(error: FoxCloudApiError, attempt: number, retryAttempts: number): boolean {
+    if (attempt >= retryAttempts) {
+      return false;
+    }
+
+    // FoxCloud application errors on HTTP 200 are not transient network failures.
+    if (error.errno !== undefined && error.statusCode === 502) {
+      return false;
+    }
+
+    return RETRYABLE_STATUS_CODES.has(error.statusCode);
+  }
+
+  private retryDelayMs(attempt: number): number {
+    const baseDelayMs = Math.max(0, this.options.retryBaseDelayMs ?? 250);
+    return baseDelayMs * 2 ** attempt;
+  }
+
+  private async requestOnce<T>({ method, path, body, query }: RequestOptions): Promise<T> {
     const url = new URL(path, this.options.baseUrl);
 
     if (query) {
