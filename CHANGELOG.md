@@ -13,6 +13,7 @@
 - Added a FoxCloud request-signing helper and regression test for the literal `\\r\\n` signature separator format.
 - Added shared date-range helpers for dashboard table ranges and month list generation.
 - Added tests for current week, current month, previous month, multi-month, all-data, leap-year, and inclusive month-list behavior.
+- Added structured rebuild-cache summary metadata and tested frontend formatting for rebuild results.
 
 ### Changed
 
@@ -20,6 +21,7 @@
 - Modbus dashboard register reads now use the shared decoding helper, preparing the codebase for profile-based register maps.
 - FoxCloud request signing now routes through a named helper so the separator format is explicit and tested.
 - FoxCloud and Modbus dashboard services now share common date/month utility functions instead of carrying duplicate range logic.
+- Rebuild cache status now reports checked, recalculated, unchanged, omitted, and limit information instead of only processed days.
 
 ## 2026-05-05
 

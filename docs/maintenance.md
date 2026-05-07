@@ -147,3 +147,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
 - Extracted shared date/month range helpers into `src/lib/dateRanges.ts` and added
   tests for week, month, previous-month, multi-month, all-data, leap-year, and
   inclusive month-list behavior.
+- Added structured rebuild-cache result metadata and tested frontend formatting so
+  users can see checked, recalculated, unchanged, omitted, and limit counts.

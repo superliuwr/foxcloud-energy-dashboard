@@ -20,6 +20,7 @@ import type {
   FoxCloudHistorySeries,
   FoxCloudRealtimeDataPoint,
   FoxCloudReportSeries,
+  RebuildSummary,
 } from "../types/foxcloud.js";
 import { readLatestDashboardPayload, saveDashboardPayload } from "./cacheStore.js";
 import {
@@ -1221,16 +1222,14 @@ export async function rebuildEnergyRangeCache(
   range: string,
   year: number,
   month: number,
-): Promise<{
-  generatedAt: string;
-  range: string;
-  requestedPeriod: { year: number; month: number };
+): Promise<EnergyRangePayload & {
+  rebuild: RebuildSummary;
   processedDays: number;
+  rebuiltDays: number;
   skippedDays: number;
+  omittedDays: number;
   limited: boolean;
   limitDays: number;
-  dailyTable: DashboardDailyRow[];
-  totals: EnergyTotals;
 }> {
   if (!isValidYearMonth(year, month)) {
     throw new Error("The requested year or month is invalid.");
@@ -1241,8 +1240,20 @@ export async function rebuildEnergyRangeCache(
 
     return {
       ...payload,
+      rebuild: {
+        requestedDays: payload.dailyTable.length,
+        processedDays: payload.dailyTable.length,
+        rebuiltDays: 0,
+        skippedDays: 0,
+        omittedDays: 0,
+        limited: false,
+        limitDays: 0,
+        source: "modbus",
+      },
       processedDays: payload.dailyTable.length,
+      rebuiltDays: 0,
       skippedDays: 0,
+      omittedDays: 0,
       limited: false,
       limitDays: 0,
     };
@@ -1252,8 +1263,20 @@ export async function rebuildEnergyRangeCache(
     const payload = await getEnergyRangeData(range, year, month);
     return {
       ...payload,
+      rebuild: {
+        requestedDays: payload.dailyTable.length,
+        processedDays: 0,
+        rebuiltDays: 0,
+        skippedDays: 0,
+        omittedDays: 0,
+        limited: false,
+        limitDays: MAX_REBUILD_DAYS,
+        source: "demo",
+      },
       processedDays: 0,
+      rebuiltDays: 0,
       skippedDays: 0,
+      omittedDays: 0,
       limited: false,
       limitDays: MAX_REBUILD_DAYS,
     };
@@ -1285,7 +1308,9 @@ export async function rebuildEnergyRangeCache(
   );
   const rowsToRebuild = baseRows.slice(-MAX_REBUILD_DAYS);
   const rebuiltRows: DashboardDailyRow[] = [];
-  let skippedDays = baseRows.length - rowsToRebuild.length;
+  const omittedDays = baseRows.length - rowsToRebuild.length;
+  let rebuiltDays = 0;
+  let skippedDays = 0;
 
   for (const row of rowsToRebuild) {
     const dayStart = parseDateKey(row.date).getTime();
@@ -1300,6 +1325,7 @@ export async function rebuildEnergyRangeCache(
 
     if (rebuiltRow) {
       rebuiltRows.push(rebuiltRow);
+      rebuiltDays += 1;
     } else {
       rebuiltRows.push(row);
       skippedDays += 1;
@@ -1315,10 +1341,23 @@ export async function rebuildEnergyRangeCache(
     generatedAt: new Date().toISOString(),
     range,
     requestedPeriod: { year, month },
+    monthCount: months.length,
     processedDays: rebuiltRows.length,
+    rebuiltDays,
     skippedDays,
+    omittedDays,
     limited: baseRows.length > rowsToRebuild.length,
     limitDays: MAX_REBUILD_DAYS,
+    rebuild: {
+      requestedDays: baseRows.length,
+      processedDays: rebuiltRows.length,
+      rebuiltDays,
+      skippedDays,
+      omittedDays,
+      limited: baseRows.length > rowsToRebuild.length,
+      limitDays: MAX_REBUILD_DAYS,
+      source: "foxcloud-history",
+    },
     dailyTable: visibleRows,
     totals: buildTotals(visibleRows),
   };

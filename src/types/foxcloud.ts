@@ -176,3 +176,14 @@ export interface EnergyRangePayload {
   dailyTable: DashboardDailyRow[];
   totals: EnergyTotals;
 }
+
+export interface RebuildSummary {
+  requestedDays: number;
+  processedDays: number;
+  rebuiltDays: number;
+  skippedDays: number;
+  omittedDays: number;
+  limited: boolean;
+  limitDays: number;
+  source: "foxcloud-history" | "modbus" | "demo";
+}
