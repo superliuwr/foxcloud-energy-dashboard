@@ -16,6 +16,7 @@ import {
   readScaledSignedRegisters,
   readScaledUnsignedRegisters,
 } from "../lib/modbusRegisters.js";
+import { getModbusProfile } from "./modbus/profiles.js";
 import type {
   DashboardDailyRow,
   DashboardPayload,
@@ -95,11 +96,11 @@ class ModbusReader {
     });
   }
 
-  getInt(addresses: number[], scale = 1): number {
+  getInt(addresses: readonly number[], scale = 1): number {
     return readScaledSignedRegisters(this.registers, addresses, scale);
   }
 
-  getUInt(addresses: number[], scale = 1): number {
+  getUInt(addresses: readonly number[], scale = 1): number {
     return readScaledUnsignedRegisters(this.registers, addresses, scale);
   }
 }
@@ -402,41 +403,39 @@ const readModbusSnapshot = async (): Promise<ModbusSnapshot> => {
   validateModbusConfig();
 
   const reader = new ModbusReader();
+  const profile = getModbusProfile(env.modbus.inverterModel);
+  const signed = (value: { addresses: readonly number[]; scale?: number }): number =>
+    reader.getInt(value.addresses, value.scale ?? 1);
+  const unsigned = (value: { addresses: readonly number[]; scale?: number }): number =>
+    reader.getUInt(value.addresses, value.scale ?? 1);
 
   try {
     await reader.connect();
-    for (const [startAddress, count] of [
-      [37609, 28],
-      [38814, 26],
-      [39063, 80],
-      [39219, 20],
-      [39279, 8],
-      [39601, 32],
-    ] as const) {
+    for (const { startAddress, count } of profile.readRanges) {
       await reader.readRange(startAddress, count);
     }
 
     const pvPowerKw = round(
-      Math.max(reader.getInt([39280, 39279], 0.001), 0) +
-        Math.max(reader.getInt([39282, 39281], 0.001), 0) +
-        Math.max(reader.getInt([39284, 39283], 0.001), 0) +
-        Math.max(reader.getInt([39286, 39285], 0.001), 0),
+      profile.live.pvPowerInputs.reduce(
+        (total, value) => total + Math.max(signed(value), 0),
+        0,
+      ),
     );
-    const gridCtKw = reader.getInt([38815, 38814], 0.0001);
-    const batteryPowerKw = reader.getInt([39238, 39237], 0.001);
-    const batteryPackTemperatureCelsius = reader.getInt([37611], 0.1);
-    const batteryMaxTemperatureCelsius = reader.getInt([37617], 0.1);
-    const batteryMinTemperatureCelsius = reader.getInt([37618], 0.1);
+    const gridCtKw = signed(profile.live.gridCtPower);
+    const batteryPowerKw = signed(profile.live.batteryPower);
+    const batteryPackTemperatureCelsius = signed(profile.live.batteryPackTemperature);
+    const batteryMaxTemperatureCelsius = signed(profile.live.batteryMaxTemperature);
+    const batteryMinTemperatureCelsius = signed(profile.live.batteryMinTemperature);
     const now = new Date().toISOString();
 
     const dailyRegisters: ModbusDailyRegisters = {
-      solarEnergyTodayKwh: reader.getUInt([39604, 39603], 0.01),
-      totalYieldTodayKwh: reader.getUInt([39624, 39623], 0.01),
-      feedInTodayKwh: reader.getUInt([39616, 39615], 0.01),
-      loadEnergyTodayKwh: reader.getUInt([39632, 39631], 0.01),
-      gridConsumptionTodayKwh: reader.getUInt([39620, 39619], 0.01),
-      batteryChargeTodayKwh: reader.getUInt([39608, 39607], 0.01),
-      batteryDischargeTodayKwh: reader.getUInt([39612, 39611], 0.01),
+      solarEnergyTodayKwh: unsigned(profile.daily.solarEnergyToday),
+      totalYieldTodayKwh: unsigned(profile.daily.totalYieldToday),
+      feedInTodayKwh: unsigned(profile.daily.feedInToday),
+      loadEnergyTodayKwh: unsigned(profile.daily.loadEnergyToday),
+      gridConsumptionTodayKwh: unsigned(profile.daily.gridConsumptionToday),
+      batteryChargeTodayKwh: unsigned(profile.daily.batteryChargeToday),
+      batteryDischargeTodayKwh: unsigned(profile.daily.batteryDischargeToday),
     };
 
     return {
@@ -445,15 +444,15 @@ const readModbusSnapshot = async (): Promise<ModbusSnapshot> => {
         solarGeneratedKw: pvPowerKw,
         gridImportKw: round(Math.abs(Math.min(gridCtKw, 0))),
         gridExportKw: round(Math.max(gridCtKw, 0)),
-        homeUsageKw: round(Math.max(reader.getInt([39226, 39225], 0.001), 0)),
+        homeUsageKw: round(Math.max(signed(profile.live.homeUsagePower), 0)),
         batteryChargeKw: round(Math.abs(Math.min(batteryPowerKw, 0))),
         batteryDischargeKw: round(Math.max(batteryPowerKw, 0)),
-        batterySocPercent: reader.getUInt([37612]),
+        batterySocPercent: unsigned(profile.live.batterySoc),
         batteryTemperatureCelsius: batteryMinTemperatureCelsius,
         batteryMinTemperatureCelsius,
         batteryMaxTemperatureCelsius,
         batteryPackTemperatureCelsius,
-        inverterTemperatureCelsius: reader.getInt([39141], 0.1),
+        inverterTemperatureCelsius: signed(profile.live.inverterTemperature),
         updatedAt: now,
       },
       today: await buildTodayTotals(dailyRegisters),

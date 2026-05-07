@@ -149,3 +149,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   inclusive month-list behavior.
 - Added structured rebuild-cache result metadata and tested frontend formatting so
   users can see checked, recalculated, unchanged, omitted, and limit counts.
+- Added the first profile-based Modbus register map in `src/services/modbus/profiles.ts`
+  for FoxESS H3 Smart and covered profile selection/key addresses with tests.

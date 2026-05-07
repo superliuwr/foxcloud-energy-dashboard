@@ -4,7 +4,7 @@ export type RegisterMap = Map<number, number>;
 
 export const readUnsignedRegisters = (
   registers: RegisterMap,
-  addresses: number[],
+  addresses: readonly number[],
 ): number | null => {
   let value = 0;
 
@@ -23,7 +23,7 @@ export const readUnsignedRegisters = (
 
 export const readSignedRegisters = (
   registers: RegisterMap,
-  addresses: number[],
+  addresses: readonly number[],
 ): number | null => {
   const value = readUnsignedRegisters(registers, addresses);
 
@@ -39,12 +39,12 @@ export const readSignedRegisters = (
 
 export const readScaledUnsignedRegisters = (
   registers: RegisterMap,
-  addresses: number[],
+  addresses: readonly number[],
   scale = 1,
 ): number => roundEnergy((readUnsignedRegisters(registers, addresses) ?? 0) * scale);
 
 export const readScaledSignedRegisters = (
   registers: RegisterMap,
-  addresses: number[],
+  addresses: readonly number[],
   scale = 1,
 ): number => roundEnergy((readSignedRegisters(registers, addresses) ?? 0) * scale);
