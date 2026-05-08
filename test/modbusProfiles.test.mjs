@@ -10,6 +10,7 @@ describe("Modbus register profiles", () => {
   it("selects the FoxESS H3 Smart profile by label or id", () => {
     assert.equal(getModbusProfile("FoxESS H3 Smart").id, "foxess-h3-smart");
     assert.equal(getModbusProfile("foxess-h3-smart").label, "FoxESS H3 Smart");
+    assert.equal(getModbusProfile(" FOXESS-H3-SMART ").id, "foxess-h3-smart");
   });
 
   it("falls back to the FoxESS H3 Smart profile for unknown models", () => {

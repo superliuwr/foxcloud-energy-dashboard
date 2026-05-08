@@ -185,6 +185,7 @@ MODBUS_TIMEOUT_MS=3000
 MODBUS_SAMPLE_INTERVAL_MS=60000
 MODBUS_DEVICE_ID=local-modbus-inverter
 MODBUS_STATION_NAME=Local Modbus inverter
+MODBUS_PROFILE=foxess-h3-smart
 MODBUS_INVERTER_MODEL=FoxESS H3 Smart
 MODBUS_READ_ONLY=true
 ```
@@ -193,6 +194,7 @@ Notes for Modbus mode:
 
 - The dashboard server must be on the same LAN/Wi-Fi as the inverter or datalogger.
 - The app currently implements a read-only FoxESS H3 Smart register map, based on local testing plus community register references.
+- `MODBUS_PROFILE=foxess-h3-smart` selects the register map. `MODBUS_INVERTER_MODEL` is still used as the friendly model label shown in the dashboard.
 - It stores sampled live values and daily totals in SQLite. Historical rows begin from the time you start using Modbus mode unless you import or rebuild history separately.
 - `MODBUS_SAMPLE_INTERVAL_MS=60000` runs a background sampler every minute so the last-24-hours chart keeps filling even when nobody has the browser open.
 - Keep `MODBUS_READ_ONLY=true`. Writing inverter settings is intentionally not enabled in this dashboard yet.

@@ -153,3 +153,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   for FoxESS H3 Smart and covered profile selection/key addresses with tests.
 - Updated rebuild-cache confirmation text so it clearly states the current most-recent
   day limit before the user starts API-heavy history recalculation.
+- Added `MODBUS_PROFILE` for explicit register-map selection, with backward
+  compatibility for older `MODBUS_INVERTER_MODEL` based setups.

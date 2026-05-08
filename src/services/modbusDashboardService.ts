@@ -403,7 +403,7 @@ const readModbusSnapshot = async (): Promise<ModbusSnapshot> => {
   validateModbusConfig();
 
   const reader = new ModbusReader();
-  const profile = getModbusProfile(env.modbus.inverterModel);
+  const profile = getModbusProfile(env.modbus.profile);
   const signed = (value: { addresses: readonly number[]; scale?: number }): number =>
     reader.getInt(value.addresses, value.scale ?? 1);
   const unsigned = (value: { addresses: readonly number[]; scale?: number }): number =>

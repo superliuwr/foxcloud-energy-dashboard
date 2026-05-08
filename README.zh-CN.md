@@ -115,6 +115,20 @@ DASHBOARD_PASSWORD=your-dashboard-password
 DASHBOARD_USERS=
 ```
 
+Modbus 模式常用变量：
+
+```dotenv
+DATA_PROVIDER=modbus
+MODBUS_HOST=replace-with-your-inverter-lan-ip
+MODBUS_PORT=502
+MODBUS_UNIT_ID=1
+MODBUS_PROFILE=foxess-h3-smart
+MODBUS_INVERTER_MODEL=FoxESS H3 Smart
+MODBUS_READ_ONLY=true
+```
+
+`MODBUS_PROFILE` 用来选择寄存器表；`MODBUS_INVERTER_MODEL` 只是网页上显示的型号名称。
+
 增加测试用户示例：
 
 ```dotenv

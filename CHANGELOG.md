@@ -16,6 +16,7 @@
 - Added structured rebuild-cache summary metadata and tested frontend formatting for rebuild results.
 - Added a first Modbus register profile for FoxESS H3 Smart and tests for profile selection and key addresses.
 - Added rebuild-cache confirmation formatting that includes the 31-day rebuild limit.
+- Added `MODBUS_PROFILE` as the explicit Modbus register-map selector while preserving `MODBUS_INVERTER_MODEL` compatibility.
 
 ### Changed
 
@@ -26,6 +27,7 @@
 - Rebuild cache status now reports checked, recalculated, unchanged, omitted, and limit information instead of only processed days.
 - Modbus snapshot reads now use the selected register profile instead of hard-coded addresses inside the dashboard service.
 - Rebuild cache confirmation text now warns users about the most-recent-days limit before making FoxCloud history API calls.
+- Modbus setup docs now separate the register profile selector from the friendly inverter model label.
 
 ## 2026-05-05
 

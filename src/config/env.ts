@@ -160,6 +160,7 @@ export const env = {
     ),
     deviceId: process.env.MODBUS_DEVICE_ID?.trim() || foxCloudDeviceSn || "local-modbus-inverter",
     stationName: process.env.MODBUS_STATION_NAME?.trim() || "Local Modbus inverter",
+    profile: process.env.MODBUS_PROFILE?.trim() || process.env.MODBUS_INVERTER_MODEL?.trim() || "foxess-h3-smart",
     inverterModel: process.env.MODBUS_INVERTER_MODEL?.trim() || "FoxESS H3 Smart",
     readOnly: !["0", "false", "no", "off"].includes(
       (process.env.MODBUS_READ_ONLY ?? "true").trim().toLowerCase(),
