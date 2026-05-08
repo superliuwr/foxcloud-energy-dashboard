@@ -11,6 +11,7 @@ import {
   getEnergyRangeData,
   rebuildEnergyRangeCache,
 } from "./services/dashboardService.js";
+import { getModbusProfile, listModbusProfileIds } from "./services/modbus/profiles.js";
 import { startModbusSampler } from "./services/modbusSampler.js";
 import { startSqliteBackupScheduler } from "./services/sqliteBackup.js";
 
@@ -71,6 +72,8 @@ app.use(express.static(publicDir));
 app.use("/vendor/chartjs", express.static(chartJsDir));
 
 app.get("/api/health", (_req, res) => {
+  const activeModbusProfile = getModbusProfile(env.modbus.profile);
+
   res.json({
     ok: true,
     timestamp: new Date().toISOString(),
@@ -86,6 +89,9 @@ app.get("/api/health", (_req, res) => {
     usingApiKeyAuth: env.dataProvider === "foxcloud",
     modbusConfigured: env.dataProvider === "modbus" && Boolean(env.modbus.host),
     modbusReadOnly: env.modbus.readOnly,
+    configuredModbusProfile: env.modbus.profile,
+    activeModbusProfile: activeModbusProfile.id,
+    availableModbusProfiles: listModbusProfileIds(),
     dashboardAuthEnabled: env.dashboardAuth.enabled,
     dashboardAuthUserCount: env.dashboardAuth.users.length,
   });

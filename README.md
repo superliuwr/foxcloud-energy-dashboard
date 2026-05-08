@@ -323,7 +323,8 @@ The backend handles:
 A public lightweight liveness endpoint is available at `/api/livez`. It only returns
 `ok` and a timestamp. The fuller `/api/health` endpoint remains behind dashboard login
 and includes operational metadata such as app version, optional git SHA, start time, and
-uptime.
+uptime. In Modbus mode it also shows the configured profile, the active resolved profile,
+and the list of available Modbus profile ids.
 
 If the live FoxCloud request fails and a previous successful response exists, the app serves cached data from `data/cache/dashboard-latest.json` and shows a warning in the UI.
 

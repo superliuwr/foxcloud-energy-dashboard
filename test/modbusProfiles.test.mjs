@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   foxEssH3SmartProfile,
   getModbusProfile,
+  listModbusProfileIds,
 } from "../dist/services/modbus/profiles.js";
 
 describe("Modbus register profiles", () => {
@@ -27,6 +28,10 @@ describe("Modbus register profiles", () => {
       { startAddress: 39279, count: 8 },
       { startAddress: 39601, count: 32 },
     ]);
+  });
+
+  it("lists available profile ids for health checks and docs", () => {
+    assert.deepEqual(listModbusProfileIds(), ["foxess-h3-smart"]);
   });
 
   it("documents key FoxESS H3 Smart register addresses", () => {

@@ -155,3 +155,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   day limit before the user starts API-heavy history recalculation.
 - Added `MODBUS_PROFILE` for explicit register-map selection, with backward
   compatibility for older `MODBUS_INVERTER_MODEL` based setups.
+- Added Modbus profile metadata to the protected `/api/health` response so deployments
+  can confirm which register map is active.

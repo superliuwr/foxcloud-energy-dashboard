@@ -72,6 +72,8 @@ export const foxEssH3SmartProfile: ModbusRegisterProfile = {
 
 export const modbusProfiles = [foxEssH3SmartProfile] as const;
 
+export const listModbusProfileIds = (): string[] => modbusProfiles.map((profile) => profile.id);
+
 export const getModbusProfile = (modelName: string | undefined): ModbusRegisterProfile => {
   const normalizedModel = modelName?.trim().toLowerCase() ?? "";
 
