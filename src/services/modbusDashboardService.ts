@@ -11,6 +11,7 @@ import {
   toMonthIndex,
 } from "../lib/dateRanges.js";
 import { integratePowerSamples } from "../lib/energyMath.js";
+import { buildEnergyTotals } from "../lib/energyTotals.js";
 import { FoxCloudClient } from "../lib/foxcloudClient.js";
 import {
   readScaledSignedRegisters,
@@ -21,7 +22,6 @@ import type {
   DashboardDailyRow,
   DashboardPayload,
   EnergyRangePayload,
-  EnergyTotals,
   FoxCloudHistoryDeviceResult,
   FoxCloudHistorySeries,
 } from "../types/foxcloud.js";
@@ -499,21 +499,6 @@ const mergeRowsByDate = (rows: DashboardDailyRow[], preferredRows: DashboardDail
   return [...merged.values()].sort((first, second) => first.date.localeCompare(second.date));
 };
 
-const buildTotals = (rows: DashboardDailyRow[]): EnergyTotals => {
-  const sum = (key: keyof DashboardDailyRow): number =>
-    round(rows.reduce((total, row) => total + Number(row[key] ?? 0), 0));
-
-  return {
-    solarProductionKwh: sum("pv_production"),
-    homeUsageKwh: sum("home_usage"),
-    energyGoingIntoBatteryKwh: sum("daily_charged_energy_total"),
-    energyComingOutOfBatteryKwh: sum("daily_discharged_energy_total"),
-    returnToGridKwh: sum("daily_feedin"),
-    gridConsumptionKwh: sum("grid_consumption"),
-    selfConsumptionKwh: sum("self_consumption"),
-  };
-};
-
 const integrateSamples = (
   samples: LiveSample[],
   key: keyof Omit<LiveSample, "sampled_at">,
@@ -656,6 +641,6 @@ export async function getModbusEnergyRangeData(
     requestedPeriod: dashboard.requestedPeriod,
     monthCount: getMonthCountForDateRange(startDate, year, month),
     dailyTable: rows,
-    totals: buildTotals(rows),
+    totals: buildEnergyTotals(rows),
   };
 }
