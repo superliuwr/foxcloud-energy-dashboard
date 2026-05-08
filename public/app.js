@@ -82,6 +82,7 @@ let sortState = {
 };
 let lastPayload = null;
 let lastRangePayload = null;
+const REBUILD_LIMIT_DAYS = 31;
 
 function getSelectValues(selectElement) {
   return new Set(Array.from(selectElement.options).map((option) => option.value));
@@ -129,7 +130,7 @@ const translations = {
     rebuiltCache: "Cache rebuilt.",
     rebuildSummary: "{processed} days checked, {rebuilt} recalculated, {skipped} kept unchanged.",
     rebuildLimited: " Limited to the most recent {limit} days; {omitted} older days were not rebuilt.",
-    rebuildCacheConfirm: "Rebuild the selected range using FoxCloud 5-minute history data? This may call the FoxCloud API many times.",
+    rebuildCacheConfirm: "Rebuild the selected range using FoxCloud 5-minute history data? This may call the FoxCloud API many times and is limited to the most recent {limit} days.",
     unableToLoad: "Unable to load the dashboard",
     period: "Period",
     periodTotals: "Energy totals",
@@ -252,7 +253,7 @@ const translations = {
     rebuiltCache: "缓存已重算。",
     rebuildSummary: "已检查 {processed} 天，成功重算 {rebuilt} 天，保留原值 {skipped} 天。",
     rebuildLimited: " 本次限制为最近 {limit} 天；较早的 {omitted} 天没有重算。",
-    rebuildCacheConfirm: "确定要用 FoxCloud 5 分钟历史数据重算所选范围吗？这可能会调用较多 FoxCloud API。",
+    rebuildCacheConfirm: "确定要用 FoxCloud 5 分钟历史数据重算所选范围吗？这可能会调用较多 FoxCloud API，并且最多只重算最近 {limit} 天。",
     unableToLoad: "无法加载仪表板",
     period: "周期",
     periodTotals: "能源总计",
@@ -375,7 +376,7 @@ const translations = {
     rebuiltCache: "สร้างแคชใหม่แล้ว",
     rebuildSummary: "ตรวจสอบ {processed} วัน คำนวณใหม่ {rebuilt} วัน เก็บค่าเดิม {skipped} วัน",
     rebuildLimited: " จำกัดเฉพาะ {limit} วันล่าสุด; ไม่ได้สร้างใหม่ {omitted} วันเก่ากว่านั้น",
-    rebuildCacheConfirm: "ต้องการสร้างแคชของช่วงที่เลือกใหม่ด้วยข้อมูลประวัติทุก 5 นาทีจาก FoxCloud หรือไม่? การทำงานนี้อาจเรียก API หลายครั้ง",
+    rebuildCacheConfirm: "ต้องการสร้างแคชของช่วงที่เลือกใหม่ด้วยข้อมูลประวัติทุก 5 นาทีจาก FoxCloud หรือไม่? การทำงานนี้อาจเรียก API หลายครั้งและจำกัดเฉพาะ {limit} วันล่าสุด",
     unableToLoad: "ไม่สามารถโหลดแดชบอร์ดได้",
     period: "ช่วงเวลา",
     periodTotals: "ยอดรวมพลังงาน",
@@ -990,7 +991,7 @@ async function loadEnergyRange(silent = false) {
 }
 
 async function rebuildSelectedCache() {
-  if (!window.confirm(t("rebuildCacheConfirm"))) {
+  if (!window.confirm(FoxCloudRebuild.formatRebuildConfirm(t, REBUILD_LIMIT_DAYS))) {
     return;
   }
 

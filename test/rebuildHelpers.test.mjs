@@ -7,10 +7,11 @@ const context = {};
 vm.createContext(context);
 vm.runInContext(fs.readFileSync("public/rebuildHelpers.js", "utf8"), context);
 
-const { formatRebuildStatus, interpolate } = context.FoxCloudRebuild;
+const { formatRebuildConfirm, formatRebuildStatus, interpolate } = context.FoxCloudRebuild;
 
 const translations = {
   rebuiltCache: "Cache rebuilt.",
+  rebuildCacheConfirm: "Rebuild cache? Limited to {limit} days.",
   rebuildSummary: "{processed} days checked, {rebuilt} recalculated, {skipped} kept unchanged.",
   rebuildLimited: " Limited to {limit} days; {omitted} older days skipped.",
 };
@@ -19,6 +20,10 @@ const t = (key) => translations[key] ?? key;
 describe("rebuild cache helpers", () => {
   it("interpolates named template values", () => {
     assert.equal(interpolate("Hello {name}", { name: "FoxCloud" }), "Hello FoxCloud");
+  });
+
+  it("formats rebuild confirmation text with the limit", () => {
+    assert.equal(formatRebuildConfirm(t, 31), "Rebuild cache? Limited to 31 days.");
   });
 
   it("formats structured rebuild summaries", () => {

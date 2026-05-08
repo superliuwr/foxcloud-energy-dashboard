@@ -27,7 +27,16 @@
     return `${t("rebuiltCache")} ${summary}${limitedText}`;
   }
 
+  function formatRebuildConfirm(translate, limitDays) {
+    const t = typeof translate === "function" ? translate : (key) => key;
+
+    return interpolate(t("rebuildCacheConfirm"), {
+      limit: Number(limitDays ?? 0),
+    });
+  }
+
   global.FoxCloudRebuild = {
+    formatRebuildConfirm,
     formatRebuildStatus,
     interpolate,
   };

@@ -15,6 +15,7 @@
 - Added tests for current week, current month, previous month, multi-month, all-data, leap-year, and inclusive month-list behavior.
 - Added structured rebuild-cache summary metadata and tested frontend formatting for rebuild results.
 - Added a first Modbus register profile for FoxESS H3 Smart and tests for profile selection and key addresses.
+- Added rebuild-cache confirmation formatting that includes the 31-day rebuild limit.
 
 ### Changed
 
@@ -24,6 +25,7 @@
 - FoxCloud and Modbus dashboard services now share common date/month utility functions instead of carrying duplicate range logic.
 - Rebuild cache status now reports checked, recalculated, unchanged, omitted, and limit information instead of only processed days.
 - Modbus snapshot reads now use the selected register profile instead of hard-coded addresses inside the dashboard service.
+- Rebuild cache confirmation text now warns users about the most-recent-days limit before making FoxCloud history API calls.
 
 ## 2026-05-05
 

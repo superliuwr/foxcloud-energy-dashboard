@@ -151,3 +151,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   users can see checked, recalculated, unchanged, omitted, and limit counts.
 - Added the first profile-based Modbus register map in `src/services/modbus/profiles.ts`
   for FoxESS H3 Smart and covered profile selection/key addresses with tests.
+- Updated rebuild-cache confirmation text so it clearly states the current most-recent
+  day limit before the user starts API-heavy history recalculation.
