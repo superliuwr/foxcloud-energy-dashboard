@@ -5,6 +5,7 @@ import {
   foxEssH3SmartProfile,
   getModbusProfile,
   listModbusProfileIds,
+  resolveModbusProfile,
 } from "../dist/services/modbus/profiles.js";
 
 describe("Modbus register profiles", () => {
@@ -17,6 +18,20 @@ describe("Modbus register profiles", () => {
   it("falls back to the FoxESS H3 Smart profile for unknown models", () => {
     assert.equal(getModbusProfile("Unknown inverter"), foxEssH3SmartProfile);
     assert.equal(getModbusProfile(undefined), foxEssH3SmartProfile);
+  });
+
+  it("reports whether a profile selection matched or fell back", () => {
+    assert.deepEqual(resolveModbusProfile("foxess-h3-smart"), {
+      requestedProfile: "foxess-h3-smart",
+      activeProfile: foxEssH3SmartProfile,
+      matched: true,
+    });
+
+    assert.deepEqual(resolveModbusProfile("Unknown inverter"), {
+      requestedProfile: "Unknown inverter",
+      activeProfile: foxEssH3SmartProfile,
+      matched: false,
+    });
   });
 
   it("keeps expected read ranges for the current FoxESS H3 Smart map", () => {

@@ -74,14 +74,27 @@ export const modbusProfiles = [foxEssH3SmartProfile] as const;
 
 export const listModbusProfileIds = (): string[] => modbusProfiles.map((profile) => profile.id);
 
-export const getModbusProfile = (modelName: string | undefined): ModbusRegisterProfile => {
-  const normalizedModel = modelName?.trim().toLowerCase() ?? "";
+export interface ModbusProfileSelection {
+  requestedProfile: string;
+  activeProfile: ModbusRegisterProfile;
+  matched: boolean;
+}
 
-  return (
-    modbusProfiles.find((profile) => {
-      const normalizedId = profile.id.toLowerCase();
-      const normalizedLabel = profile.label.toLowerCase();
-      return normalizedModel === normalizedId || normalizedModel === normalizedLabel;
-    }) ?? foxEssH3SmartProfile
-  );
+export const resolveModbusProfile = (modelName: string | undefined): ModbusProfileSelection => {
+  const requestedProfile = modelName?.trim() ?? "";
+  const normalizedModel = requestedProfile.toLowerCase();
+  const activeProfile = modbusProfiles.find((profile) => {
+    const normalizedId = profile.id.toLowerCase();
+    const normalizedLabel = profile.label.toLowerCase();
+    return normalizedModel === normalizedId || normalizedModel === normalizedLabel;
+  });
+
+  return {
+    requestedProfile,
+    activeProfile: activeProfile ?? foxEssH3SmartProfile,
+    matched: Boolean(activeProfile),
+  };
 };
+
+export const getModbusProfile = (modelName: string | undefined): ModbusRegisterProfile =>
+  resolveModbusProfile(modelName).activeProfile;

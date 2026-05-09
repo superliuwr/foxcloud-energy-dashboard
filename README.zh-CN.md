@@ -202,6 +202,10 @@ npm run metadata
 
 网页里的“重算缓存”按钮会先预估本次最多重算多少天，以及大约会调用多少次 FoxCloud history API。FoxCloud 模式会限制为最近一批日期，避免一次性调用太多 API；Modbus 模式只会使用本地 SQLite/Modbus 数据，不会调用 FoxCloud。
 
+## Modbus profile
+
+目前内置的 Modbus profile 是 `foxess-h3-smart`。如果 `.env` 里的 `MODBUS_PROFILE` 拼错，系统会先自动 fallback 到 `foxess-h3-smart`，避免服务直接启动失败；同时 `/api/health` 会显示 `modbusProfileMatched:false`，网页也会显示 warning，提醒用户检查寄存器表是否正确。
+
 ## 常用命令
 
 ```bash

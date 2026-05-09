@@ -17,7 +17,7 @@ import {
   readScaledSignedRegisters,
   readScaledUnsignedRegisters,
 } from "../lib/modbusRegisters.js";
-import { getModbusProfile } from "./modbus/profiles.js";
+import { getModbusProfile, resolveModbusProfile } from "./modbus/profiles.js";
 import type {
   DashboardDailyRow,
   DashboardPayload,
@@ -545,6 +545,18 @@ const currentMonthRows = (todayRow: DashboardDailyRow, year: number, month: numb
   return mergeRowsByDate(cachedRows, [todayRow]);
 };
 
+const getModbusProfileWarnings = (): string[] => {
+  const selection = resolveModbusProfile(env.modbus.profile);
+
+  if (selection.matched) {
+    return [];
+  }
+
+  return [
+    `Unknown MODBUS_PROFILE "${env.modbus.profile}". Falling back to ${selection.activeProfile.label} (${selection.activeProfile.id}). Check your .env if readings look wrong.`,
+  ];
+};
+
 export async function sampleAndStoreModbusData(): Promise<ModbusSnapshot> {
   const snapshot = await readModbusSnapshot();
   const todayRow = buildTodayRow(snapshot);
@@ -587,6 +599,7 @@ export async function getModbusDashboardData(year: number, month: number): Promi
     isStale: false,
     warnings: [
       "Using local read-only Modbus data. Historical daily rows are available after this dashboard has sampled and cached them locally.",
+      ...getModbusProfileWarnings(),
     ],
     source: "modbus",
     requestedPeriod: { year, month },
