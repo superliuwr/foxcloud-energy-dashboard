@@ -11,6 +11,7 @@ import {
 import { integratePowerSamples } from "../lib/energyMath.js";
 import { buildEnergyTotals } from "../lib/energyTotals.js";
 import { FoxCloudApiError, FoxCloudClient } from "../lib/foxcloudClient.js";
+import { buildRebuildPlan } from "../lib/rebuildPlan.js";
 import type {
   DashboardDailyRow,
   DashboardPayload,
@@ -1222,6 +1223,7 @@ export async function rebuildEnergyRangeCache(
 
   if (env.dataProvider === "modbus") {
     const payload = await getModbusEnergyRangeData(range, year, month);
+    const plan = previewRebuildEnergyRangeCache(range, year, month);
 
     return {
       ...payload,
@@ -1234,6 +1236,8 @@ export async function rebuildEnergyRangeCache(
         limited: false,
         limitDays: 0,
         source: "modbus",
+        estimatedHistoryCalls: plan.estimatedHistoryCalls,
+        daysToRebuild: plan.daysToRebuild,
       },
       processedDays: payload.dailyTable.length,
       rebuiltDays: 0,
@@ -1246,6 +1250,7 @@ export async function rebuildEnergyRangeCache(
 
   if (env.foxCloud.demoMode) {
     const payload = await getEnergyRangeData(range, year, month);
+    const plan = previewRebuildEnergyRangeCache(range, year, month);
     return {
       ...payload,
       rebuild: {
@@ -1257,6 +1262,8 @@ export async function rebuildEnergyRangeCache(
         limited: false,
         limitDays: MAX_REBUILD_DAYS,
         source: "demo",
+        estimatedHistoryCalls: plan.estimatedHistoryCalls,
+        daysToRebuild: plan.daysToRebuild,
       },
       processedDays: 0,
       rebuiltDays: 0,
@@ -1342,8 +1349,39 @@ export async function rebuildEnergyRangeCache(
       limited: baseRows.length > rowsToRebuild.length,
       limitDays: MAX_REBUILD_DAYS,
       source: "foxcloud-history",
+      estimatedHistoryCalls: rowsToRebuild.length,
+      daysToRebuild: rowsToRebuild.length,
     },
     dailyTable: visibleRows,
     totals: buildEnergyTotals(visibleRows),
+  };
+}
+
+export function previewRebuildEnergyRangeCache(
+  range: string,
+  year: number,
+  month: number,
+): RebuildSummary {
+  const source = env.dataProvider === "modbus"
+    ? "modbus"
+    : env.foxCloud.demoMode
+      ? "demo"
+      : "foxcloud-history";
+  const plan = buildRebuildPlan(range, year, month, {
+    source,
+    limitDays: source === "modbus" ? 0 : MAX_REBUILD_DAYS,
+  });
+
+  return {
+    requestedDays: plan.requestedDays,
+    processedDays: 0,
+    rebuiltDays: 0,
+    skippedDays: 0,
+    omittedDays: plan.omittedDays,
+    limited: plan.limited,
+    limitDays: plan.limitDays,
+    source: plan.source,
+    estimatedHistoryCalls: plan.estimatedHistoryCalls,
+    daysToRebuild: plan.daysToRebuild,
   };
 }

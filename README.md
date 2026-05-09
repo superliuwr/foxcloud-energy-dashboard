@@ -105,7 +105,7 @@ The cache helps reduce FoxCloud API calls:
 - the current month is refreshed periodically so today's values stay useful
 - range views such as 3 months, 6 months, 1 year, and all data avoid re-fetching data that is already cached
 
-The dashboard also includes a manual `Rebuild cache` button. It recalculates the selected range from FoxCloud 5-minute history samples so daily rows better match the FoxCloud Analysis day view. Use it only when you want to refresh historical values because it can call the FoxCloud API many times.
+The dashboard also includes a manual `Rebuild cache` button. Before it starts, the app previews how many recent days it will recalculate and roughly how many FoxCloud history API calls it may make. It recalculates the selected range from FoxCloud 5-minute history samples so daily rows better match the FoxCloud Analysis day view. Use it only when you want to refresh historical values because it can call the FoxCloud API many times.
 
 For open-source use, each person who clones the project gets their own local database after running the app.
 

@@ -157,3 +157,5 @@ The browser must never call FoxCloud directly. The backend signs FoxCloud reques
   compatibility for older `MODBUS_INVERTER_MODEL` based setups.
 - Added Modbus profile metadata to the protected `/api/health` response so deployments
   can confirm which register map is active.
+- Added a rebuild-cache preview endpoint and frontend confirmation text showing the
+  estimated rebuild day count and FoxCloud history API calls before work starts.

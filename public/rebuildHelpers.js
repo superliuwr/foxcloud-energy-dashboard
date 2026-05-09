@@ -27,8 +27,25 @@
     return `${t("rebuiltCache")} ${summary}${limitedText}`;
   }
 
-  function formatRebuildConfirm(translate, limitDays) {
+  function formatRebuildConfirm(translate, limitDays, preview) {
     const t = typeof translate === "function" ? translate : (key) => key;
+
+    if (preview?.source === "modbus") {
+      return t("rebuildCacheConfirmLocal");
+    }
+
+    if (preview?.source === "demo") {
+      return t("rebuildCacheConfirmDemo");
+    }
+
+    if (preview) {
+      return interpolate(t("rebuildCacheConfirmPreview"), {
+        days: Number(preview.daysToRebuild ?? preview.processedDays ?? 0),
+        calls: Number(preview.estimatedHistoryCalls ?? 0),
+        limit: Number(preview.limitDays ?? limitDays ?? 0),
+        omitted: Number(preview.omittedDays ?? 0),
+      });
+    }
 
     return interpolate(t("rebuildCacheConfirm"), {
       limit: Number(limitDays ?? 0),

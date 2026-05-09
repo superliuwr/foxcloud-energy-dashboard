@@ -12,6 +12,10 @@ const { formatRebuildConfirm, formatRebuildStatus, interpolate } = context.FoxCl
 const translations = {
   rebuiltCache: "Cache rebuilt.",
   rebuildCacheConfirm: "Rebuild cache? Limited to {limit} days.",
+  rebuildCacheConfirmPreview:
+    "Rebuild {days} days with about {calls} calls. Limited to {limit}; omitted {omitted}.",
+  rebuildCacheConfirmLocal: "Use local Modbus data.",
+  rebuildCacheConfirmDemo: "Demo rebuild.",
   rebuildSummary: "{processed} days checked, {rebuilt} recalculated, {skipped} kept unchanged.",
   rebuildLimited: " Limited to {limit} days; {omitted} older days skipped.",
 };
@@ -24,6 +28,24 @@ describe("rebuild cache helpers", () => {
 
   it("formats rebuild confirmation text with the limit", () => {
     assert.equal(formatRebuildConfirm(t, 31), "Rebuild cache? Limited to 31 days.");
+  });
+
+  it("formats rebuild confirmation text with a preview", () => {
+    assert.equal(
+      formatRebuildConfirm(t, 31, {
+        daysToRebuild: 12,
+        estimatedHistoryCalls: 12,
+        limitDays: 31,
+        omittedDays: 2,
+        source: "foxcloud-history",
+      }),
+      "Rebuild 12 days with about 12 calls. Limited to 31; omitted 2.",
+    );
+  });
+
+  it("formats local Modbus and demo rebuild confirmations", () => {
+    assert.equal(formatRebuildConfirm(t, 31, { source: "modbus" }), "Use local Modbus data.");
+    assert.equal(formatRebuildConfirm(t, 31, { source: "demo" }), "Demo rebuild.");
   });
 
   it("formats structured rebuild summaries", () => {

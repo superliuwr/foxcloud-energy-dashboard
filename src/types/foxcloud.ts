@@ -186,4 +186,6 @@ export interface RebuildSummary {
   limited: boolean;
   limitDays: number;
   source: "foxcloud-history" | "modbus" | "demo";
+  estimatedHistoryCalls?: number;
+  daysToRebuild?: number;
 }

@@ -131,6 +131,9 @@ const translations = {
     rebuildSummary: "{processed} days checked, {rebuilt} recalculated, {skipped} kept unchanged.",
     rebuildLimited: " Limited to the most recent {limit} days; {omitted} older days were not rebuilt.",
     rebuildCacheConfirm: "Rebuild the selected range using FoxCloud 5-minute history data? This may call the FoxCloud API many times and is limited to the most recent {limit} days.",
+    rebuildCacheConfirmPreview: "Rebuild selected range? This will recalculate up to {days} day(s), estimate {calls} FoxCloud history API call(s), and is limited to the most recent {limit} days.",
+    rebuildCacheConfirmLocal: "Refresh the selected range from local Modbus/SQLite data? This will not call FoxCloud.",
+    rebuildCacheConfirmDemo: "Demo mode is enabled. Rebuild will not call FoxCloud or change live data. Continue?",
     unableToLoad: "Unable to load the dashboard",
     period: "Period",
     periodTotals: "Energy totals",
@@ -254,6 +257,9 @@ const translations = {
     rebuildSummary: "已检查 {processed} 天，成功重算 {rebuilt} 天，保留原值 {skipped} 天。",
     rebuildLimited: " 本次限制为最近 {limit} 天；较早的 {omitted} 天没有重算。",
     rebuildCacheConfirm: "确定要用 FoxCloud 5 分钟历史数据重算所选范围吗？这可能会调用较多 FoxCloud API，并且最多只重算最近 {limit} 天。",
+    rebuildCacheConfirmPreview: "确定要重算所选范围吗？本次最多重算 {days} 天，预计调用 {calls} 次 FoxCloud history API，并限制为最近 {limit} 天。",
+    rebuildCacheConfirmLocal: "确定要用本地 Modbus/SQLite 数据刷新所选范围吗？这不会调用 FoxCloud。",
+    rebuildCacheConfirmDemo: "当前是演示模式。重算不会调用 FoxCloud，也不会改变真实数据。是否继续？",
     unableToLoad: "无法加载仪表板",
     period: "周期",
     periodTotals: "能源总计",
@@ -377,6 +383,9 @@ const translations = {
     rebuildSummary: "ตรวจสอบ {processed} วัน คำนวณใหม่ {rebuilt} วัน เก็บค่าเดิม {skipped} วัน",
     rebuildLimited: " จำกัดเฉพาะ {limit} วันล่าสุด; ไม่ได้สร้างใหม่ {omitted} วันเก่ากว่านั้น",
     rebuildCacheConfirm: "ต้องการสร้างแคชของช่วงที่เลือกใหม่ด้วยข้อมูลประวัติทุก 5 นาทีจาก FoxCloud หรือไม่? การทำงานนี้อาจเรียก API หลายครั้งและจำกัดเฉพาะ {limit} วันล่าสุด",
+    rebuildCacheConfirmPreview: "ต้องการสร้างแคชช่วงที่เลือกใหม่หรือไม่? จะคำนวณใหม่ได้สูงสุด {days} วัน เรียก FoxCloud history API ประมาณ {calls} ครั้ง และจำกัดเฉพาะ {limit} วันล่าสุด",
+    rebuildCacheConfirmLocal: "ต้องการรีเฟรชช่วงที่เลือกจากข้อมูล Modbus/SQLite ในเครื่องหรือไม่? จะไม่เรียก FoxCloud",
+    rebuildCacheConfirmDemo: "กำลังใช้โหมดตัวอย่าง การสร้างใหม่จะไม่เรียก FoxCloud หรือเปลี่ยนข้อมูลจริง ต้องการดำเนินการต่อหรือไม่?",
     unableToLoad: "ไม่สามารถโหลดแดชบอร์ดได้",
     period: "ช่วงเวลา",
     periodTotals: "ยอดรวมพลังงาน",
@@ -991,7 +1000,23 @@ async function loadEnergyRange(silent = false) {
 }
 
 async function rebuildSelectedCache() {
-  if (!window.confirm(FoxCloudRebuild.formatRebuildConfirm(t, REBUILD_LIMIT_DAYS))) {
+  const [year, month] = monthPicker.value.split("-");
+  let preview = null;
+
+  try {
+    const previewResponse = await fetch(
+      `/api/rebuild-cache/preview?year=${year}&month=${Number(month)}&range=${encodeURIComponent(tableRangeSelect.value)}`,
+    );
+    preview = await previewResponse.json();
+
+    if (!previewResponse.ok || preview.error) {
+      preview = null;
+    }
+  } catch {
+    preview = null;
+  }
+
+  if (!window.confirm(FoxCloudRebuild.formatRebuildConfirm(t, REBUILD_LIMIT_DAYS, preview))) {
     return;
   }
 
@@ -1000,7 +1025,6 @@ async function rebuildSelectedCache() {
   statusText.textContent = t("rebuildingCache");
 
   try {
-    const [year, month] = monthPicker.value.split("-");
     const response = await fetch("/api/rebuild-cache", {
       method: "POST",
       headers: {
