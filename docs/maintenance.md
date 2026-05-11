@@ -28,6 +28,28 @@ The goal is to update, improve, debug, and maintain the current FoxCloud Dashboa
 - `public/styles.css`: responsive dashboard styling.
 - `README.md` and `README_FIRST.md`: user setup documentation.
 
+## Maintenance Completion Status
+
+Status: completed for the first maintenance stream on 2026-05-12.
+
+Final maintenance focus:
+
+- Security hardening without reintroducing the Synology HTTP/CSP breakage.
+- Safer API parameter validation and JSON API errors.
+- More reliable FoxCloud retry handling and request signing coverage.
+- Shared energy calculation helpers and regression tests.
+- Local Modbus profile support, profile health metadata, and fallback warnings.
+- Safer rebuild-cache UX with structured summaries and API-call preview.
+- English and Chinese documentation kept in sync for setup-impacting changes.
+
+Open-source handoff:
+
+- The maintenance branch is ready to fast-forward into `main`.
+- Remaining larger product ideas should move into the next redesign project rather than
+  extending this maintenance stream.
+- Avoid broad security header/CSP changes until they are tested on both LAN HTTP and
+  HTTPS reverse-proxy deployments.
+
 ## Current Verification Baseline
 
 Run these before and after maintenance changes:
