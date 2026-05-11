@@ -1,0 +1,165 @@
+# FoxCloud Dashboard Redesign v2
+
+This is the redesign project stream for the existing FoxCloud Energy Dashboard.
+
+Goal: make the dashboard more visual, easier to understand at a glance, and more useful
+for daily household energy decisions without breaking the stable maintenance version.
+
+## Status
+
+- Branch: `codex/foxcloud-dashboard-redesign-v2`
+- Stable production branch: `main`
+- Production NAS path remains `/Volumes/Newhome/docker/foxcloud-dashboard`
+- Do not sync this redesign branch to NAS production until a working v2 milestone is tested.
+
+## Design Direction
+
+The current dashboard is data-rich but still table/card heavy. v2 should feel more like an
+energy command center:
+
+- prominent real-time gauges for solar, battery, home load, and grid flow
+- visual daily KPI cards for solar production, consumption, export, self-sufficiency, and estimated savings
+- weather context near the top so users understand whether low solar production is expected
+- simple status strip showing system, inverter, data source, and last update
+- keep the existing daily energy data table mostly unchanged because it is still useful for checking exact values
+
+## Priority Requirements
+
+1. Weather forecast
+   - Show today's local forecast and the next few days.
+   - Show condition, temperature, rain probability/precipitation, and a simple solar outlook.
+   - Recommended first provider: Open-Meteo forecast API because it needs no API key for non-commercial/open-source use.
+   - Keep latitude/longitude in environment variables, not hard-coded home address text.
+
+2. Visual dashboard cards and gauges
+   - Convert top-level numbers into dashboard-style visuals inspired by the supplied examples.
+   - Add gauge cards for:
+     - solar power now
+     - battery level and charge/discharge status
+     - house load
+     - grid import/export
+   - Add KPI cards for:
+     - daily solar
+     - daily consumption
+     - daily export
+     - self-sufficiency
+     - estimated savings
+   - Keep the daily energy table unchanged unless a bug is found.
+
+3. Estimated savings
+   - Add user-configurable electricity tariff settings.
+   - Default tariff requested by user:
+     - Peak: 3:00pm to 8:59pm, A$0.30/kWh
+     - Off peak: all other times, A$0.24/kWh
+   - Calculate savings for:
+     - today since midnight
+     - current week
+     - current month
+     - last 3 months
+     - last 6 months
+     - last 12 months
+     - all available data
+   - Prefer interval-based calculations when live samples exist.
+   - Fall back to daily blended estimates when interval samples are unavailable.
+   - Keep tariff values editable by the user and persist them safely.
+
+4. Mobile-first dashboard mode
+   - Keep the existing responsive table behavior.
+   - Make gauge/KPI cards stack cleanly on iPhone.
+   - Use a compact top status strip on mobile.
+
+## Suggested v2 Architecture
+
+### Weather
+
+Backend-only fetch:
+
+- New env values:
+  - `WEATHER_ENABLED=true`
+  - `WEATHER_PROVIDER=open-meteo`
+  - `WEATHER_LATITUDE=...`
+  - `WEATHER_LONGITUDE=...`
+  - `WEATHER_TIMEZONE=Australia/Sydney`
+  - `WEATHER_CACHE_TTL_MS=1800000`
+
+New backend endpoint:
+
+- `GET /api/weather`
+
+Initial Open-Meteo query shape:
+
+```text
+https://api.open-meteo.com/v1/forecast
+  ?latitude=...
+  &longitude=...
+  &current=temperature_2m,apparent_temperature,weather_code,cloud_cover,precipitation
+  &hourly=temperature_2m,weather_code,cloud_cover,precipitation_probability,precipitation
+  &daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset
+  &timezone=auto
+```
+
+Solar outlook rule of thumb:
+
+- `Excellent`: low cloud and low rain probability
+- `Good`: partly cloudy, low rain probability
+- `Poor`: high cloud, rain, storm, or high precipitation probability
+
+### Savings
+
+New tariff settings:
+
+- `ELECTRICITY_CURRENCY=AUD`
+- `ELECTRICITY_PEAK_START=15:00`
+- `ELECTRICITY_PEAK_END=20:59`
+- `ELECTRICITY_PEAK_RATE=0.30`
+- `ELECTRICITY_OFF_PEAK_RATE=0.24`
+- Optional future value:
+  - `ELECTRICITY_FEED_IN_RATE=0`
+
+Potential API:
+
+- `GET /api/savings?range=current_month`
+- `GET /api/tariff`
+- `PUT /api/tariff` or browser-local settings first
+
+Initial savings formula:
+
+- Interval mode:
+  - avoided import value = household demand supplied by solar/battery during each time interval multiplied by that interval's tariff.
+  - export credit can be shown separately if a feed-in rate is configured.
+- Daily fallback mode:
+  - estimate avoided import value using `self_consumption` and a blended peak/off-peak rate.
+  - clearly label this as an estimate.
+
+Important: avoid double-counting battery energy. Battery discharge is part of self-sufficiency,
+but charging and discharging losses mean savings should be calculated from avoided grid import,
+not by simply adding solar production plus battery discharge.
+
+## Extra Redesign Ideas
+
+- Self-sufficiency gauge: percentage of home usage supplied by solar/battery.
+- Energy balance card: `PV produced = self-consumption + return to grid`.
+- Solar forecast hint: compare today's production so far against expected weather.
+- Battery readiness card: whether the battery is likely to cover evening peak.
+- Peak window countdown: show time until peak tariff starts/ends.
+- Data quality indicator: live Modbus, FoxCloud, cache, demo, stale, or fallback profile.
+- Export/import net card: whether the home is currently a net exporter or importer.
+- Daily comparison: today vs yesterday, and today vs same weekday last week.
+- Battery protection hints: unusually high inverter/battery temperatures.
+- Redesign-safe setting panel: user can edit tariff/weather location without touching `.env` later.
+
+## First Implementation Milestones
+
+1. Add weather backend endpoint and weather card.
+2. Add tariff/savings calculation helper with tests.
+3. Redesign top section into visual KPI cards and gauges.
+4. Add self-sufficiency and estimated savings cards.
+5. Improve mobile layout for the visual dashboard.
+6. Keep daily energy table stable and regression-test CSV sorting/export behavior.
+
+## Non-Goals For v2 First Pass
+
+- Do not remove the existing daily energy data table.
+- Do not write inverter settings over Modbus.
+- Do not expose private location text, API keys, passwords, or serial numbers in the frontend.
+- Do not sync incomplete v2 work to NAS production.
