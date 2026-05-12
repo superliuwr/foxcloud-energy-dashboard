@@ -39,6 +39,36 @@
 
         <div id="warningBox" class="warning-box hidden"></div>
 
+        <section id="weatherPanel" class="panel weather-panel hidden" aria-live="polite">
+          <div class="weather-current">
+            <div>
+              <p class="panel-kicker" data-i18n="weather">Weather</p>
+              <h2 data-i18n="solarForecast">Solar forecast</h2>
+              <p id="weatherLocation" class="muted-copy">--</p>
+            </div>
+            <div class="weather-now">
+              <span id="weatherIcon" class="weather-icon">☀</span>
+              <div>
+                <strong id="weatherTemperature">--</strong>
+                <span id="weatherCondition">--</span>
+              </div>
+            </div>
+            <div class="weather-outlook">
+              <span data-i18n="solarOutlook">Solar outlook</span>
+              <strong id="weatherSolarOutlook">--</strong>
+            </div>
+            <div class="weather-detail">
+              <span data-i18n="rainChance">Rain chance</span>
+              <strong id="weatherRainChance">--</strong>
+            </div>
+            <div class="weather-detail">
+              <span data-i18n="cloudCover">Cloud cover</span>
+              <strong id="weatherCloudCover">--</strong>
+            </div>
+          </div>
+          <div id="weatherDaily" class="weather-daily"></div>
+        </section>
+
         <section class="panel">
           <div class="panel-heading">
             <div>

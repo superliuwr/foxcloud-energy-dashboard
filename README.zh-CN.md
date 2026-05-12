@@ -206,6 +206,26 @@ npm run metadata
 
 目前内置的 Modbus profile 是 `foxess-h3-smart`。如果 `.env` 里的 `MODBUS_PROFILE` 拼错，系统会先自动 fallback 到 `foxess-h3-smart`，避免服务直接启动失败；同时 `/api/health` 会显示 `modbusProfileMatched:false`，网页也会显示 warning，提醒用户检查寄存器表是否正确。
 
+## 天气预报
+
+v2 改版分支可以显示本地天气和简单的太阳能发电天气判断。天气由后端从 Open-Meteo 获取，浏览器不需要 API key。
+
+`.env` 可以填邮编，也可以填更精确的经纬度：
+
+```bash
+WEATHER_ENABLED=true
+WEATHER_PROVIDER=open-meteo
+WEATHER_POSTCODE=2141
+WEATHER_COUNTRY_CODE=AU
+
+# 可选：比邮编更精确
+WEATHER_LATITUDE=
+WEATHER_LONGITUDE=
+WEATHER_TIMEZONE=Australia/Sydney
+```
+
+如果填了 `WEATHER_LATITUDE` 和 `WEATHER_LONGITUDE`，系统会优先使用经纬度；否则会先用 Open-Meteo geocoding 解析 `WEATHER_POSTCODE`，再 fallback 到 Zippopotam.us 做邮编到大概位置的查询。邮编模式是近似位置；如果你想更精确，请使用经纬度。
+
 ## 常用命令
 
 ```bash

@@ -56,6 +56,27 @@ const parseNonNegativeInteger = (
   return parsed;
 };
 
+const parseOptionalNumber = (
+  value: string | undefined,
+  envName: string,
+  min: number,
+  max: number,
+): number | null => {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const parsed = Number(trimmed);
+
+  if (!Number.isFinite(parsed) || parsed < min || parsed > max) {
+    throw new Error(`${envName} must be a number between ${min} and ${max}.`);
+  }
+
+  return parsed;
+};
+
 const parseBaseUrl = (value: string | undefined): string => {
   const baseUrl = value?.trim() || "https://www.foxesscloud.com";
 
@@ -183,6 +204,25 @@ export const env = {
       process.env.SQLITE_BACKUP_RETENTION_COUNT,
       72,
       "SQLITE_BACKUP_RETENTION_COUNT",
+    ),
+  },
+  weather: {
+    enabled: parseBoolean(process.env.WEATHER_ENABLED),
+    provider: process.env.WEATHER_PROVIDER?.trim() || "open-meteo",
+    latitude: parseOptionalNumber(process.env.WEATHER_LATITUDE, "WEATHER_LATITUDE", -90, 90),
+    longitude: parseOptionalNumber(process.env.WEATHER_LONGITUDE, "WEATHER_LONGITUDE", -180, 180),
+    postcode: process.env.WEATHER_POSTCODE?.trim() || "",
+    countryCode: process.env.WEATHER_COUNTRY_CODE?.trim().toUpperCase() || "",
+    timezone: process.env.WEATHER_TIMEZONE?.trim() || dashboardTimeZone,
+    cacheTtlMs: parsePositiveInteger(
+      process.env.WEATHER_CACHE_TTL_MS,
+      30 * 60 * 1000,
+      "WEATHER_CACHE_TTL_MS",
+    ),
+    timeoutMs: parsePositiveInteger(
+      process.env.WEATHER_TIMEOUT_MS,
+      10_000,
+      "WEATHER_TIMEOUT_MS",
     ),
   },
 };

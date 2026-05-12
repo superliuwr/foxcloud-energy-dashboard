@@ -201,6 +201,30 @@ Notes for Modbus mode:
 - Keep `MODBUS_READ_ONLY=true`. Writing inverter settings is intentionally not enabled in this dashboard yet.
 - You can quickly test connectivity with `nc -zv YOUR_INVERTER_IP 502`.
 
+## Weather forecast
+
+The v2 redesign branch can show local weather and a simple solar outlook. Weather is fetched by
+the backend from Open-Meteo, so the browser does not need an API key.
+
+Configure either postcode or coordinates in `.env`:
+
+```bash
+WEATHER_ENABLED=true
+WEATHER_PROVIDER=open-meteo
+WEATHER_POSTCODE=2141
+WEATHER_COUNTRY_CODE=AU
+
+# Optional, more precise than postcode:
+WEATHER_LATITUDE=
+WEATHER_LONGITUDE=
+WEATHER_TIMEZONE=Australia/Sydney
+```
+
+If latitude and longitude are set, they are used first. Otherwise the app tries to resolve
+`WEATHER_POSTCODE` with Open-Meteo geocoding, then falls back to Zippopotam.us for
+postcode-to-location lookup. Postcode mode is approximate; use coordinates if you want a
+more precise forecast.
+
 ## Local setup
 
 1. Install Node.js 20 or newer.

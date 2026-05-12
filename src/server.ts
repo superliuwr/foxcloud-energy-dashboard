@@ -15,6 +15,7 @@ import {
 import { listModbusProfileIds, resolveModbusProfile } from "./services/modbus/profiles.js";
 import { startModbusSampler } from "./services/modbusSampler.js";
 import { startSqliteBackupScheduler } from "./services/sqliteBackup.js";
+import { getWeatherForecast } from "./services/weatherService.js";
 
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");
@@ -133,6 +134,16 @@ app.get("/api/rebuild-cache/preview", async (req, res, next) => {
     const month = parseMonth(req.query.month, now.getMonth() + 1);
     const range = parseRange(req.query.range);
     const payload = previewRebuildEnergyRangeCache(range, year, month);
+
+    res.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/weather", async (_req, res, next) => {
+  try {
+    const payload = await getWeatherForecast();
 
     res.json(payload);
   } catch (error) {

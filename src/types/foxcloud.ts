@@ -189,3 +189,39 @@ export interface RebuildSummary {
   estimatedHistoryCalls?: number;
   daysToRebuild?: number;
 }
+
+export interface WeatherPayload {
+  enabled: boolean;
+  source: "open-meteo" | "disabled";
+  generatedAt: string;
+  location: {
+    latitude: number;
+    longitude: number;
+    timezone: string;
+    name?: string | null;
+    countryCode?: string | null;
+    source: "coordinates" | "postcode";
+  } | null;
+  current: {
+    time: string | null;
+    temperatureCelsius: number | null;
+    apparentTemperatureCelsius: number | null;
+    weatherCode: number | null;
+    conditionKey: string;
+    cloudCoverPercent: number | null;
+    precipitationMm: number | null;
+    precipitationProbabilityPercent: number | null;
+    solarOutlook: string;
+  } | null;
+  daily: Array<{
+    date: string;
+    weatherCode: number | null;
+    conditionKey: string;
+    temperatureMaxCelsius: number | null;
+    temperatureMinCelsius: number | null;
+    precipitationSumMm: number | null;
+    precipitationProbabilityMaxPercent: number | null;
+    solarOutlook: string;
+  }>;
+  warning: string | null;
+}

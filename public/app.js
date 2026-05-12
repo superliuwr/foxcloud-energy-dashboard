@@ -8,6 +8,7 @@ const languageSelect = document.getElementById("languageSelect");
 const tableRangeSelect = document.getElementById("tableRangeSelect");
 const periodRangeSelect = document.getElementById("periodRangeSelect");
 const warningBox = document.getElementById("warningBox");
+const weatherPanel = document.getElementById("weatherPanel");
 const dailyTableBody = document.getElementById("dailyTableBody");
 const storageKeys = {
   language: "foxcloud-dashboard-language",
@@ -55,6 +56,14 @@ const textFields = {
   liveMeta: document.getElementById("liveMeta"),
   periodTotalsMeta: document.getElementById("periodTotalsMeta"),
   badgeRow: document.getElementById("badgeRow"),
+  weatherLocation: document.getElementById("weatherLocation"),
+  weatherIcon: document.getElementById("weatherIcon"),
+  weatherTemperature: document.getElementById("weatherTemperature"),
+  weatherCondition: document.getElementById("weatherCondition"),
+  weatherSolarOutlook: document.getElementById("weatherSolarOutlook"),
+  weatherRainChance: document.getElementById("weatherRainChance"),
+  weatherCloudCover: document.getElementById("weatherCloudCover"),
+  weatherDaily: document.getElementById("weatherDaily"),
 };
 
 const flowFields = {
@@ -82,6 +91,7 @@ let sortState = {
 };
 let lastPayload = null;
 let lastRangePayload = null;
+let lastWeatherPayload = null;
 const REBUILD_LIMIT_DAYS = 31;
 
 function getSelectValues(selectElement) {
@@ -234,6 +244,25 @@ const translations = {
     batteryDischargeKw: "Battery discharge (kW)",
     powerKw: "Power (kW)",
     noTableData: "No table data is available to export yet.",
+    weather: "Weather",
+    solarForecast: "Solar forecast",
+    solarOutlook: "Solar outlook",
+    rainChance: "Rain chance",
+    cloudCover: "Cloud cover",
+    weatherDisabled: "Weather forecast is not configured.",
+    clear: "Clear",
+    partly_cloudy: "Partly cloudy",
+    cloudy: "Cloudy",
+    fog: "Fog",
+    drizzle: "Showers",
+    rain: "Rain",
+    snow: "Snow",
+    storm: "Storm",
+    unknown: "Unknown",
+    excellent: "Excellent",
+    good: "Good",
+    fair: "Fair",
+    poor: "Poor",
   },
   zh: {
     appEyebrow: "FoxCloud 电池仪表板",
@@ -360,6 +389,25 @@ const translations = {
     batteryDischargeKw: "电池放电 (kW)",
     powerKw: "功率 (kW)",
     noTableData: "目前还没有可导出的表格数据。",
+    weather: "天气",
+    solarForecast: "太阳能天气预报",
+    solarOutlook: "发电天气",
+    rainChance: "下雨概率",
+    cloudCover: "云量",
+    weatherDisabled: "天气预报尚未配置。",
+    clear: "晴天",
+    partly_cloudy: "局部多云",
+    cloudy: "多云",
+    fog: "有雾",
+    drizzle: "阵雨",
+    rain: "下雨",
+    snow: "下雪",
+    storm: "雷暴",
+    unknown: "未知",
+    excellent: "非常适合",
+    good: "适合",
+    fair: "一般",
+    poor: "较差",
   },
   th: {
     appEyebrow: "แดชบอร์ดแบตเตอรี่ FoxCloud",
@@ -486,6 +534,25 @@ const translations = {
     batteryDischargeKw: "การคายประจุแบตเตอรี่ (kW)",
     powerKw: "กำลังไฟ (kW)",
     noTableData: "ยังไม่มีข้อมูลตารางให้ส่งออก",
+    weather: "อากาศ",
+    solarForecast: "พยากรณ์โซลาร์",
+    solarOutlook: "แนวโน้มโซลาร์",
+    rainChance: "โอกาสฝน",
+    cloudCover: "เมฆปกคลุม",
+    weatherDisabled: "ยังไม่ได้ตั้งค่าพยากรณ์อากาศ",
+    clear: "ฟ้าใส",
+    partly_cloudy: "มีเมฆบางส่วน",
+    cloudy: "มีเมฆมาก",
+    fog: "หมอก",
+    drizzle: "ฝนปรอย",
+    rain: "ฝน",
+    snow: "หิมะ",
+    storm: "พายุ",
+    unknown: "ไม่ทราบ",
+    excellent: "ยอดเยี่ยม",
+    good: "ดี",
+    fair: "พอใช้",
+    poor: "ไม่ดี",
   },
 };
 
@@ -515,6 +582,22 @@ function formatTemperature(value) {
   }
 
   return `${Number(value).toFixed(1)}°C`;
+}
+
+function formatOptionalPercent(value) {
+  if (value === null || value === undefined) {
+    return "--";
+  }
+
+  return `${Number(value).toFixed(0)}%`;
+}
+
+function formatOptionalMillimetres(value) {
+  if (value === null || value === undefined) {
+    return "--";
+  }
+
+  return `${Number(value).toFixed(1)} mm`;
 }
 
 function formatTimestamp(value) {
@@ -578,8 +661,102 @@ function applyLanguage() {
 
   textFields.currentDateTime.textContent = formatCurrentDateTime();
 
+  if (lastWeatherPayload) {
+    renderWeather(lastWeatherPayload);
+  }
+
   if (!lastPayload) {
     statusText.textContent = t("loading");
+  }
+}
+
+function getWeatherIcon(conditionKey) {
+  const icons = {
+    clear: "☀",
+    partly_cloudy: "⛅",
+    cloudy: "☁",
+    fog: "🌫",
+    drizzle: "🌦",
+    rain: "🌧",
+    snow: "❄",
+    storm: "⛈",
+    unknown: "○",
+  };
+
+  return icons[conditionKey] ?? icons.unknown;
+}
+
+function formatWeatherDate(dateKey) {
+  const parsed = new Date(`${dateKey}T00:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return dateKey;
+  }
+
+  return new Intl.DateTimeFormat(
+    { en: "en-AU", zh: "zh-CN", th: "th-TH" }[currentLanguage] ?? "en-AU",
+    { weekday: "short", day: "numeric" },
+  ).format(parsed);
+}
+
+function renderWeather(payload) {
+  lastWeatherPayload = payload;
+
+  if (!payload?.enabled || !payload.current) {
+    weatherPanel.classList.add("hidden");
+    return;
+  }
+
+  const current = payload.current;
+  const locationName = payload.location?.name
+    || [payload.location?.latitude?.toFixed(3), payload.location?.longitude?.toFixed(3)].filter(Boolean).join(", ");
+
+  weatherPanel.classList.remove("hidden");
+  textFields.weatherLocation.textContent = locationName || t("weather");
+  textFields.weatherIcon.textContent = getWeatherIcon(current.conditionKey);
+  textFields.weatherTemperature.textContent = formatTemperature(current.temperatureCelsius);
+  textFields.weatherCondition.textContent = t(current.conditionKey);
+  textFields.weatherSolarOutlook.textContent = t(current.solarOutlook);
+  textFields.weatherSolarOutlook.dataset.outlook = current.solarOutlook;
+  textFields.weatherRainChance.textContent = formatOptionalPercent(current.precipitationProbabilityPercent);
+  textFields.weatherCloudCover.textContent = formatOptionalPercent(current.cloudCoverPercent);
+
+  const forecastCards = (payload.daily ?? []).slice(0, 5).map((day) => {
+    const card = document.createElement("article");
+    const date = document.createElement("strong");
+    const icon = document.createElement("span");
+    const condition = document.createElement("span");
+    const temperature = document.createElement("span");
+    const rain = document.createElement("small");
+
+    card.className = "weather-day";
+    icon.className = "weather-day-icon";
+    date.textContent = formatWeatherDate(day.date);
+    icon.textContent = getWeatherIcon(day.conditionKey);
+    condition.textContent = t(day.conditionKey);
+    temperature.textContent = `${formatTemperature(day.temperatureMinCelsius)} / ${formatTemperature(day.temperatureMaxCelsius)}`;
+    rain.textContent = `${t("rainChance")}: ${formatOptionalPercent(day.precipitationProbabilityMaxPercent)} · ${formatOptionalMillimetres(day.precipitationSumMm)}`;
+    card.append(date, icon, condition, temperature, rain);
+
+    return card;
+  });
+
+  textFields.weatherDaily.replaceChildren(...forecastCards);
+}
+
+async function loadWeather() {
+  try {
+    const response = await fetch("/api/weather");
+    const payload = await response.json();
+
+    if (!response.ok || payload.error) {
+      throw new Error(payload.error || "Weather request failed.");
+    }
+
+    renderWeather(payload);
+  } catch (error) {
+    lastWeatherPayload = null;
+    weatherPanel.classList.add("hidden");
   }
 }
 
@@ -1418,6 +1595,7 @@ async function loadDashboard() {
 
     renderMetrics(payload);
     lastPayload = payload;
+    await loadWeather();
     await loadEnergyRange(true);
     statusText.textContent = payload.isStale
       ? t("loadedCached")

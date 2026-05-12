@@ -77,10 +77,18 @@ Backend-only fetch:
 - New env values:
   - `WEATHER_ENABLED=true`
   - `WEATHER_PROVIDER=open-meteo`
+  - `WEATHER_POSTCODE=2141`
+  - `WEATHER_COUNTRY_CODE=AU`
   - `WEATHER_LATITUDE=...`
   - `WEATHER_LONGITUDE=...`
   - `WEATHER_TIMEZONE=Australia/Sydney`
   - `WEATHER_CACHE_TTL_MS=1800000`
+
+Location priority:
+
+- Use `WEATHER_LATITUDE` and `WEATHER_LONGITUDE` first when configured.
+- Otherwise resolve `WEATHER_POSTCODE` and optional `WEATHER_COUNTRY_CODE` with Open-Meteo geocoding, then Zippopotam.us as a postcode fallback.
+- Do not hard-code the user's street address.
 
 New backend endpoint:
 
