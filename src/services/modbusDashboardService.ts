@@ -17,6 +17,7 @@ import {
   readScaledSignedRegisters,
   readScaledUnsignedRegisters,
 } from "../lib/modbusRegisters.js";
+import { calculateSavings } from "../lib/savings.js";
 import { getModbusProfile, resolveModbusProfile } from "./modbus/profiles.js";
 import type {
   DashboardDailyRow,
@@ -614,6 +615,7 @@ export async function getModbusDashboardData(year: number, month: number): Promi
     },
     live: snapshot.live,
     today: snapshot.today,
+    todaySavings: calculateSavings([todayRow], env.electricity),
     lastHour: buildLastHour(env.modbus.deviceId),
     chartSeries: {
       labels: dailyRows.map((row) => String(row.day)),
@@ -655,5 +657,6 @@ export async function getModbusEnergyRangeData(
     monthCount: getMonthCountForDateRange(startDate, year, month),
     dailyTable: rows,
     totals: buildEnergyTotals(rows),
+    savings: calculateSavings(rows, env.electricity),
   };
 }

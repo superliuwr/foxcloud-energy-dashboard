@@ -77,6 +77,36 @@ const parseOptionalNumber = (
   return parsed;
 };
 
+const parseNonNegativeNumber = (
+  value: string | undefined,
+  fallback: number,
+  envName: string,
+): number => {
+  const parsed = Number(value ?? String(fallback));
+
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`${envName} must be a non-negative number.`);
+  }
+
+  return parsed;
+};
+
+const parseClockTime = (value: string | undefined, fallback: string, envName: string): string => {
+  const normalized = (value ?? fallback).trim();
+
+  if (!/^\d{1,2}:\d{2}$/.test(normalized)) {
+    throw new Error(`${envName} must use HH:mm format.`);
+  }
+
+  const [hours, minutes] = normalized.split(":").map(Number);
+
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    throw new Error(`${envName} must be a valid 24-hour time.`);
+  }
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
 const parseBaseUrl = (value: string | undefined): string => {
   const baseUrl = value?.trim() || "https://www.foxesscloud.com";
 
@@ -209,6 +239,7 @@ export const env = {
   weather: {
     enabled: parseBoolean(process.env.WEATHER_ENABLED),
     provider: process.env.WEATHER_PROVIDER?.trim() || "open-meteo",
+    locationName: process.env.WEATHER_LOCATION_NAME?.trim() || "",
     latitude: parseOptionalNumber(process.env.WEATHER_LATITUDE, "WEATHER_LATITUDE", -90, 90),
     longitude: parseOptionalNumber(process.env.WEATHER_LONGITUDE, "WEATHER_LONGITUDE", -180, 180),
     postcode: process.env.WEATHER_POSTCODE?.trim() || "",
@@ -223,6 +254,34 @@ export const env = {
       process.env.WEATHER_TIMEOUT_MS,
       10_000,
       "WEATHER_TIMEOUT_MS",
+    ),
+  },
+  electricity: {
+    currency: process.env.ELECTRICITY_CURRENCY?.trim().toUpperCase() || "AUD",
+    peakRate: parseNonNegativeNumber(
+      process.env.ELECTRICITY_PEAK_RATE,
+      0.3,
+      "ELECTRICITY_PEAK_RATE",
+    ),
+    offPeakRate: parseNonNegativeNumber(
+      process.env.ELECTRICITY_OFF_PEAK_RATE,
+      0.24,
+      "ELECTRICITY_OFF_PEAK_RATE",
+    ),
+    peakStart: parseClockTime(
+      process.env.ELECTRICITY_PEAK_START,
+      "15:00",
+      "ELECTRICITY_PEAK_START",
+    ),
+    peakEnd: parseClockTime(
+      process.env.ELECTRICITY_PEAK_END,
+      "20:59",
+      "ELECTRICITY_PEAK_END",
+    ),
+    feedInRate: parseNonNegativeNumber(
+      process.env.ELECTRICITY_FEED_IN_RATE,
+      0,
+      "ELECTRICITY_FEED_IN_RATE",
     ),
   },
 };

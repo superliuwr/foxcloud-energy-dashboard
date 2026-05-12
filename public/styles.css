@@ -431,6 +431,25 @@ select {
   letter-spacing: 0;
 }
 
+.summary-card small {
+  display: block;
+  margin-top: 0.35rem;
+  line-height: 1.35;
+}
+
+.savings-card {
+  border-color: rgba(15, 159, 110, 0.25);
+  background:
+    radial-gradient(circle at top right, rgba(52, 211, 153, 0.2), transparent 44%),
+    var(--surface-strong);
+}
+
+.savings-card strong {
+  color: #0f9f6e;
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+
 .battery-level-value {
   font-size: 1.45rem !important;
   font-weight: 900;

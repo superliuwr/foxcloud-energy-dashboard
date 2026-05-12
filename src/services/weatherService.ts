@@ -79,7 +79,7 @@ const resolveWeatherLocation = async (): Promise<WeatherLocation | null> => {
       latitude: env.weather.latitude ?? 0,
       longitude: env.weather.longitude ?? 0,
       timezone: env.weather.timezone,
-      name: null,
+      name: env.weather.locationName || null,
       countryCode: env.weather.countryCode || null,
       source: "coordinates",
     };
@@ -123,7 +123,7 @@ const resolveWeatherLocation = async (): Promise<WeatherLocation | null> => {
       latitude: result.latitude ?? 0,
       longitude: result.longitude ?? 0,
       timezone: result.timezone ?? env.weather.timezone,
-      name: [result.name, result.admin1].filter(Boolean).join(", ") || env.weather.postcode,
+      name: env.weather.locationName || [result.name, result.admin1].filter(Boolean).join(", ") || env.weather.postcode,
       countryCode: result.country_code ?? env.weather.countryCode ?? null,
       source: "postcode",
     };
@@ -177,7 +177,7 @@ const resolvePostcodeWithZippopotamus = async (): Promise<WeatherLocation | null
     latitude,
     longitude,
     timezone: env.weather.timezone,
-    name: [first?.name, first?.state].filter(Boolean).join(", ") || env.weather.postcode,
+    name: env.weather.locationName || [first?.name, first?.state].filter(Boolean).join(", ") || env.weather.postcode,
     countryCode: postcode["country abbreviation"] ?? env.weather.countryCode,
     source: "postcode",
   };

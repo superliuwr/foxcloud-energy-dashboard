@@ -34,6 +34,7 @@ const metricFields = {
   batteryMaxTemp: document.getElementById("batteryMaxTemp"),
   batteryPackTemp: document.getElementById("batteryPackTemp"),
   inverterTemp: document.getElementById("inverterTemp"),
+  todaySavings: document.getElementById("todaySavings"),
   solarLastHour: document.getElementById("solarLastHour"),
   homeLastHour: document.getElementById("homeLastHour"),
   gridImportLastHour: document.getElementById("gridImportLastHour"),
@@ -47,6 +48,7 @@ const metricFields = {
   periodReturnToGrid: document.getElementById("periodReturnToGrid"),
   periodGridConsumption: document.getElementById("periodGridConsumption"),
   periodSelfConsumption: document.getElementById("periodSelfConsumption"),
+  periodSavings: document.getElementById("periodSavings"),
 };
 
 const textFields = {
@@ -55,6 +57,8 @@ const textFields = {
   deviceMeta: document.getElementById("deviceMeta"),
   liveMeta: document.getElementById("liveMeta"),
   periodTotalsMeta: document.getElementById("periodTotalsMeta"),
+  todaySavingsMeta: document.getElementById("todaySavingsMeta"),
+  periodSavingsMeta: document.getElementById("periodSavingsMeta"),
   badgeRow: document.getElementById("badgeRow"),
   weatherLocation: document.getElementById("weatherLocation"),
   weatherIcon: document.getElementById("weatherIcon"),
@@ -164,6 +168,9 @@ const translations = {
     totalReturnToGrid: "Total return to grid",
     totalGridConsumption: "Total grid consumption",
     totalSelfConsumption: "Total self-consumption",
+    estimatedSavings: "Estimated savings",
+    todaySavings: "Estimated savings today",
+    savingsMeta: "{kwh} kWh avoided grid import at about {rate}/kWh",
     rangeSummary: "Showing",
     liveFlow: "Live Flow",
     energyDistribution: "Energy distribution",
@@ -309,6 +316,9 @@ const translations = {
     totalReturnToGrid: "回馈电网总量",
     totalGridConsumption: "电网取电总量",
     totalSelfConsumption: "自发自用总量",
+    estimatedSavings: "预估节省电费",
+    todaySavings: "今日预估节省",
+    savingsMeta: "约 {kwh} kWh 未从电网取电，按约 {rate}/kWh 估算",
     rangeSummary: "当前显示",
     liveFlow: "实时流向",
     energyDistribution: "能源分布",
@@ -454,6 +464,9 @@ const translations = {
     totalReturnToGrid: "ส่งกลับเข้ากริดรวม",
     totalGridConsumption: "ใช้ไฟจากกริดรวม",
     totalSelfConsumption: "ใช้เองจากโซลาร์รวม",
+    estimatedSavings: "เงินที่ประหยัดโดยประมาณ",
+    todaySavings: "ประหยัดวันนี้โดยประมาณ",
+    savingsMeta: "หลีกเลี่ยงการใช้ไฟจากกริด {kwh} kWh ที่ประมาณ {rate}/kWh",
     rangeSummary: "กำลังแสดง",
     liveFlow: "การไหลแบบสด",
     energyDistribution: "การกระจายพลังงาน",
@@ -560,8 +573,44 @@ function t(key) {
   return translations[currentLanguage][key] ?? translations.en[key] ?? key;
 }
 
+function interpolate(template, values) {
+  return Object.entries(values).reduce(
+    (text, [key, value]) => text.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
+}
+
 function formatKwh(value) {
   return `${Number(value ?? 0).toFixed(2)} kWh`;
+}
+
+function formatMoney(value, currency = "AUD") {
+  const normalizedCurrency = currency || "AUD";
+
+  try {
+    return new Intl.NumberFormat(currentLanguage === "zh" ? "zh-CN" : currentLanguage === "th" ? "th-TH" : "en-AU", {
+      style: "currency",
+      currency: normalizedCurrency,
+      currencyDisplay: "narrowSymbol",
+    }).format(Number(value ?? 0));
+  } catch {
+    return `${normalizedCurrency} ${Number(value ?? 0).toFixed(2)}`;
+  }
+}
+
+function formatRate(value, currency = "AUD") {
+  return `${formatMoney(value, currency)}`;
+}
+
+function formatSavingsMeta(savings) {
+  if (!savings) {
+    return "--";
+  }
+
+  return interpolate(t("savingsMeta"), {
+    kwh: Number(savings.avoidedGridImportKwh ?? 0).toFixed(2),
+    rate: formatRate(savings.blendedImportRate, savings.currency),
+  });
 }
 
 function formatKw(value) {
@@ -1142,6 +1191,11 @@ function renderPeriodTotals(payload) {
   metricFields.periodReturnToGrid.textContent = formatKwh(payload.totals?.returnToGridKwh);
   metricFields.periodGridConsumption.textContent = formatKwh(payload.totals?.gridConsumptionKwh);
   metricFields.periodSelfConsumption.textContent = formatKwh(payload.totals?.selfConsumptionKwh);
+  metricFields.periodSavings.textContent = formatMoney(
+    payload.savings?.estimatedTotalBenefit,
+    payload.savings?.currency,
+  );
+  textFields.periodSavingsMeta.textContent = formatSavingsMeta(payload.savings);
 
   const firstDate = payload.dailyTable?.at(0)?.date;
   const lastDate = payload.dailyTable?.at(-1)?.date;
@@ -1547,6 +1601,11 @@ function renderMetrics(payload) {
   metricFields.todayGrid.textContent = formatKwh(payload.today.gridConsumptionKwh);
   metricFields.todayBatteryCharge.textContent = formatKwh(payload.today.energyGoingIntoBatteryKwh);
   metricFields.todayBatteryDischarge.textContent = formatKwh(payload.today.energyComingOutOfBatteryKwh);
+  metricFields.todaySavings.textContent = formatMoney(
+    payload.todaySavings?.estimatedTotalBenefit,
+    payload.todaySavings?.currency,
+  );
+  textFields.todaySavingsMeta.textContent = formatSavingsMeta(payload.todaySavings);
   metricFields.batterySoc.textContent = formatPercent(payload.live.batterySocPercent);
   metricFields.batterySoc.classList.toggle(
     "battery-level-low",

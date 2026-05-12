@@ -129,6 +129,7 @@ export interface DashboardPayload {
     energyGoingIntoBatteryKwh: number;
     energyComingOutOfBatteryKwh: number;
   };
+  todaySavings: SavingsSummary;
   lastHour: {
     solarGeneratedKwh: number;
     homeUsageKwh: number;
@@ -165,6 +166,21 @@ export interface EnergyTotals {
   selfConsumptionKwh: number;
 }
 
+export interface SavingsSummary {
+  currency: string;
+  avoidedGridImportKwh: number;
+  exportedKwh: number;
+  estimatedSavings: number;
+  exportCredit: number;
+  estimatedTotalBenefit: number;
+  importRateMode: "weighted_daily_estimate";
+  blendedImportRate: number;
+  peakRate: number;
+  offPeakRate: number;
+  peakWindow: string;
+  feedInRate: number;
+}
+
 export interface EnergyRangePayload {
   generatedAt: string;
   range: string;
@@ -175,6 +191,7 @@ export interface EnergyRangePayload {
   monthCount: number;
   dailyTable: DashboardDailyRow[];
   totals: EnergyTotals;
+  savings: SavingsSummary;
 }
 
 export interface RebuildSummary {

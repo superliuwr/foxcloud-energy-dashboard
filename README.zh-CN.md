@@ -217,6 +217,7 @@ WEATHER_ENABLED=true
 WEATHER_PROVIDER=open-meteo
 WEATHER_POSTCODE=2141
 WEATHER_COUNTRY_CODE=AU
+WEATHER_LOCATION_NAME=Lidcombe
 
 # 可选：比邮编更精确
 WEATHER_LATITUDE=
@@ -225,6 +226,23 @@ WEATHER_TIMEZONE=Australia/Sydney
 ```
 
 如果填了 `WEATHER_LATITUDE` 和 `WEATHER_LONGITUDE`，系统会优先使用经纬度；否则会先用 Open-Meteo geocoding 解析 `WEATHER_POSTCODE`，再 fallback 到 Zippopotam.us 做邮编到大概位置的查询。邮编模式是近似位置；如果你想更精确，请使用经纬度。
+
+`WEATHER_LOCATION_NAME` 只改变网页显示的地名，例如显示 Lidcombe；不会改变天气预报使用的经纬度。
+
+## 预估节省电费
+
+网页会根据太阳能和电池减少的电网取电量，估算节省了多少电费。可以在 `.env` 中设置电价：
+
+```bash
+ELECTRICITY_CURRENCY=AUD
+ELECTRICITY_PEAK_START=15:00
+ELECTRICITY_PEAK_END=20:59
+ELECTRICITY_PEAK_RATE=0.30
+ELECTRICITY_OFF_PEAK_RATE=0.24
+ELECTRICITY_FEED_IN_RATE=0
+```
+
+目前算法使用每日总量估算：`家庭用电 - 电网取电` 视为被太阳能/电池覆盖的用电量。因为每日表没有每一分钟的峰谷明细，所以周期统计会使用峰谷加权平均电价。这个数字适合作为参考，不等同于正式电费账单。
 
 ## 常用命令
 

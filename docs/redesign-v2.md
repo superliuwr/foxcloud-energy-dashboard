@@ -79,6 +79,7 @@ Backend-only fetch:
   - `WEATHER_PROVIDER=open-meteo`
   - `WEATHER_POSTCODE=2141`
   - `WEATHER_COUNTRY_CODE=AU`
+  - `WEATHER_LOCATION_NAME=Lidcombe`
   - `WEATHER_LATITUDE=...`
   - `WEATHER_LONGITUDE=...`
   - `WEATHER_TIMEZONE=Australia/Sydney`
@@ -88,6 +89,7 @@ Location priority:
 
 - Use `WEATHER_LATITUDE` and `WEATHER_LONGITUDE` first when configured.
 - Otherwise resolve `WEATHER_POSTCODE` and optional `WEATHER_COUNTRY_CODE` with Open-Meteo geocoding, then Zippopotam.us as a postcode fallback.
+- `WEATHER_LOCATION_NAME` is a display-only override for labels such as Lidcombe.
 - Do not hard-code the user's street address.
 
 New backend endpoint:
@@ -124,10 +126,15 @@ New tariff settings:
 - Optional future value:
   - `ELECTRICITY_FEED_IN_RATE=0`
 
-Potential API:
+Implemented API shape:
 
-- `GET /api/savings?range=current_month`
-- `GET /api/tariff`
+- `GET /api/dashboard` includes `todaySavings`
+- `GET /api/energy-range` includes `savings`
+
+Current estimate:
+
+- Avoided import kWh = `home usage - grid consumption`.
+- Period totals use a weighted daily import rate because daily rows do not contain minute-by-minute tariff periods yet.
 - `PUT /api/tariff` or browser-local settings first
 
 Initial savings formula:

@@ -213,6 +213,7 @@ WEATHER_ENABLED=true
 WEATHER_PROVIDER=open-meteo
 WEATHER_POSTCODE=2141
 WEATHER_COUNTRY_CODE=AU
+WEATHER_LOCATION_NAME=Lidcombe
 
 # Optional, more precise than postcode:
 WEATHER_LATITUDE=
@@ -223,7 +224,26 @@ WEATHER_TIMEZONE=Australia/Sydney
 If latitude and longitude are set, they are used first. Otherwise the app tries to resolve
 `WEATHER_POSTCODE` with Open-Meteo geocoding, then falls back to Zippopotam.us for
 postcode-to-location lookup. Postcode mode is approximate; use coordinates if you want a
-more precise forecast.
+more precise forecast. `WEATHER_LOCATION_NAME` only changes the display label; it does not
+change the coordinates used for the forecast.
+
+## Estimated savings
+
+The dashboard estimates how much grid import was avoided by solar and battery energy. Configure
+your import tariff in `.env`:
+
+```bash
+ELECTRICITY_CURRENCY=AUD
+ELECTRICITY_PEAK_START=15:00
+ELECTRICITY_PEAK_END=20:59
+ELECTRICITY_PEAK_RATE=0.30
+ELECTRICITY_OFF_PEAK_RATE=0.24
+ELECTRICITY_FEED_IN_RATE=0
+```
+
+The current estimate uses daily totals: `home usage - grid consumption` is treated as avoided
+grid import. Because daily rows do not contain every minute of peak/off-peak usage, the app uses
+a weighted daily import rate for period totals. Treat this as a helpful estimate, not a bill.
 
 ## Local setup
 

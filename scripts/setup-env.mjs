@@ -60,6 +60,8 @@ const deviceSn = await ask("FoxCloud device serial number, optional");
 const modbusHost = dataProvider === "modbus" ? await askRequired("Modbus inverter/datalogger LAN IP") : "";
 const modbusPort = dataProvider === "modbus" ? await ask("Modbus TCP port", "502") : "502";
 const modbusUnitId = dataProvider === "modbus" ? await ask("Modbus unit/slave ID", "1") : "1";
+const weatherPostcode = await ask("Weather postcode, optional");
+const weatherLocationName = await ask("Weather display name, optional");
 const dashboardUsername = await askRequired("Dashboard login username");
 const dashboardPassword = await askRequired("Dashboard login password");
 const extraUsers = await ask(
@@ -91,6 +93,22 @@ const lines = [
   "SQLITE_BACKUP_DIR=/app/backups",
   "SQLITE_BACKUP_INTERVAL_MS=3600000",
   "SQLITE_BACKUP_RETENTION_COUNT=72",
+  `WEATHER_ENABLED=${weatherPostcode ? "true" : "false"}`,
+  "WEATHER_PROVIDER=open-meteo",
+  `WEATHER_POSTCODE=${envValue(weatherPostcode)}`,
+  "WEATHER_COUNTRY_CODE=AU",
+  `WEATHER_LOCATION_NAME=${envValue(weatherLocationName)}`,
+  "WEATHER_LATITUDE=",
+  "WEATHER_LONGITUDE=",
+  `WEATHER_TIMEZONE=${envValue(timeZone)}`,
+  "WEATHER_CACHE_TTL_MS=1800000",
+  "WEATHER_TIMEOUT_MS=10000",
+  "ELECTRICITY_CURRENCY=AUD",
+  "ELECTRICITY_PEAK_START=15:00",
+  "ELECTRICITY_PEAK_END=20:59",
+  "ELECTRICITY_PEAK_RATE=0.30",
+  "ELECTRICITY_OFF_PEAK_RATE=0.24",
+  "ELECTRICITY_FEED_IN_RATE=0",
   `DASHBOARD_USERNAME=${envValue(dashboardUsername)}`,
   `DASHBOARD_PASSWORD=${envValue(dashboardPassword)}`,
   `DASHBOARD_USERS=${envValue(extraUsers)}`,
