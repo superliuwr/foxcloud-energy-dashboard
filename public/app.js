@@ -96,6 +96,14 @@ const textFields = {
   gaugeBatteryDetail: document.getElementById("gaugeBatteryDetail"),
   gaugeHomeToday: document.getElementById("gaugeHomeToday"),
   gaugeGridToday: document.getElementById("gaugeGridToday"),
+  insightTariffStatus: document.getElementById("insightTariffStatus"),
+  insightTariffDetail: document.getElementById("insightTariffDetail"),
+  insightBatteryReadiness: document.getElementById("insightBatteryReadiness"),
+  insightBatteryDetail: document.getElementById("insightBatteryDetail"),
+  insightGridMode: document.getElementById("insightGridMode"),
+  insightGridDetail: document.getElementById("insightGridDetail"),
+  insightSmartHint: document.getElementById("insightSmartHint"),
+  insightSmartHintDetail: document.getElementById("insightSmartHintDetail"),
 };
 
 const flowFields = {
@@ -226,6 +234,27 @@ const translations = {
     dischargePower: "{value} discharging",
     netExportToday: "{value} exported today",
     netImportToday: "{value} imported today",
+    tariffWindow: "Tariff window",
+    batteryReadiness: "Battery readiness",
+    gridModeNow: "Grid mode now",
+    smartHint: "Smart hint",
+    peakNow: "Peak now",
+    offPeakNow: "Off-peak now",
+    peakStartsIn: "Peak starts in {time}",
+    peakEndsIn: "Peak ends in {time}",
+    peakWindowDetail: "Peak {window} at {rate}/kWh",
+    batteryReadyHigh: "Ready for peak",
+    batteryReadyMedium: "Watch evening usage",
+    batteryReadyLow: "Low for peak",
+    batteryReadinessDetail: "Battery is {soc}; peak window is {window}",
+    gridExportHint: "Exporting surplus solar",
+    gridImportHint: "Importing from grid",
+    gridNeutralHint: "Grid nearly balanced",
+    gridDetail: "Import {importKw}, export {exportKw}",
+    smartHintExporting: "Good time to run flexible loads or keep charging battery.",
+    smartHintPeak: "Peak tariff is active; battery support is most valuable now.",
+    smartHintLowBattery: "Battery is below 50%; consider saving stored energy for peak hours.",
+    smartHintNormal: "System looks steady. Keep an eye on weather and peak tariff window.",
     rangeSummary: "Showing",
     liveFlow: "Live Flow",
     energyDistribution: "Energy distribution",
@@ -401,6 +430,27 @@ const translations = {
     dischargePower: "{value} 放电",
     netExportToday: "今日回馈 {value}",
     netImportToday: "今日取电 {value}",
+    tariffWindow: "电价时段",
+    batteryReadiness: "电池晚高峰准备度",
+    gridModeNow: "当前电网状态",
+    smartHint: "智能建议",
+    peakNow: "正在高峰电价",
+    offPeakNow: "当前非高峰",
+    peakStartsIn: "距离高峰还有 {time}",
+    peakEndsIn: "距离高峰结束 {time}",
+    peakWindowDetail: "高峰 {window}，约 {rate}/kWh",
+    batteryReadyHigh: "适合应对晚高峰",
+    batteryReadyMedium: "注意晚间用电",
+    batteryReadyLow: "晚高峰电量偏低",
+    batteryReadinessDetail: "当前电池 {soc}；高峰时段 {window}",
+    gridExportHint: "正在输出多余太阳能",
+    gridImportHint: "正在从电网取电",
+    gridNeutralHint: "电网接近平衡",
+    gridDetail: "输入 {importKw}，输出 {exportKw}",
+    smartHintExporting: "现在适合运行可延后的用电设备，或继续给电池充电。",
+    smartHintPeak: "当前是高峰电价，电池支撑最有价值。",
+    smartHintLowBattery: "电池低于 50%，建议尽量把电留给高峰时段。",
+    smartHintNormal: "系统状态稳定，继续关注天气和高峰电价时段。",
     rangeSummary: "当前显示",
     liveFlow: "实时流向",
     energyDistribution: "能源分布",
@@ -576,6 +626,27 @@ const translations = {
     dischargePower: "คายประจุ {value}",
     netExportToday: "ส่งออกวันนี้ {value}",
     netImportToday: "นำเข้าวันนี้ {value}",
+    tariffWindow: "ช่วงค่าไฟ",
+    batteryReadiness: "ความพร้อมแบตเตอรี่",
+    gridModeNow: "สถานะกริดตอนนี้",
+    smartHint: "คำแนะนำ",
+    peakNow: "ช่วงพีคตอนนี้",
+    offPeakNow: "นอกช่วงพีค",
+    peakStartsIn: "พีคเริ่มใน {time}",
+    peakEndsIn: "พีคจบใน {time}",
+    peakWindowDetail: "พีค {window} ที่ {rate}/kWh",
+    batteryReadyHigh: "พร้อมสำหรับช่วงพีค",
+    batteryReadyMedium: "เฝ้าดูการใช้ช่วงเย็น",
+    batteryReadyLow: "แบตต่ำสำหรับช่วงพีค",
+    batteryReadinessDetail: "แบตเตอรี่ {soc}; ช่วงพีค {window}",
+    gridExportHint: "กำลังส่งโซลาร์ส่วนเกิน",
+    gridImportHint: "กำลังใช้ไฟจากกริด",
+    gridNeutralHint: "กริดเกือบสมดุล",
+    gridDetail: "นำเข้า {importKw}, ส่งออก {exportKw}",
+    smartHintExporting: "เหมาะกับการใช้โหลดที่ยืดหยุ่น หรือชาร์จแบตเตอรี่ต่อ",
+    smartHintPeak: "ช่วงค่าไฟพีคกำลังทำงาน แบตเตอรี่ช่วยคุ้มที่สุดตอนนี้",
+    smartHintLowBattery: "แบตเตอรี่ต่ำกว่า 50%; ควรเก็บไว้ใช้ช่วงพีค",
+    smartHintNormal: "ระบบค่อนข้างนิ่ง ติดตามอากาศและช่วงค่าไฟพีคต่อไป",
     rangeSummary: "กำลังแสดง",
     liveFlow: "การไหลแบบสด",
     energyDistribution: "การกระจายพลังงาน",
@@ -784,6 +855,43 @@ function setGauge(arcElement, value, max) {
   arcElement.style.setProperty("--gauge-degrees", `${Math.round(normalized * 180)}deg`);
 }
 
+function parseClockMinutes(time) {
+  const [hours, minutes] = String(time ?? "00:00").split(":").map(Number);
+  return (Number(hours) || 0) * 60 + (Number(minutes) || 0);
+}
+
+function formatDurationMinutes(minutes) {
+  const normalized = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(normalized / 60);
+  const mins = normalized % 60;
+
+  if (hours === 0) {
+    return `${mins}m`;
+  }
+
+  return `${hours}h ${String(mins).padStart(2, "0")}m`;
+}
+
+function getTariffStatus(savings) {
+  const [peakStart = "15:00", peakEnd = "20:59"] = String(savings?.peakWindow ?? "15:00-20:59").split("-");
+  const start = parseClockMinutes(peakStart);
+  const end = parseClockMinutes(peakEnd);
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+  const isPeak = start <= end
+    ? current >= start && current <= end
+    : current >= start || current <= end;
+  const minutesUntilStart = current <= start ? start - current : 24 * 60 - current + start;
+  const minutesUntilEnd = current <= end && current >= start ? end - current : 0;
+
+  return {
+    isPeak,
+    peakWindow: `${peakStart}-${peakEnd}`,
+    detailKey: isPeak ? "peakEndsIn" : "peakStartsIn",
+    detailMinutes: isPeak ? minutesUntilEnd : minutesUntilStart,
+  };
+}
+
 function renderGaugeCards(payload) {
   const live = payload.live ?? {};
   const today = payload.today ?? {};
@@ -826,6 +934,55 @@ function renderGaugeCards(payload) {
     gridExportKw >= gridImportKw ? t("netExportToday") : t("netImportToday"),
     { value: formatKwh(gridExportKw >= gridImportKw ? today.returnToGridKwh : today.gridConsumptionKwh) },
   );
+}
+
+function renderEnergyInsights(payload) {
+  const live = payload.live ?? {};
+  const savings = payload.todaySavings ?? {};
+  const tariff = getTariffStatus(savings);
+  const batterySoc = Number(live.batterySocPercent ?? 0);
+  const gridImportKw = Number(live.gridImportKw ?? 0);
+  const gridExportKw = Number(live.gridExportKw ?? 0);
+
+  textFields.insightTariffStatus.textContent = tariff.isPeak ? t("peakNow") : t("offPeakNow");
+  textFields.insightTariffDetail.textContent = `${interpolate(t(tariff.detailKey), {
+    time: formatDurationMinutes(tariff.detailMinutes),
+  })} · ${interpolate(t("peakWindowDetail"), {
+    window: tariff.peakWindow,
+    rate: formatRate(savings.peakRate, savings.currency),
+  })}`;
+
+  const batteryKey = batterySoc >= 80
+    ? "batteryReadyHigh"
+    : batterySoc >= 50
+      ? "batteryReadyMedium"
+      : "batteryReadyLow";
+  textFields.insightBatteryReadiness.textContent = t(batteryKey);
+  textFields.insightBatteryDetail.textContent = interpolate(t("batteryReadinessDetail"), {
+    soc: formatPercent(live.batterySocPercent),
+    window: tariff.peakWindow,
+  });
+
+  const gridModeKey = gridExportKw > gridImportKw + 0.05
+    ? "gridExportHint"
+    : gridImportKw > gridExportKw + 0.05
+      ? "gridImportHint"
+      : "gridNeutralHint";
+  textFields.insightGridMode.textContent = t(gridModeKey);
+  textFields.insightGridDetail.textContent = interpolate(t("gridDetail"), {
+    importKw: formatKw(gridImportKw),
+    exportKw: formatKw(gridExportKw),
+  });
+
+  const smartHintKey = tariff.isPeak
+    ? "smartHintPeak"
+    : batterySoc < 50
+      ? "smartHintLowBattery"
+      : gridExportKw > 1
+        ? "smartHintExporting"
+        : "smartHintNormal";
+  textFields.insightSmartHint.textContent = t(smartHintKey);
+  textFields.insightSmartHintDetail.textContent = formatSavingsMeta(savings);
 }
 
 function formatOptionalMillimetres(value) {
@@ -1857,6 +2014,7 @@ function renderMetrics(payload) {
   renderWarnings(payload.warnings);
   renderVisualKpis(payload);
   renderGaugeCards(payload);
+  renderEnergyInsights(payload);
   renderEnergyFlow(payload);
   renderCharts(payload);
   currentRows = getVisibleRows(payload.dailyTable, payload);
