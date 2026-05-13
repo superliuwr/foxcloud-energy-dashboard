@@ -4,6 +4,7 @@ const rebuildCacheButton = document.getElementById("rebuildCacheButton");
 const exportPdfButton = document.getElementById("exportPdfButton");
 const exportCsvButton = document.getElementById("exportCsvButton");
 const saveTariffButton = document.getElementById("saveTariffButton");
+const saveWeatherSettingsButton = document.getElementById("saveWeatherSettingsButton");
 const monthPicker = document.getElementById("monthPicker");
 const languageSelect = document.getElementById("languageSelect");
 const tableRangeSelect = document.getElementById("tableRangeSelect");
@@ -121,6 +122,14 @@ const textFields = {
   tariffPeakRateInput: document.getElementById("tariffPeakRateInput"),
   tariffOffPeakRateInput: document.getElementById("tariffOffPeakRateInput"),
   tariffFeedInRateInput: document.getElementById("tariffFeedInRateInput"),
+  weatherSettingsStatusText: document.getElementById("weatherSettingsStatusText"),
+  weatherEnabledInput: document.getElementById("weatherEnabledInput"),
+  weatherLocationNameInput: document.getElementById("weatherLocationNameInput"),
+  weatherPostcodeInput: document.getElementById("weatherPostcodeInput"),
+  weatherCountryCodeInput: document.getElementById("weatherCountryCodeInput"),
+  weatherLatitudeInput: document.getElementById("weatherLatitudeInput"),
+  weatherLongitudeInput: document.getElementById("weatherLongitudeInput"),
+  weatherTimezoneInput: document.getElementById("weatherTimezoneInput"),
 };
 
 const flowFields = {
@@ -150,6 +159,7 @@ let lastPayload = null;
 let lastRangePayload = null;
 let lastWeatherPayload = null;
 let lastTariff = null;
+let lastWeatherSettings = null;
 const REBUILD_LIMIT_DAYS = 31;
 
 function getSelectValues(selectElement) {
@@ -376,6 +386,20 @@ const translations = {
     rainChance: "Rain chance",
     cloudCover: "Cloud cover",
     weatherDisabled: "Weather forecast is not configured.",
+    weatherLocationSettings: "Weather location",
+    weatherLocationTitle: "Forecast settings",
+    weatherLocationHelp: "Enter a postcode or precise coordinates. Settings are saved in SQLite and used for the solar forecast.",
+    weatherEnabled: "Weather enabled",
+    weatherDisplayName: "Display name",
+    postcode: "Postcode",
+    countryCode: "Country",
+    latitude: "Latitude",
+    longitude: "Longitude",
+    timezone: "Timezone",
+    saveWeatherSettings: "Save weather",
+    weatherSettingsLoaded: "Weather settings loaded.",
+    weatherSettingsSaved: "Weather settings saved. Forecast refreshed.",
+    weatherSettingsSaveFailed: "Unable to save weather settings",
     clear: "Clear",
     partly_cloudy: "Partly cloudy",
     cloudy: "Cloudy",
@@ -589,6 +613,20 @@ const translations = {
     rainChance: "下雨概率",
     cloudCover: "云量",
     weatherDisabled: "天气预报尚未配置。",
+    weatherLocationSettings: "天气位置",
+    weatherLocationTitle: "预报位置设置",
+    weatherLocationHelp: "输入邮编或精确经纬度。设置会保存到 SQLite，并用于太阳能天气预报。",
+    weatherEnabled: "启用天气",
+    weatherDisplayName: "显示名称",
+    postcode: "邮政编码",
+    countryCode: "国家",
+    latitude: "纬度",
+    longitude: "经度",
+    timezone: "时区",
+    saveWeatherSettings: "保存天气",
+    weatherSettingsLoaded: "天气位置设置已加载。",
+    weatherSettingsSaved: "天气位置已保存，预报已刷新。",
+    weatherSettingsSaveFailed: "无法保存天气位置",
     clear: "晴天",
     partly_cloudy: "局部多云",
     cloudy: "多云",
@@ -802,6 +840,20 @@ const translations = {
     rainChance: "โอกาสฝน",
     cloudCover: "เมฆปกคลุม",
     weatherDisabled: "ยังไม่ได้ตั้งค่าพยากรณ์อากาศ",
+    weatherLocationSettings: "ตำแหน่งอากาศ",
+    weatherLocationTitle: "ตั้งค่าพยากรณ์",
+    weatherLocationHelp: "กรอกรหัสไปรษณีย์หรือพิกัด ข้อมูลจะบันทึกใน SQLite และใช้กับพยากรณ์โซลาร์",
+    weatherEnabled: "เปิดใช้อากาศ",
+    weatherDisplayName: "ชื่อที่แสดง",
+    postcode: "รหัสไปรษณีย์",
+    countryCode: "ประเทศ",
+    latitude: "ละติจูด",
+    longitude: "ลองจิจูด",
+    timezone: "เขตเวลา",
+    saveWeatherSettings: "บันทึกอากาศ",
+    weatherSettingsLoaded: "โหลดการตั้งค่าอากาศแล้ว",
+    weatherSettingsSaved: "บันทึกตำแหน่งอากาศแล้ว รีเฟรชพยากรณ์แล้ว",
+    weatherSettingsSaveFailed: "ไม่สามารถบันทึกตำแหน่งอากาศได้",
     clear: "ฟ้าใส",
     partly_cloudy: "มีเมฆบางส่วน",
     cloudy: "มีเมฆมาก",
@@ -1226,6 +1278,10 @@ function applyLanguage() {
     renderTariffSettings(lastTariff);
   }
 
+  if (lastWeatherSettings) {
+    renderWeatherSettings(lastWeatherSettings);
+  }
+
   if (!lastPayload) {
     statusText.textContent = t("loading");
   }
@@ -1258,6 +1314,79 @@ function formatWeatherDate(dateKey) {
     { en: "en-AU", zh: "zh-CN", th: "th-TH" }[currentLanguage] ?? "en-AU",
     { weekday: "short", day: "numeric" },
   ).format(parsed);
+}
+
+function renderWeatherSettings(settings) {
+  if (!settings) {
+    return;
+  }
+
+  lastWeatherSettings = settings;
+  textFields.weatherEnabledInput.checked = Boolean(settings.enabled);
+  textFields.weatherLocationNameInput.value = settings.locationName ?? "";
+  textFields.weatherPostcodeInput.value = settings.postcode ?? "";
+  textFields.weatherCountryCodeInput.value = settings.countryCode ?? "";
+  textFields.weatherLatitudeInput.value = settings.latitude === null || settings.latitude === undefined
+    ? ""
+    : settings.latitude;
+  textFields.weatherLongitudeInput.value = settings.longitude === null || settings.longitude === undefined
+    ? ""
+    : settings.longitude;
+  textFields.weatherTimezoneInput.value = settings.timezone ?? "Australia/Sydney";
+  textFields.weatherSettingsStatusText.textContent = t("weatherSettingsLoaded");
+}
+
+async function loadWeatherSettings() {
+  const response = await fetch("/api/weather-settings");
+  const payload = await response.json();
+
+  if (!response.ok || payload.error) {
+    throw new Error(payload.error || "Weather settings request failed.");
+  }
+
+  renderWeatherSettings(payload.settings);
+}
+
+function collectWeatherSettings() {
+  return {
+    enabled: textFields.weatherEnabledInput.checked,
+    provider: lastWeatherSettings?.provider ?? "open-meteo",
+    locationName: textFields.weatherLocationNameInput.value,
+    postcode: textFields.weatherPostcodeInput.value,
+    countryCode: textFields.weatherCountryCodeInput.value,
+    latitude: textFields.weatherLatitudeInput.value,
+    longitude: textFields.weatherLongitudeInput.value,
+    timezone: textFields.weatherTimezoneInput.value,
+  };
+}
+
+async function saveWeatherSettings() {
+  saveWeatherSettingsButton.disabled = true;
+  textFields.weatherSettingsStatusText.textContent = t("loading");
+
+  try {
+    const response = await fetch("/api/weather-settings", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(collectWeatherSettings()),
+    });
+    const payload = await response.json();
+
+    if (!response.ok || payload.error) {
+      throw new Error(payload.error || "Weather settings save failed.");
+    }
+
+    renderWeatherSettings(payload.settings);
+    await loadWeather();
+    textFields.weatherSettingsStatusText.textContent = t("weatherSettingsSaved");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    textFields.weatherSettingsStatusText.textContent = `${t("weatherSettingsSaveFailed")}: ${message}`;
+  } finally {
+    saveWeatherSettingsButton.disabled = false;
+  }
 }
 
 function renderWeather(payload) {
@@ -2206,6 +2335,7 @@ async function loadDashboard() {
     renderMetrics(payload);
     lastPayload = payload;
     await loadTariffSettings();
+    await loadWeatherSettings();
     await loadWeather();
     await loadEnergyRange(true);
     statusText.textContent = payload.isStale
@@ -2240,6 +2370,7 @@ rebuildCacheButton.addEventListener("click", rebuildSelectedCache);
 exportPdfButton.addEventListener("click", exportDashboardToPdf);
 exportCsvButton.addEventListener("click", exportTableToCsv);
 saveTariffButton.addEventListener("click", saveTariffSettings);
+saveWeatherSettingsButton.addEventListener("click", saveWeatherSettings);
 monthPicker.addEventListener("change", loadDashboard);
 tableRangeSelect.addEventListener("change", () => {
   setStoredValue(storageKeys.tableRange, tableRangeSelect.value);

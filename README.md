@@ -206,7 +206,10 @@ Notes for Modbus mode:
 The v2 redesign branch can show local weather and a simple solar outlook. Weather is fetched by
 the backend from Open-Meteo, so the browser does not need an API key.
 
-Configure either postcode or coordinates in `.env`:
+You can edit the forecast location from the dashboard's **Weather location / Forecast settings**
+panel. Saved values are stored in SQLite and override the `.env` defaults below.
+
+Configure either postcode or coordinates in `.env` for first startup defaults:
 
 ```bash
 WEATHER_ENABLED=true
@@ -226,6 +229,8 @@ If latitude and longitude are set, they are used first. Otherwise the app tries 
 postcode-to-location lookup. Postcode mode is approximate; use coordinates if you want a
 more precise forecast. `WEATHER_LOCATION_NAME` only changes the display label; it does not
 change the coordinates used for the forecast.
+
+You can inspect the active saved weather settings at `/api/weather-settings` after logging in.
 
 ## Estimated savings
 

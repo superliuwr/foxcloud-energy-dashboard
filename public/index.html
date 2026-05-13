@@ -69,6 +69,52 @@
           <div id="weatherDaily" class="weather-daily"></div>
         </section>
 
+        <section class="panel location-panel" aria-live="polite">
+          <div class="panel-heading compact-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="weatherLocationSettings">Weather location</p>
+              <h2 data-i18n="weatherLocationTitle">Forecast settings</h2>
+              <p class="muted-copy" data-i18n="weatherLocationHelp">
+                Enter a postcode or precise coordinates. Settings are saved in SQLite and used for the solar forecast.
+              </p>
+            </div>
+            <p id="weatherSettingsStatusText" class="status-text">--</p>
+          </div>
+          <div class="location-grid">
+            <label class="checkbox-label">
+              <input id="weatherEnabledInput" type="checkbox" />
+              <span data-i18n="weatherEnabled">Weather enabled</span>
+            </label>
+            <label>
+              <span data-i18n="weatherDisplayName">Display name</span>
+              <input id="weatherLocationNameInput" type="text" placeholder="Lidcombe" />
+            </label>
+            <label>
+              <span data-i18n="postcode">Postcode</span>
+              <input id="weatherPostcodeInput" type="text" placeholder="2141" />
+            </label>
+            <label>
+              <span data-i18n="countryCode">Country</span>
+              <input id="weatherCountryCodeInput" type="text" maxlength="2" placeholder="AU" />
+            </label>
+            <label>
+              <span data-i18n="latitude">Latitude</span>
+              <input id="weatherLatitudeInput" type="number" min="-90" max="90" step="0.000001" />
+            </label>
+            <label>
+              <span data-i18n="longitude">Longitude</span>
+              <input id="weatherLongitudeInput" type="number" min="-180" max="180" step="0.000001" />
+            </label>
+            <label>
+              <span data-i18n="timezone">Timezone</span>
+              <input id="weatherTimezoneInput" type="text" placeholder="Australia/Sydney" />
+            </label>
+            <button id="saveWeatherSettingsButton" class="refresh-button location-save-button" type="button" data-i18n="saveWeatherSettings">
+              Save weather
+            </button>
+          </div>
+        </section>
+
         <section class="visual-kpi-panel" aria-live="polite">
           <div class="visual-kpi-grid">
             <article class="visual-kpi-card visual-kpi-solar">

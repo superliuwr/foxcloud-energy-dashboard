@@ -90,11 +90,14 @@ Location priority:
 - Use `WEATHER_LATITUDE` and `WEATHER_LONGITUDE` first when configured.
 - Otherwise resolve `WEATHER_POSTCODE` and optional `WEATHER_COUNTRY_CODE` with Open-Meteo geocoding, then Zippopotam.us as a postcode fallback.
 - `WEATHER_LOCATION_NAME` is a display-only override for labels such as Lidcombe.
+- Dashboard weather settings override `.env` defaults once saved.
 - Do not hard-code the user's street address.
 
 New backend endpoint:
 
 - `GET /api/weather`
+- `GET /api/weather-settings`
+- `PUT /api/weather-settings`
 
 Initial Open-Meteo query shape:
 
@@ -165,6 +168,7 @@ not by simply adding solar production plus battery discharge.
 - Battery protection hints: unusually high inverter/battery temperatures.
 - Redesign-safe setting panel: user can edit tariff/weather location without touching `.env` later.
   - Tariff editing is implemented and persisted in SQLite.
+  - Weather location editing is implemented and persisted in SQLite.
 
 ## First Implementation Milestones
 

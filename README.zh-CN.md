@@ -210,7 +210,9 @@ npm run metadata
 
 v2 改版分支可以显示本地天气和简单的太阳能发电天气判断。天气由后端从 Open-Meteo 获取，浏览器不需要 API key。
 
-`.env` 可以填邮编，也可以填更精确的经纬度：
+现在可以直接在网页里的“天气位置 / 预报位置设置”面板中修改邮编、国家、显示地名或经纬度。保存后的设置会写入 SQLite，并优先生效。
+
+`.env` 里的这些值是新安装或数据库为空时的默认值，可以填邮编，也可以填更精确的经纬度：
 
 ```bash
 WEATHER_ENABLED=true
@@ -228,6 +230,8 @@ WEATHER_TIMEZONE=Australia/Sydney
 如果填了 `WEATHER_LATITUDE` 和 `WEATHER_LONGITUDE`，系统会优先使用经纬度；否则会先用 Open-Meteo geocoding 解析 `WEATHER_POSTCODE`，再 fallback 到 Zippopotam.us 做邮编到大概位置的查询。邮编模式是近似位置；如果你想更精确，请使用经纬度。
 
 `WEATHER_LOCATION_NAME` 只改变网页显示的地名，例如显示 Lidcombe；不会改变天气预报使用的经纬度。
+
+登录后也可以打开 `/api/weather-settings` 查看当前生效的天气位置设置。
 
 ## 预估节省电费
 

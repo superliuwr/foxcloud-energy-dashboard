@@ -630,6 +630,56 @@ select {
   white-space: nowrap;
 }
 
+.location-panel {
+  border-left: 4px solid #14b8a6;
+}
+
+.location-grid {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) repeat(6, minmax(0, 1fr)) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.location-grid label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.location-grid input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(29, 43, 36, 0.14);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  padding: 0.55rem 0.65rem;
+}
+
+.location-grid .checkbox-label {
+  align-content: end;
+  grid-template-columns: auto 1fr;
+  min-height: 42px;
+  border: 1px solid rgba(20, 184, 166, 0.18);
+  border-radius: 8px;
+  background: rgba(20, 184, 166, 0.08);
+  padding: 0.55rem 0.65rem;
+}
+
+.location-grid .checkbox-label input {
+  width: auto;
+  min-height: auto;
+}
+
+.location-save-button {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
 .weather-panel {
   display: grid;
   gap: 0.85rem;
@@ -1120,6 +1170,7 @@ tbody tr:hover {
 @media (max-width: 980px) {
   .dashboard-overview,
   .balance-panel,
+  .location-grid,
   .tariff-grid,
   .chart-grid,
   .weather-current,
@@ -1182,6 +1233,14 @@ tbody tr:hover {
 
   .tariff-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .location-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .location-save-button {
+    grid-column: 1 / -1;
   }
 
   .tariff-save-button {
@@ -1386,6 +1445,7 @@ tbody tr:hover {
 @media (max-width: 420px) {
   .summary-grid,
   .balance-panel,
+  .location-grid,
   .tariff-grid,
   .totals-grid,
   .insight-panel,

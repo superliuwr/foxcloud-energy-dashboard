@@ -20,7 +20,12 @@ import {
   saveElectricityTariff,
   TariffValidationError,
 } from "./services/tariffService.js";
-import { getWeatherForecast } from "./services/weatherService.js";
+import { clearWeatherCache, getWeatherForecast } from "./services/weatherService.js";
+import {
+  getWeatherSettings,
+  saveWeatherSettings,
+  WeatherSettingsValidationError,
+} from "./services/weatherSettingsService.js";
 
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");
@@ -156,6 +161,23 @@ app.get("/api/weather", async (_req, res, next) => {
   }
 });
 
+app.get("/api/weather-settings", (_req, res) => {
+  res.json({
+    settings: getWeatherSettings(),
+  });
+});
+
+app.put("/api/weather-settings", (req, res, next) => {
+  try {
+    const settings = saveWeatherSettings(req.body ?? {});
+    clearWeatherCache();
+
+    res.json({ settings });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/api/tariff", (_req, res) => {
   res.json({
     tariff: getElectricityTariff(),
@@ -212,6 +234,13 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   if (error instanceof TariffValidationError) {
+    res.status(400).json({
+      error: error.message,
+    });
+    return;
+  }
+
+  if (error instanceof WeatherSettingsValidationError) {
     res.status(400).json({
       error: error.message,
     });
