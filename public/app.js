@@ -49,6 +49,11 @@ const metricFields = {
   periodGridConsumption: document.getElementById("periodGridConsumption"),
   periodSelfConsumption: document.getElementById("periodSelfConsumption"),
   periodSavings: document.getElementById("periodSavings"),
+  kpiDailySolar: document.getElementById("kpiDailySolar"),
+  kpiDailyConsumption: document.getElementById("kpiDailyConsumption"),
+  kpiDailyExport: document.getElementById("kpiDailyExport"),
+  kpiSelfSufficiency: document.getElementById("kpiSelfSufficiency"),
+  kpiEstimatedSavings: document.getElementById("kpiEstimatedSavings"),
 };
 
 const textFields = {
@@ -68,6 +73,13 @@ const textFields = {
   weatherRainChance: document.getElementById("weatherRainChance"),
   weatherCloudCover: document.getElementById("weatherCloudCover"),
   weatherDaily: document.getElementById("weatherDaily"),
+  kpiDailySolarMeta: document.getElementById("kpiDailySolarMeta"),
+  kpiDailyConsumptionMeta: document.getElementById("kpiDailyConsumptionMeta"),
+  kpiSelfSufficiencyMeta: document.getElementById("kpiSelfSufficiencyMeta"),
+  kpiSystemStatus: document.getElementById("kpiSystemStatus"),
+  kpiInverterStatus: document.getElementById("kpiInverterStatus"),
+  kpiLastUpdate: document.getElementById("kpiLastUpdate"),
+  kpiDataSource: document.getElementById("kpiDataSource"),
 };
 
 const flowFields = {
@@ -171,6 +183,21 @@ const translations = {
     estimatedSavings: "Estimated savings",
     todaySavings: "Estimated savings today",
     savingsMeta: "{kwh} kWh avoided grid import at about {rate}/kWh",
+    kpiDailySolar: "Daily solar",
+    kpiDailyConsumption: "Daily consumption",
+    kpiDailyExport: "Daily export",
+    kpiSelfSufficiency: "Self sufficiency",
+    kpiEstimatedSavings: "Est. savings",
+    exportedToGrid: "Exported to grid",
+    ofYesterday: "{percent}% of yesterday",
+    noYesterdayData: "No yesterday data",
+    excellentStatus: "Excellent",
+    goodStatus: "Good",
+    needsGridSupport: "Needs grid support",
+    systemStatus: "System status",
+    inverter: "Inverter",
+    lastUpdate: "Last update",
+    dataSource: "Data source",
     rangeSummary: "Showing",
     liveFlow: "Live Flow",
     energyDistribution: "Energy distribution",
@@ -319,6 +346,21 @@ const translations = {
     estimatedSavings: "预估节省电费",
     todaySavings: "今日预估节省",
     savingsMeta: "约 {kwh} kWh 未从电网取电，按约 {rate}/kWh 估算",
+    kpiDailySolar: "今日太阳能",
+    kpiDailyConsumption: "今日用电",
+    kpiDailyExport: "今日回馈",
+    kpiSelfSufficiency: "自给率",
+    kpiEstimatedSavings: "预估节省",
+    exportedToGrid: "已回馈电网",
+    ofYesterday: "相当于昨天 {percent}%",
+    noYesterdayData: "暂无昨天数据",
+    excellentStatus: "优秀",
+    goodStatus: "良好",
+    needsGridSupport: "需要电网补充",
+    systemStatus: "系统状态",
+    inverter: "逆变器",
+    lastUpdate: "最后更新",
+    dataSource: "数据来源",
     rangeSummary: "当前显示",
     liveFlow: "实时流向",
     energyDistribution: "能源分布",
@@ -467,6 +509,21 @@ const translations = {
     estimatedSavings: "เงินที่ประหยัดโดยประมาณ",
     todaySavings: "ประหยัดวันนี้โดยประมาณ",
     savingsMeta: "หลีกเลี่ยงการใช้ไฟจากกริด {kwh} kWh ที่ประมาณ {rate}/kWh",
+    kpiDailySolar: "โซลาร์วันนี้",
+    kpiDailyConsumption: "ใช้ไฟวันนี้",
+    kpiDailyExport: "ส่งออกวันนี้",
+    kpiSelfSufficiency: "พึ่งพาตนเอง",
+    kpiEstimatedSavings: "ประหยัดโดยประมาณ",
+    exportedToGrid: "ส่งออกเข้ากริด",
+    ofYesterday: "{percent}% ของเมื่อวาน",
+    noYesterdayData: "ไม่มีข้อมูลเมื่อวาน",
+    excellentStatus: "ยอดเยี่ยม",
+    goodStatus: "ดี",
+    needsGridSupport: "ต้องพึ่งกริด",
+    systemStatus: "สถานะระบบ",
+    inverter: "อินเวอร์เตอร์",
+    lastUpdate: "อัปเดตล่าสุด",
+    dataSource: "แหล่งข้อมูล",
     rangeSummary: "กำลังแสดง",
     liveFlow: "การไหลแบบสด",
     energyDistribution: "การกระจายพลังงาน",
@@ -639,6 +696,35 @@ function formatOptionalPercent(value) {
   }
 
   return `${Number(value).toFixed(0)}%`;
+}
+
+function formatYesterdayComparison(todayValue, yesterdayValue) {
+  const baseline = Number(yesterdayValue ?? 0);
+
+  if (!Number.isFinite(baseline) || baseline <= 0) {
+    return t("noYesterdayData");
+  }
+
+  const percent = Math.round((Number(todayValue ?? 0) / baseline) * 100);
+  return interpolate(t("ofYesterday"), { percent });
+}
+
+function getLatestDailyRows(rows) {
+  return [...(rows ?? [])]
+    .filter((row) => row?.date)
+    .sort((first, second) => first.date.localeCompare(second.date));
+}
+
+function getSelfSufficiencyStatus(percent) {
+  if (percent >= 90) {
+    return t("excellentStatus");
+  }
+
+  if (percent >= 70) {
+    return t("goodStatus");
+  }
+
+  return t("needsGridSupport");
 }
 
 function formatOptionalMillimetres(value) {
@@ -1582,6 +1668,41 @@ function renderEnergyFlow(payload) {
   setFlowPath(flowFields.gridToBatteryPath, gridImport > 0.05 && batteryCharge > 0.05);
 }
 
+function renderVisualKpis(payload) {
+  const today = payload.today ?? {};
+  const rows = getLatestDailyRows(payload.dailyTable);
+  const latestRow = rows.at(-1) ?? {};
+  const previousRow = rows.length > 1 ? rows.at(-2) : null;
+  const homeUsage = Number(today.homeUsageKwh ?? latestRow.home_usage ?? 0);
+  const gridConsumption = Number(today.gridConsumptionKwh ?? latestRow.grid_consumption ?? 0);
+  const selfSufficiency = homeUsage > 0
+    ? Math.max(0, Math.min(100, ((homeUsage - gridConsumption) / homeUsage) * 100))
+    : 0;
+
+  metricFields.kpiDailySolar.textContent = formatKwh(today.solarProductionKwh);
+  metricFields.kpiDailyConsumption.textContent = formatKwh(homeUsage);
+  metricFields.kpiDailyExport.textContent = formatKwh(today.returnToGridKwh);
+  metricFields.kpiSelfSufficiency.textContent = formatOptionalPercent(selfSufficiency);
+  metricFields.kpiEstimatedSavings.textContent = formatMoney(
+    payload.todaySavings?.estimatedTotalBenefit,
+    payload.todaySavings?.currency,
+  );
+
+  textFields.kpiDailySolarMeta.textContent = formatYesterdayComparison(
+    today.solarProductionKwh,
+    previousRow?.pv_production,
+  );
+  textFields.kpiDailyConsumptionMeta.textContent = formatYesterdayComparison(
+    homeUsage,
+    previousRow?.home_usage,
+  );
+  textFields.kpiSelfSufficiencyMeta.textContent = getSelfSufficiencyStatus(selfSufficiency);
+  textFields.kpiSystemStatus.textContent = t(payload.device?.status ?? "unknown");
+  textFields.kpiInverterStatus.textContent = payload.device?.status === "online" ? t("online") : t(payload.device?.status ?? "unknown");
+  textFields.kpiLastUpdate.textContent = formatTimestamp(payload.live?.updatedAt ?? payload.generatedAt);
+  textFields.kpiDataSource.textContent = payload.source ?? "--";
+}
+
 function renderMetrics(payload) {
   if (!payload || !payload.live || !payload.today || !payload.device || !payload.chartSeries) {
     throw new Error(payload?.error || "Dashboard API returned an unexpected response.");
@@ -1633,6 +1754,7 @@ function renderMetrics(payload) {
 
   renderBadges(payload);
   renderWarnings(payload.warnings);
+  renderVisualKpis(payload);
   renderEnergyFlow(payload);
   renderCharts(payload);
   currentRows = getVisibleRows(payload.dailyTable, payload);

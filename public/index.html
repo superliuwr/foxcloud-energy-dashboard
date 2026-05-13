@@ -69,6 +69,57 @@
           <div id="weatherDaily" class="weather-daily"></div>
         </section>
 
+        <section class="visual-kpi-panel" aria-live="polite">
+          <div class="visual-kpi-grid">
+            <article class="visual-kpi-card visual-kpi-solar">
+              <span class="visual-kpi-icon">☀</span>
+              <div>
+                <span class="visual-kpi-label" data-i18n="kpiDailySolar">Daily solar</span>
+                <strong id="kpiDailySolar">--</strong>
+                <small id="kpiDailySolarMeta">--</small>
+              </div>
+            </article>
+            <article class="visual-kpi-card visual-kpi-home">
+              <span class="visual-kpi-icon">⌂</span>
+              <div>
+                <span class="visual-kpi-label" data-i18n="kpiDailyConsumption">Daily consumption</span>
+                <strong id="kpiDailyConsumption">--</strong>
+                <small id="kpiDailyConsumptionMeta">--</small>
+              </div>
+            </article>
+            <article class="visual-kpi-card visual-kpi-export">
+              <span class="visual-kpi-icon">↗</span>
+              <div>
+                <span class="visual-kpi-label" data-i18n="kpiDailyExport">Daily export</span>
+                <strong id="kpiDailyExport">--</strong>
+                <small data-i18n="exportedToGrid">Exported to grid</small>
+              </div>
+            </article>
+            <article class="visual-kpi-card visual-kpi-self">
+              <span class="visual-kpi-icon">♻</span>
+              <div>
+                <span class="visual-kpi-label" data-i18n="kpiSelfSufficiency">Self sufficiency</span>
+                <strong id="kpiSelfSufficiency">--</strong>
+                <small id="kpiSelfSufficiencyMeta">--</small>
+              </div>
+            </article>
+            <article class="visual-kpi-card visual-kpi-savings">
+              <span class="visual-kpi-icon">$</span>
+              <div>
+                <span class="visual-kpi-label" data-i18n="kpiEstimatedSavings">Est. savings</span>
+                <strong id="kpiEstimatedSavings">--</strong>
+                <small data-i18n="today">Today</small>
+              </div>
+            </article>
+          </div>
+          <div class="visual-status-strip">
+            <span><b data-i18n="systemStatus">System status</b>: <strong id="kpiSystemStatus">--</strong></span>
+            <span><b data-i18n="inverter">Inverter</b>: <strong id="kpiInverterStatus">--</strong></span>
+            <span><b data-i18n="lastUpdate">Last update</b>: <strong id="kpiLastUpdate">--</strong></span>
+            <span><b data-i18n="dataSource">Data source</b>: <strong id="kpiDataSource">--</strong></span>
+          </div>
+        </section>
+
         <section class="panel">
           <div class="panel-heading">
             <div>
