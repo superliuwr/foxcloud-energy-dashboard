@@ -193,6 +193,44 @@
           </article>
         </section>
 
+        <section class="balance-panel" aria-live="polite">
+          <article class="balance-card">
+            <div class="panel-heading compact-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="energyBalance">Energy balance</p>
+                <h2 data-i18n="pvDistribution">PV distribution</h2>
+              </div>
+              <strong id="balancePvTotal">--</strong>
+            </div>
+            <div class="stacked-bar" aria-hidden="true">
+              <span id="balancePvSelfBar" class="bar-self" style="width: 0%"></span>
+              <span id="balancePvExportBar" class="bar-export" style="width: 0%"></span>
+            </div>
+            <div class="balance-legend">
+              <span><i class="legend-dot bar-self"></i><b data-i18n="selfConsumption">Self-consumption</b> <strong id="balancePvSelf">--</strong></span>
+              <span><i class="legend-dot bar-export"></i><b data-i18n="returnToGrid">Return to grid</b> <strong id="balancePvExport">--</strong></span>
+            </div>
+          </article>
+
+          <article class="balance-card">
+            <div class="panel-heading compact-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="loadCoverage">Load coverage</p>
+                <h2 data-i18n="homeUsageSource">Home usage source</h2>
+              </div>
+              <strong id="balanceLoadTotal">--</strong>
+            </div>
+            <div class="stacked-bar" aria-hidden="true">
+              <span id="balanceLoadSelfBar" class="bar-home" style="width: 0%"></span>
+              <span id="balanceLoadGridBar" class="bar-grid" style="width: 0%"></span>
+            </div>
+            <div class="balance-legend">
+              <span><i class="legend-dot bar-home"></i><b data-i18n="solarBatteryCovered">Solar + battery</b> <strong id="balanceLoadSelf">--</strong></span>
+              <span><i class="legend-dot bar-grid"></i><b data-i18n="gridConsumption">Grid consumption</b> <strong id="balanceLoadGrid">--</strong></span>
+            </div>
+          </article>
+        </section>
+
         <section class="panel">
           <div class="panel-heading">
             <div>

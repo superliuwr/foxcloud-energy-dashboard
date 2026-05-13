@@ -174,6 +174,7 @@ not by simply adding solar production plus battery discharge.
    - First pass implemented using `/api/dashboard` `today` and `todaySavings` values.
 5. Improve mobile layout for the visual dashboard.
    - First pass implemented: tariff window countdown, battery peak readiness, grid mode, and smart hint cards.
+   - Second pass implemented: PV distribution and home load coverage stacked bars.
 6. Keep daily energy table stable and regression-test CSV sorting/export behavior.
 
 ## Non-Goals For v2 First Pass

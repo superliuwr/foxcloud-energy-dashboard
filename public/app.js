@@ -104,6 +104,16 @@ const textFields = {
   insightGridDetail: document.getElementById("insightGridDetail"),
   insightSmartHint: document.getElementById("insightSmartHint"),
   insightSmartHintDetail: document.getElementById("insightSmartHintDetail"),
+  balancePvTotal: document.getElementById("balancePvTotal"),
+  balancePvSelf: document.getElementById("balancePvSelf"),
+  balancePvExport: document.getElementById("balancePvExport"),
+  balanceLoadTotal: document.getElementById("balanceLoadTotal"),
+  balanceLoadSelf: document.getElementById("balanceLoadSelf"),
+  balanceLoadGrid: document.getElementById("balanceLoadGrid"),
+  balancePvSelfBar: document.getElementById("balancePvSelfBar"),
+  balancePvExportBar: document.getElementById("balancePvExportBar"),
+  balanceLoadSelfBar: document.getElementById("balanceLoadSelfBar"),
+  balanceLoadGridBar: document.getElementById("balanceLoadGridBar"),
 };
 
 const flowFields = {
@@ -255,6 +265,11 @@ const translations = {
     smartHintPeak: "Peak tariff is active; battery support is most valuable now.",
     smartHintLowBattery: "Battery is below 50%; consider saving stored energy for peak hours.",
     smartHintNormal: "System looks steady. Keep an eye on weather and peak tariff window.",
+    energyBalance: "Energy balance",
+    pvDistribution: "PV distribution",
+    loadCoverage: "Load coverage",
+    homeUsageSource: "Home usage source",
+    solarBatteryCovered: "Solar + battery",
     rangeSummary: "Showing",
     liveFlow: "Live Flow",
     energyDistribution: "Energy distribution",
@@ -451,6 +466,11 @@ const translations = {
     smartHintPeak: "当前是高峰电价，电池支撑最有价值。",
     smartHintLowBattery: "电池低于 50%，建议尽量把电留给高峰时段。",
     smartHintNormal: "系统状态稳定，继续关注天气和高峰电价时段。",
+    energyBalance: "能源平衡",
+    pvDistribution: "光伏去向",
+    loadCoverage: "用电来源",
+    homeUsageSource: "家庭用电来源",
+    solarBatteryCovered: "太阳能 + 电池",
     rangeSummary: "当前显示",
     liveFlow: "实时流向",
     energyDistribution: "能源分布",
@@ -647,6 +667,11 @@ const translations = {
     smartHintPeak: "ช่วงค่าไฟพีคกำลังทำงาน แบตเตอรี่ช่วยคุ้มที่สุดตอนนี้",
     smartHintLowBattery: "แบตเตอรี่ต่ำกว่า 50%; ควรเก็บไว้ใช้ช่วงพีค",
     smartHintNormal: "ระบบค่อนข้างนิ่ง ติดตามอากาศและช่วงค่าไฟพีคต่อไป",
+    energyBalance: "สมดุลพลังงาน",
+    pvDistribution: "การกระจาย PV",
+    loadCoverage: "แหล่งจ่ายโหลด",
+    homeUsageSource: "แหล่งพลังงานของบ้าน",
+    solarBatteryCovered: "โซลาร์ + แบตเตอรี่",
     rangeSummary: "กำลังแสดง",
     liveFlow: "การไหลแบบสด",
     energyDistribution: "การกระจายพลังงาน",
@@ -983,6 +1008,33 @@ function renderEnergyInsights(payload) {
         : "smartHintNormal";
   textFields.insightSmartHint.textContent = t(smartHintKey);
   textFields.insightSmartHintDetail.textContent = formatSavingsMeta(savings);
+}
+
+function setBarWidth(element, value, total) {
+  const percent = total > 0 ? Math.max(0, Math.min(100, (Number(value ?? 0) / total) * 100)) : 0;
+  element.style.width = `${percent.toFixed(1)}%`;
+}
+
+function renderBalanceBars(payload) {
+  const today = payload.today ?? {};
+  const pvTotal = Number(today.solarProductionKwh ?? 0);
+  const pvSelf = Math.max(Number(today.selfConsumptionKwh ?? 0), 0);
+  const pvExport = Math.max(Number(today.returnToGridKwh ?? 0), 0);
+  const homeTotal = Number(today.homeUsageKwh ?? 0);
+  const gridConsumption = Math.max(Number(today.gridConsumptionKwh ?? 0), 0);
+  const selfCovered = Math.max(homeTotal - gridConsumption, 0);
+
+  textFields.balancePvTotal.textContent = formatKwh(pvTotal);
+  textFields.balancePvSelf.textContent = formatKwh(pvSelf);
+  textFields.balancePvExport.textContent = formatKwh(pvExport);
+  textFields.balanceLoadTotal.textContent = formatKwh(homeTotal);
+  textFields.balanceLoadSelf.textContent = formatKwh(selfCovered);
+  textFields.balanceLoadGrid.textContent = formatKwh(gridConsumption);
+
+  setBarWidth(textFields.balancePvSelfBar, pvSelf, pvTotal || pvSelf + pvExport);
+  setBarWidth(textFields.balancePvExportBar, pvExport, pvTotal || pvSelf + pvExport);
+  setBarWidth(textFields.balanceLoadSelfBar, selfCovered, homeTotal);
+  setBarWidth(textFields.balanceLoadGridBar, gridConsumption, homeTotal);
 }
 
 function formatOptionalMillimetres(value) {
@@ -2015,6 +2067,7 @@ function renderMetrics(payload) {
   renderVisualKpis(payload);
   renderGaugeCards(payload);
   renderEnergyInsights(payload);
+  renderBalanceBars(payload);
   renderEnergyFlow(payload);
   renderCharts(payload);
   currentRows = getVisibleRows(payload.dailyTable, payload);
