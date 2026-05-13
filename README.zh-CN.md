@@ -231,7 +231,11 @@ WEATHER_TIMEZONE=Australia/Sydney
 
 ## 预估节省电费
 
-网页会根据太阳能和电池减少的电网取电量，估算节省了多少电费。可以在 `.env` 中设置电价：
+网页会根据太阳能和电池减少的电网取电量，估算节省了多少电费。现在可以直接在网页里的
+“电价设置 / 节省金额设置”面板中修改峰谷电价和回馈电价。保存后的设置会写入 SQLite，
+只要保留 `data` 文件夹，Docker / Synology delete 和 recreate 后也不会丢。
+
+`.env` 里的这些值是新安装或数据库为空时的默认值：
 
 ```bash
 ELECTRICITY_CURRENCY=AUD
@@ -241,6 +245,8 @@ ELECTRICITY_PEAK_RATE=0.30
 ELECTRICITY_OFF_PEAK_RATE=0.24
 ELECTRICITY_FEED_IN_RATE=0
 ```
+
+登录后也可以打开 `/api/tariff` 查看当前生效的电价设置。
 
 目前算法使用每日总量估算：`家庭用电 - 电网取电` 视为被太阳能/电池覆盖的用电量。因为每日表没有每一分钟的峰谷明细，所以周期统计会使用峰谷加权平均电价。这个数字适合作为参考，不等同于正式电费账单。
 

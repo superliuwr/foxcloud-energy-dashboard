@@ -15,6 +15,11 @@ import {
 import { listModbusProfileIds, resolveModbusProfile } from "./services/modbus/profiles.js";
 import { startModbusSampler } from "./services/modbusSampler.js";
 import { startSqliteBackupScheduler } from "./services/sqliteBackup.js";
+import {
+  getElectricityTariff,
+  saveElectricityTariff,
+  TariffValidationError,
+} from "./services/tariffService.js";
 import { getWeatherForecast } from "./services/weatherService.js";
 
 const app = express();
@@ -151,6 +156,22 @@ app.get("/api/weather", async (_req, res, next) => {
   }
 });
 
+app.get("/api/tariff", (_req, res) => {
+  res.json({
+    tariff: getElectricityTariff(),
+  });
+});
+
+app.put("/api/tariff", (req, res, next) => {
+  try {
+    res.json({
+      tariff: saveElectricityTariff(req.body ?? {}),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/api/rebuild-cache", async (req, res, next) => {
   try {
     const now = new Date();
@@ -184,6 +205,13 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   if (error instanceof BadRequestError) {
+    res.status(400).json({
+      error: error.message,
+    });
+    return;
+  }
+
+  if (error instanceof TariffValidationError) {
     res.status(400).json({
       error: error.message,
     });

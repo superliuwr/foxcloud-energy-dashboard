@@ -3,6 +3,7 @@ const refreshButton = document.getElementById("refreshButton");
 const rebuildCacheButton = document.getElementById("rebuildCacheButton");
 const exportPdfButton = document.getElementById("exportPdfButton");
 const exportCsvButton = document.getElementById("exportCsvButton");
+const saveTariffButton = document.getElementById("saveTariffButton");
 const monthPicker = document.getElementById("monthPicker");
 const languageSelect = document.getElementById("languageSelect");
 const tableRangeSelect = document.getElementById("tableRangeSelect");
@@ -114,6 +115,12 @@ const textFields = {
   balancePvExportBar: document.getElementById("balancePvExportBar"),
   balanceLoadSelfBar: document.getElementById("balanceLoadSelfBar"),
   balanceLoadGridBar: document.getElementById("balanceLoadGridBar"),
+  tariffStatusText: document.getElementById("tariffStatusText"),
+  tariffPeakStartInput: document.getElementById("tariffPeakStartInput"),
+  tariffPeakEndInput: document.getElementById("tariffPeakEndInput"),
+  tariffPeakRateInput: document.getElementById("tariffPeakRateInput"),
+  tariffOffPeakRateInput: document.getElementById("tariffOffPeakRateInput"),
+  tariffFeedInRateInput: document.getElementById("tariffFeedInRateInput"),
 };
 
 const flowFields = {
@@ -142,6 +149,7 @@ let sortState = {
 let lastPayload = null;
 let lastRangePayload = null;
 let lastWeatherPayload = null;
+let lastTariff = null;
 const REBUILD_LIMIT_DAYS = 31;
 
 function getSelectValues(selectElement) {
@@ -217,6 +225,18 @@ const translations = {
     estimatedSavings: "Estimated savings",
     todaySavings: "Estimated savings today",
     savingsMeta: "{kwh} kWh avoided grid import at about {rate}/kWh",
+    tariffSettings: "Electricity tariff",
+    tariffSettingsTitle: "Savings settings",
+    tariffSettingsHelp: "Edit your import and feed-in rates here. Settings are saved in SQLite and survive container rebuilds.",
+    peakStart: "Peak start",
+    peakEnd: "Peak end",
+    peakRate: "Peak rate",
+    offPeakRate: "Off-peak rate",
+    feedInRate: "Feed-in rate",
+    saveTariff: "Save tariff",
+    tariffLoaded: "Tariff loaded.",
+    tariffSaved: "Tariff saved. Savings updated.",
+    tariffSaveFailed: "Unable to save tariff",
     kpiDailySolar: "Daily solar",
     kpiDailyConsumption: "Daily consumption",
     kpiDailyExport: "Daily export",
@@ -418,6 +438,18 @@ const translations = {
     estimatedSavings: "预估节省电费",
     todaySavings: "今日预估节省",
     savingsMeta: "约 {kwh} kWh 未从电网取电，按约 {rate}/kWh 估算",
+    tariffSettings: "电价设置",
+    tariffSettingsTitle: "节省金额设置",
+    tariffSettingsHelp: "在这里修改用电电价和回馈电价。设置会保存到 SQLite，重建容器后仍会保留。",
+    peakStart: "高峰开始",
+    peakEnd: "高峰结束",
+    peakRate: "高峰电价",
+    offPeakRate: "非高峰电价",
+    feedInRate: "回馈电价",
+    saveTariff: "保存电价",
+    tariffLoaded: "电价设置已加载。",
+    tariffSaved: "电价已保存，节省金额已更新。",
+    tariffSaveFailed: "无法保存电价",
     kpiDailySolar: "今日太阳能",
     kpiDailyConsumption: "今日用电",
     kpiDailyExport: "今日回馈",
@@ -619,6 +651,18 @@ const translations = {
     estimatedSavings: "เงินที่ประหยัดโดยประมาณ",
     todaySavings: "ประหยัดวันนี้โดยประมาณ",
     savingsMeta: "หลีกเลี่ยงการใช้ไฟจากกริด {kwh} kWh ที่ประมาณ {rate}/kWh",
+    tariffSettings: "อัตราค่าไฟ",
+    tariffSettingsTitle: "ตั้งค่าการประหยัด",
+    tariffSettingsHelp: "แก้ไขอัตราค่าไฟนำเข้าและรับซื้อไฟคืนได้ที่นี่ ข้อมูลจะบันทึกใน SQLite และไม่หายเมื่อสร้างคอนเทนเนอร์ใหม่",
+    peakStart: "เริ่มช่วงพีค",
+    peakEnd: "จบช่วงพีค",
+    peakRate: "ค่าไฟช่วงพีค",
+    offPeakRate: "ค่าไฟนอกพีค",
+    feedInRate: "อัตรารับซื้อไฟคืน",
+    saveTariff: "บันทึกค่าไฟ",
+    tariffLoaded: "โหลดค่าไฟแล้ว",
+    tariffSaved: "บันทึกค่าไฟแล้ว อัปเดตเงินที่ประหยัดแล้ว",
+    tariffSaveFailed: "ไม่สามารถบันทึกค่าไฟได้",
     kpiDailySolar: "โซลาร์วันนี้",
     kpiDailyConsumption: "ใช้ไฟวันนี้",
     kpiDailyExport: "ส่งออกวันนี้",
@@ -1037,6 +1081,74 @@ function renderBalanceBars(payload) {
   setBarWidth(textFields.balanceLoadGridBar, gridConsumption, homeTotal);
 }
 
+function renderTariffSettings(tariff) {
+  if (!tariff) {
+    return;
+  }
+
+  lastTariff = tariff;
+  textFields.tariffPeakStartInput.value = tariff.peakStart ?? "15:00";
+  textFields.tariffPeakEndInput.value = tariff.peakEnd ?? "20:59";
+  textFields.tariffPeakRateInput.value = tariff.peakRate ?? 0;
+  textFields.tariffOffPeakRateInput.value = tariff.offPeakRate ?? 0;
+  textFields.tariffFeedInRateInput.value = tariff.feedInRate ?? 0;
+  textFields.tariffStatusText.textContent = interpolate(t("peakWindowDetail"), {
+    window: `${tariff.peakStart ?? "15:00"}-${tariff.peakEnd ?? "20:59"}`,
+    rate: formatRate(tariff.peakRate, tariff.currency),
+  });
+}
+
+async function loadTariffSettings() {
+  const response = await fetch("/api/tariff");
+  const payload = await response.json();
+
+  if (!response.ok || payload.error) {
+    throw new Error(payload.error || "Tariff request failed.");
+  }
+
+  renderTariffSettings(payload.tariff);
+}
+
+function collectTariffSettings() {
+  return {
+    currency: lastTariff?.currency ?? "AUD",
+    peakStart: textFields.tariffPeakStartInput.value,
+    peakEnd: textFields.tariffPeakEndInput.value,
+    peakRate: Number(textFields.tariffPeakRateInput.value),
+    offPeakRate: Number(textFields.tariffOffPeakRateInput.value),
+    feedInRate: Number(textFields.tariffFeedInRateInput.value),
+  };
+}
+
+async function saveTariffSettings() {
+  saveTariffButton.disabled = true;
+  textFields.tariffStatusText.textContent = t("loading");
+
+  try {
+    const response = await fetch("/api/tariff", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(collectTariffSettings()),
+    });
+    const payload = await response.json();
+
+    if (!response.ok || payload.error) {
+      throw new Error(payload.error || "Tariff save failed.");
+    }
+
+    renderTariffSettings(payload.tariff);
+    await loadDashboard();
+    textFields.tariffStatusText.textContent = t("tariffSaved");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    textFields.tariffStatusText.textContent = `${t("tariffSaveFailed")}: ${message}`;
+  } finally {
+    saveTariffButton.disabled = false;
+  }
+}
+
 function formatOptionalMillimetres(value) {
   if (value === null || value === undefined) {
     return "--";
@@ -1108,6 +1220,10 @@ function applyLanguage() {
 
   if (lastWeatherPayload) {
     renderWeather(lastWeatherPayload);
+  }
+
+  if (lastTariff) {
+    renderTariffSettings(lastTariff);
   }
 
   if (!lastPayload) {
@@ -2089,6 +2205,7 @@ async function loadDashboard() {
 
     renderMetrics(payload);
     lastPayload = payload;
+    await loadTariffSettings();
     await loadWeather();
     await loadEnergyRange(true);
     statusText.textContent = payload.isStale
@@ -2122,6 +2239,7 @@ refreshButton.addEventListener("click", loadDashboard);
 rebuildCacheButton.addEventListener("click", rebuildSelectedCache);
 exportPdfButton.addEventListener("click", exportDashboardToPdf);
 exportCsvButton.addEventListener("click", exportTableToCsv);
+saveTariffButton.addEventListener("click", saveTariffSettings);
 monthPicker.addEventListener("change", loadDashboard);
 tableRangeSelect.addEventListener("change", () => {
   setStoredValue(storageKeys.tableRange, tableRangeSelect.value);

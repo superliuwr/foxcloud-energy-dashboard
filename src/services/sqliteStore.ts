@@ -57,6 +57,12 @@ database.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_live_samples_device_time
     ON live_samples (device_sn, sampled_at);
+
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 const ensureColumn = (tableName: string, columnName: string, definition: string): void => {
@@ -351,6 +357,36 @@ export function readLiveSamplesSince(deviceSn: string, sinceIso: string): LiveSa
 
 export function getDatabasePath(): string {
   return databasePath;
+}
+
+export function readAppSetting(key: string): string | null {
+  const record = database
+    .prepare(
+      `
+        SELECT value
+        FROM app_settings
+        WHERE key = ?
+      `,
+    )
+    .get(key) as { value: string } | undefined;
+
+  return record?.value ?? null;
+}
+
+const upsertAppSetting = database.prepare(`
+  INSERT INTO app_settings (key, value, updated_at)
+  VALUES (@key, @value, @updatedAt)
+  ON CONFLICT(key) DO UPDATE SET
+    value = excluded.value,
+    updated_at = excluded.updated_at
+`);
+
+export function writeAppSetting(key: string, value: string): void {
+  upsertAppSetting.run({
+    key,
+    value,
+    updatedAt: new Date().toISOString(),
+  });
 }
 
 export async function backupDatabase(destinationPath: string): Promise<void> {

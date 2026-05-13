@@ -34,6 +34,7 @@ import {
   saveDailyEnergyRows,
   saveLiveSample,
 } from "./sqliteStore.js";
+import { getElectricityTariff } from "./tariffService.js";
 
 const require = createRequire(import.meta.url);
 const ModbusRTU = require("modbus-serial") as { new (): ModbusRTUClient };
@@ -615,7 +616,7 @@ export async function getModbusDashboardData(year: number, month: number): Promi
     },
     live: snapshot.live,
     today: snapshot.today,
-    todaySavings: calculateSavings([todayRow], env.electricity),
+    todaySavings: calculateSavings([todayRow], getElectricityTariff()),
     lastHour: buildLastHour(env.modbus.deviceId),
     chartSeries: {
       labels: dailyRows.map((row) => String(row.day)),
@@ -657,6 +658,6 @@ export async function getModbusEnergyRangeData(
     monthCount: getMonthCountForDateRange(startDate, year, month),
     dailyTable: rows,
     totals: buildEnergyTotals(rows),
-    savings: calculateSavings(rows, env.electricity),
+    savings: calculateSavings(rows, getElectricityTariff()),
   };
 }

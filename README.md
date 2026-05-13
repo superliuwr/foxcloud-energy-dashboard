@@ -229,8 +229,12 @@ change the coordinates used for the forecast.
 
 ## Estimated savings
 
-The dashboard estimates how much grid import was avoided by solar and battery energy. Configure
-your import tariff in `.env`:
+The dashboard estimates how much grid import was avoided by solar and battery energy. You can edit
+the tariff from the dashboard's **Electricity tariff / Savings settings** panel. Saved values are
+stored in SQLite, so they survive Docker/Synology delete and recreate cycles as long as the `data`
+folder is kept.
+
+The `.env` values below are startup defaults for new installs or empty databases:
 
 ```bash
 ELECTRICITY_CURRENCY=AUD
@@ -240,6 +244,8 @@ ELECTRICITY_PEAK_RATE=0.30
 ELECTRICITY_OFF_PEAK_RATE=0.24
 ELECTRICITY_FEED_IN_RATE=0
 ```
+
+You can also inspect the active saved tariff at `/api/tariff` after logging in.
 
 The current estimate uses daily totals: `home usage - grid consumption` is treated as avoided
 grid import. Because daily rows do not contain every minute of peak/off-peak usage, the app uses

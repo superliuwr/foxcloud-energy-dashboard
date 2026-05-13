@@ -130,12 +130,14 @@ Implemented API shape:
 
 - `GET /api/dashboard` includes `todaySavings`
 - `GET /api/energy-range` includes `savings`
+- `GET /api/tariff` returns the active tariff
+- `PUT /api/tariff` saves validated tariff settings into SQLite
 
 Current estimate:
 
 - Avoided import kWh = `home usage - grid consumption`.
 - Period totals use a weighted daily import rate because daily rows do not contain minute-by-minute tariff periods yet.
-- `PUT /api/tariff` or browser-local settings first
+- Dashboard tariff settings override `.env` defaults once saved.
 
 Initial savings formula:
 
@@ -162,6 +164,7 @@ not by simply adding solar production plus battery discharge.
 - Daily comparison: today vs yesterday, and today vs same weekday last week.
 - Battery protection hints: unusually high inverter/battery temperatures.
 - Redesign-safe setting panel: user can edit tariff/weather location without touching `.env` later.
+  - Tariff editing is implemented and persisted in SQLite.
 
 ## First Implementation Milestones
 

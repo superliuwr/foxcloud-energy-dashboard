@@ -34,6 +34,7 @@ import {
   readDailyEnergyRowsByMonth,
   saveDailyEnergyRows,
 } from "./sqliteStore.js";
+import { getElectricityTariff } from "./tariffService.js";
 
 const LIVE_VARIABLES = [
   "pvPower",
@@ -841,7 +842,7 @@ function toPayload(
       energyGoingIntoBatteryKwh: round(todayRow.daily_charged_energy_total),
       energyComingOutOfBatteryKwh: round(todayRow.daily_discharged_energy_total),
     },
-    todaySavings: calculateSavings([todayRow], env.electricity),
+    todaySavings: calculateSavings([todayRow], getElectricityTariff()),
     lastHour: buildLastHour(historyResults),
     chartSeries: {
       labels: dailyRows.map((row) => String(row.day)),
@@ -995,7 +996,7 @@ const buildDemoPayload = (year: number, month: number): DashboardPayload => {
       energyGoingIntoBatteryKwh: round(todayRow.daily_charged_energy_total),
       energyComingOutOfBatteryKwh: round(todayRow.daily_discharged_energy_total),
     },
-    todaySavings: calculateSavings([todayRow], env.electricity),
+    todaySavings: calculateSavings([todayRow], getElectricityTariff()),
     lastHour: {
       solarGeneratedKwh: round(solarNow * 0.7),
       homeUsageKwh: round(homeNow * 0.7),
@@ -1161,7 +1162,7 @@ export async function getEnergyRangeData(
       monthCount: months.length,
       dailyTable: visibleRows,
       totals: buildEnergyTotals(visibleRows),
-      savings: calculateSavings(visibleRows, env.electricity),
+      savings: calculateSavings(visibleRows, getElectricityTariff()),
     };
   }
 
@@ -1205,7 +1206,7 @@ export async function getEnergyRangeData(
     monthCount: months.length,
     dailyTable: visibleRows,
     totals: buildEnergyTotals(visibleRows),
-    savings: calculateSavings(visibleRows, env.electricity),
+    savings: calculateSavings(visibleRows, getElectricityTariff()),
   };
 }
 
@@ -1359,7 +1360,7 @@ export async function rebuildEnergyRangeCache(
     },
     dailyTable: visibleRows,
     totals: buildEnergyTotals(visibleRows),
-    savings: calculateSavings(visibleRows, env.electricity),
+    savings: calculateSavings(visibleRows, getElectricityTariff()),
   };
 }
 

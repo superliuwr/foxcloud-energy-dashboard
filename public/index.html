@@ -231,6 +231,44 @@
           </article>
         </section>
 
+        <section class="panel tariff-panel" aria-live="polite">
+          <div class="panel-heading compact-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="tariffSettings">Electricity tariff</p>
+              <h2 data-i18n="tariffSettingsTitle">Savings settings</h2>
+              <p class="muted-copy" data-i18n="tariffSettingsHelp">
+                Edit your import and feed-in rates here. Settings are saved in SQLite and survive container rebuilds.
+              </p>
+            </div>
+            <p id="tariffStatusText" class="status-text">--</p>
+          </div>
+          <div class="tariff-grid">
+            <label>
+              <span data-i18n="peakStart">Peak start</span>
+              <input id="tariffPeakStartInput" type="time" />
+            </label>
+            <label>
+              <span data-i18n="peakEnd">Peak end</span>
+              <input id="tariffPeakEndInput" type="time" />
+            </label>
+            <label>
+              <span data-i18n="peakRate">Peak rate</span>
+              <input id="tariffPeakRateInput" type="number" min="0" step="0.0001" />
+            </label>
+            <label>
+              <span data-i18n="offPeakRate">Off-peak rate</span>
+              <input id="tariffOffPeakRateInput" type="number" min="0" step="0.0001" />
+            </label>
+            <label>
+              <span data-i18n="feedInRate">Feed-in rate</span>
+              <input id="tariffFeedInRateInput" type="number" min="0" step="0.0001" />
+            </label>
+            <button id="saveTariffButton" class="refresh-button tariff-save-button" type="button" data-i18n="saveTariff">
+              Save tariff
+            </button>
+          </div>
+        </section>
+
         <section class="panel">
           <div class="panel-heading">
             <div>
