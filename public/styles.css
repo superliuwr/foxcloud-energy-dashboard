@@ -370,6 +370,110 @@ select {
   color: #86efac;
 }
 
+.gauge-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.gauge-card {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(12, 23, 32, 0.92)),
+    #0b1220;
+  color: #f8fafc;
+  min-height: 260px;
+  padding: 1rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+}
+
+.gauge-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.gauge-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gauge-arc {
+  --gauge-degrees: 0deg;
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  width: min(220px, 100%);
+  aspect-ratio: 2;
+  margin: 0.7rem auto 0;
+  border-radius: 999px 999px 0 0;
+  background: conic-gradient(
+    from 270deg at 50% 100%,
+    currentColor 0 var(--gauge-degrees),
+    rgba(148, 163, 184, 0.24) var(--gauge-degrees) 180deg,
+    transparent 180deg
+  );
+  overflow: hidden;
+}
+
+.gauge-arc::after {
+  content: "";
+  position: absolute;
+  inset: 20px 20px 0;
+  border-radius: 999px 999px 0 0;
+  background: #0b1220;
+  z-index: 0;
+}
+
+.gauge-arc strong,
+.gauge-arc span {
+  position: relative;
+  z-index: 1;
+}
+
+.gauge-arc strong {
+  font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+  line-height: 1;
+}
+
+.gauge-arc span {
+  margin: 0.3rem 0 0.85rem;
+  color: rgba(248, 250, 252, 0.75);
+  font-weight: 800;
+}
+
+.gauge-card small {
+  color: rgba(248, 250, 252, 0.72);
+  text-align: center;
+}
+
+.gauge-solar {
+  color: #fbbf24;
+}
+
+.gauge-battery {
+  color: #84cc16;
+}
+
+.gauge-home {
+  color: #60a5fa;
+}
+
+.gauge-grid {
+  color: #c084fc;
+}
+
 .weather-panel {
   display: grid;
   gap: 0.85rem;
@@ -862,6 +966,7 @@ tbody tr:hover {
   .chart-grid,
   .weather-current,
   .metrics-grid,
+  .gauge-panel,
   .visual-kpi-grid,
   .visual-status-strip,
   .summary-grid,
@@ -905,6 +1010,10 @@ tbody tr:hover {
   }
 
   .visual-status-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gauge-panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1007,6 +1116,10 @@ tbody tr:hover {
     font-size: 1.45rem;
   }
 
+  .gauge-card {
+    min-height: 220px;
+  }
+
   .summary-card {
     padding: 0.8rem;
   }
@@ -1103,6 +1216,7 @@ tbody tr:hover {
   .summary-grid,
   .totals-grid,
   .metrics-grid,
+  .gauge-panel,
   .visual-kpi-grid,
   .visual-status-strip {
     grid-template-columns: 1fr;

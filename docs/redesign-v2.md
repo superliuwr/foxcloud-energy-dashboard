@@ -169,6 +169,7 @@ not by simply adding solar production plus battery discharge.
 2. Add tariff/savings calculation helper with tests.
 3. Redesign top section into visual KPI cards and gauges.
    - First pass implemented: daily solar, consumption, export, self-sufficiency, estimated savings, and compact system status strip.
+   - Second pass implemented: real-time semicircle gauge cards for solar power, battery, house load, and grid import/export.
 4. Add self-sufficiency and estimated savings cards.
    - First pass implemented using `/api/dashboard` `today` and `todaySavings` values.
 5. Improve mobile layout for the visual dashboard.

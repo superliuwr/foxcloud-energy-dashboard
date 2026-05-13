@@ -54,6 +54,10 @@ const metricFields = {
   kpiDailyExport: document.getElementById("kpiDailyExport"),
   kpiSelfSufficiency: document.getElementById("kpiSelfSufficiency"),
   kpiEstimatedSavings: document.getElementById("kpiEstimatedSavings"),
+  gaugeSolarValue: document.getElementById("gaugeSolarValue"),
+  gaugeBatteryValue: document.getElementById("gaugeBatteryValue"),
+  gaugeHomeValue: document.getElementById("gaugeHomeValue"),
+  gaugeGridValue: document.getElementById("gaugeGridValue"),
 };
 
 const textFields = {
@@ -80,6 +84,18 @@ const textFields = {
   kpiInverterStatus: document.getElementById("kpiInverterStatus"),
   kpiLastUpdate: document.getElementById("kpiLastUpdate"),
   kpiDataSource: document.getElementById("kpiDataSource"),
+  gaugeSolarArc: document.getElementById("gaugeSolarArc"),
+  gaugeBatteryArc: document.getElementById("gaugeBatteryArc"),
+  gaugeHomeArc: document.getElementById("gaugeHomeArc"),
+  gaugeGridArc: document.getElementById("gaugeGridArc"),
+  gaugeSolarMode: document.getElementById("gaugeSolarMode"),
+  gaugeBatteryMode: document.getElementById("gaugeBatteryMode"),
+  gaugeHomeMode: document.getElementById("gaugeHomeMode"),
+  gaugeGridMode: document.getElementById("gaugeGridMode"),
+  gaugeSolarToday: document.getElementById("gaugeSolarToday"),
+  gaugeBatteryDetail: document.getElementById("gaugeBatteryDetail"),
+  gaugeHomeToday: document.getElementById("gaugeHomeToday"),
+  gaugeGridToday: document.getElementById("gaugeGridToday"),
 };
 
 const flowFields = {
@@ -198,6 +214,18 @@ const translations = {
     inverter: "Inverter",
     lastUpdate: "Last update",
     dataSource: "Data source",
+    gaugeSolarPower: "Solar power",
+    gaugeBattery: "Battery",
+    gaugeHouseLoad: "House load",
+    gaugeGrid: "Grid",
+    producing: "Producing",
+    consuming: "Consuming",
+    idle: "Idle",
+    todayPrefix: "Today",
+    chargePower: "{value} charging",
+    dischargePower: "{value} discharging",
+    netExportToday: "{value} exported today",
+    netImportToday: "{value} imported today",
     rangeSummary: "Showing",
     liveFlow: "Live Flow",
     energyDistribution: "Energy distribution",
@@ -361,6 +389,18 @@ const translations = {
     inverter: "逆变器",
     lastUpdate: "最后更新",
     dataSource: "数据来源",
+    gaugeSolarPower: "太阳能功率",
+    gaugeBattery: "电池",
+    gaugeHouseLoad: "家庭负载",
+    gaugeGrid: "电网",
+    producing: "发电中",
+    consuming: "用电中",
+    idle: "待机",
+    todayPrefix: "今日",
+    chargePower: "{value} 充电",
+    dischargePower: "{value} 放电",
+    netExportToday: "今日回馈 {value}",
+    netImportToday: "今日取电 {value}",
     rangeSummary: "当前显示",
     liveFlow: "实时流向",
     energyDistribution: "能源分布",
@@ -524,6 +564,18 @@ const translations = {
     inverter: "อินเวอร์เตอร์",
     lastUpdate: "อัปเดตล่าสุด",
     dataSource: "แหล่งข้อมูล",
+    gaugeSolarPower: "กำลังโซลาร์",
+    gaugeBattery: "แบตเตอรี่",
+    gaugeHouseLoad: "โหลดบ้าน",
+    gaugeGrid: "กริด",
+    producing: "กำลังผลิต",
+    consuming: "กำลังใช้",
+    idle: "นิ่ง",
+    todayPrefix: "วันนี้",
+    chargePower: "ชาร์จ {value}",
+    dischargePower: "คายประจุ {value}",
+    netExportToday: "ส่งออกวันนี้ {value}",
+    netImportToday: "นำเข้าวันนี้ {value}",
     rangeSummary: "กำลังแสดง",
     liveFlow: "การไหลแบบสด",
     energyDistribution: "การกระจายพลังงาน",
@@ -725,6 +777,55 @@ function getSelfSufficiencyStatus(percent) {
   }
 
   return t("needsGridSupport");
+}
+
+function setGauge(arcElement, value, max) {
+  const normalized = Math.max(0, Math.min(1, Number(value ?? 0) / max));
+  arcElement.style.setProperty("--gauge-degrees", `${Math.round(normalized * 180)}deg`);
+}
+
+function renderGaugeCards(payload) {
+  const live = payload.live ?? {};
+  const today = payload.today ?? {};
+  const solarKw = Number(live.solarGeneratedKw ?? 0);
+  const homeKw = Number(live.homeUsageKw ?? 0);
+  const batteryChargeKw = Number(live.batteryChargeKw ?? 0);
+  const batteryDischargeKw = Number(live.batteryDischargeKw ?? 0);
+  const batteryFlowKw = Math.max(batteryChargeKw, batteryDischargeKw);
+  const gridImportKw = Number(live.gridImportKw ?? 0);
+  const gridExportKw = Number(live.gridExportKw ?? 0);
+  const gridFlowKw = Math.max(gridImportKw, gridExportKw);
+  const batterySoc = live.batterySocPercent;
+
+  setGauge(textFields.gaugeSolarArc, solarKw, 10);
+  setGauge(textFields.gaugeBatteryArc, batterySoc ?? batteryFlowKw, batterySoc === null || batterySoc === undefined ? 8 : 100);
+  setGauge(textFields.gaugeHomeArc, homeKw, 8);
+  setGauge(textFields.gaugeGridArc, gridFlowKw, 8);
+
+  metricFields.gaugeSolarValue.textContent = formatKw(solarKw);
+  metricFields.gaugeBatteryValue.textContent = batterySoc === null || batterySoc === undefined
+    ? formatKw(batteryFlowKw)
+    : formatPercent(batterySoc);
+  metricFields.gaugeHomeValue.textContent = formatKw(homeKw);
+  metricFields.gaugeGridValue.textContent = formatKw(gridFlowKw);
+
+  textFields.gaugeSolarMode.textContent = solarKw > 0.05 ? t("producing") : t("idle");
+  textFields.gaugeBatteryMode.textContent = batteryChargeKw >= batteryDischargeKw
+    ? t("charging")
+    : t("discharging");
+  textFields.gaugeHomeMode.textContent = t("consuming");
+  textFields.gaugeGridMode.textContent = gridExportKw >= gridImportKw ? t("exporting") : t("importing");
+
+  textFields.gaugeSolarToday.textContent = `${t("todayPrefix")}: ${formatKwh(today.solarProductionKwh)}`;
+  textFields.gaugeBatteryDetail.textContent = interpolate(
+    batteryChargeKw >= batteryDischargeKw ? t("chargePower") : t("dischargePower"),
+    { value: formatKw(batteryFlowKw) },
+  );
+  textFields.gaugeHomeToday.textContent = `${t("todayPrefix")}: ${formatKwh(today.homeUsageKwh)}`;
+  textFields.gaugeGridToday.textContent = interpolate(
+    gridExportKw >= gridImportKw ? t("netExportToday") : t("netImportToday"),
+    { value: formatKwh(gridExportKw >= gridImportKw ? today.returnToGridKwh : today.gridConsumptionKwh) },
+  );
 }
 
 function formatOptionalMillimetres(value) {
@@ -1755,6 +1856,7 @@ function renderMetrics(payload) {
   renderBadges(payload);
   renderWarnings(payload.warnings);
   renderVisualKpis(payload);
+  renderGaugeCards(payload);
   renderEnergyFlow(payload);
   renderCharts(payload);
   currentRows = getVisibleRows(payload.dailyTable, payload);
