@@ -79,6 +79,10 @@ const textFields = {
   weatherRainChance: document.getElementById("weatherRainChance"),
   weatherCloudCover: document.getElementById("weatherCloudCover"),
   weatherDaily: document.getElementById("weatherDaily"),
+  solarPerformanceCard: document.getElementById("solarPerformanceCard"),
+  solarPerformanceStatus: document.getElementById("solarPerformanceStatus"),
+  solarPerformanceDetail: document.getElementById("solarPerformanceDetail"),
+  solarPerformanceMeta: document.getElementById("solarPerformanceMeta"),
   kpiDailySolarMeta: document.getElementById("kpiDailySolarMeta"),
   kpiDailyConsumptionMeta: document.getElementById("kpiDailyConsumptionMeta"),
   kpiSelfSufficiencyMeta: document.getElementById("kpiSelfSufficiencyMeta"),
@@ -383,6 +387,20 @@ const translations = {
     weather: "Weather",
     solarForecast: "Solar forecast",
     solarOutlook: "Solar outlook",
+    solarPerformance: "Solar performance",
+    solarPerformanceEarly: "Still early",
+    solarPerformanceOnTrack: "On track",
+    solarPerformanceWeatherLimited: "Weather limited",
+    solarPerformanceWatch: "Worth watching",
+    solarPerformanceLow: "Low for conditions",
+    solarPerformanceNoBaseline: "Building baseline",
+    solarPerformanceEarlyDetail: "Solar production is still ramping up. Check again later in the day.",
+    solarPerformanceOnTrackDetail: "Today's solar production is broadly in line with recent days.",
+    solarPerformanceWeatherDetail: "The forecast is not ideal for solar, so lower production may be weather-related.",
+    solarPerformanceWatchDetail: "Production is below recent days. Keep an eye on shading, clouds, or inverter status.",
+    solarPerformanceLowDetail: "Weather looks suitable, but production is much lower than recent days.",
+    solarPerformanceNoBaselineDetail: "More daily history is needed before the dashboard can judge today's solar output.",
+    solarPerformanceMeta: "Today {today} vs recent avg {average} ({percent}%)",
     rainChance: "Rain chance",
     cloudCover: "Cloud cover",
     weatherDisabled: "Weather forecast is not configured.",
@@ -610,6 +628,20 @@ const translations = {
     weather: "天气",
     solarForecast: "太阳能天气预报",
     solarOutlook: "发电天气",
+    solarPerformance: "太阳能表现",
+    solarPerformanceEarly: "现在还早",
+    solarPerformanceOnTrack: "表现正常",
+    solarPerformanceWeatherLimited: "受天气影响",
+    solarPerformanceWatch: "值得留意",
+    solarPerformanceLow: "天气不错但偏低",
+    solarPerformanceNoBaseline: "正在建立基准",
+    solarPerformanceEarlyDetail: "太阳能发电还在爬升中，建议稍晚再看。",
+    solarPerformanceOnTrackDetail: "今天太阳能发电大致符合最近几天水平。",
+    solarPerformanceWeatherDetail: "今天发电天气一般或较差，产量偏低可能主要是天气原因。",
+    solarPerformanceWatchDetail: "今天产量低于最近几天，可留意云层、遮挡或逆变器状态。",
+    solarPerformanceLowDetail: "天气看起来适合发电，但产量明显低于最近几天。",
+    solarPerformanceNoBaselineDetail: "需要更多每日历史数据，才能判断今天的太阳能表现。",
+    solarPerformanceMeta: "今天 {today}，最近平均 {average}（{percent}%）",
     rainChance: "下雨概率",
     cloudCover: "云量",
     weatherDisabled: "天气预报尚未配置。",
@@ -837,6 +869,20 @@ const translations = {
     weather: "อากาศ",
     solarForecast: "พยากรณ์โซลาร์",
     solarOutlook: "แนวโน้มโซลาร์",
+    solarPerformance: "ประสิทธิภาพโซลาร์",
+    solarPerformanceEarly: "ยังเช้าอยู่",
+    solarPerformanceOnTrack: "เป็นไปตามปกติ",
+    solarPerformanceWeatherLimited: "จำกัดโดยสภาพอากาศ",
+    solarPerformanceWatch: "ควรติดตาม",
+    solarPerformanceLow: "ต่ำกว่าสภาพอากาศ",
+    solarPerformanceNoBaseline: "กำลังสร้างฐานข้อมูล",
+    solarPerformanceEarlyDetail: "การผลิตโซลาร์ยังเพิ่มขึ้นอยู่ ลองตรวจอีกครั้งช่วงสายหรือบ่าย",
+    solarPerformanceOnTrackDetail: "การผลิตวันนี้ใกล้เคียงกับช่วงไม่กี่วันที่ผ่านมา",
+    solarPerformanceWeatherDetail: "สภาพอากาศไม่เหมาะกับโซลาร์ ผลิตได้น้อยอาจมาจากอากาศ",
+    solarPerformanceWatchDetail: "การผลิตต่ำกว่าช่วงที่ผ่านมา ควรดูเมฆ เงาบัง หรือสถานะอินเวอร์เตอร์",
+    solarPerformanceLowDetail: "อากาศดูเหมาะกับการผลิต แต่ผลผลิตต่ำกว่าช่วงที่ผ่านมามาก",
+    solarPerformanceNoBaselineDetail: "ต้องมีข้อมูลรายวันมากขึ้นก่อนประเมินผลผลิตวันนี้ได้",
+    solarPerformanceMeta: "วันนี้ {today} เทียบค่าเฉลี่ยล่าสุด {average} ({percent}%)",
     rainChance: "โอกาสฝน",
     cloudCover: "เมฆปกคลุม",
     weatherDisabled: "ยังไม่ได้ตั้งค่าพยากรณ์อากาศ",
@@ -942,6 +988,14 @@ function formatOptionalPercent(value) {
   return `${Number(value).toFixed(0)}%`;
 }
 
+function formatIntegerPercent(value) {
+  if (!Number.isFinite(Number(value))) {
+    return "--";
+  }
+
+  return `${Math.round(Number(value))}`;
+}
+
 function formatYesterdayComparison(todayValue, yesterdayValue) {
   const baseline = Number(yesterdayValue ?? 0);
 
@@ -969,6 +1023,105 @@ function getSelfSufficiencyStatus(percent) {
   }
 
   return t("needsGridSupport");
+}
+
+function getRecentSolarAverage(rows) {
+  const todayKey = formatLocalDateKey();
+  const historicalRows = getLatestDailyRows(rows)
+    .filter((row) => row.date && row.date < todayKey)
+    .slice(-7)
+    .map((row) => Number(row.pv_production ?? 0))
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  if (historicalRows.length === 0) {
+    return null;
+  }
+
+  const total = historicalRows.reduce((sum, value) => sum + value, 0);
+  return total / historicalRows.length;
+}
+
+function getSolarPerformance(payload, weatherPayload) {
+  const todaySolar = Number(payload?.today?.solarProductionKwh ?? 0);
+  const recentAverage = getRecentSolarAverage(payload?.dailyTable ?? []);
+  const outlook = weatherPayload?.current?.solarOutlook ?? "unknown";
+  const hour = new Date().getHours();
+
+  if (!recentAverage) {
+    return {
+      tone: "neutral",
+      statusKey: "solarPerformanceNoBaseline",
+      detailKey: "solarPerformanceNoBaselineDetail",
+      recentAverage: null,
+      percent: null,
+    };
+  }
+
+  const percent = (todaySolar / recentAverage) * 100;
+
+  if (hour < 10) {
+    return {
+      tone: "neutral",
+      statusKey: "solarPerformanceEarly",
+      detailKey: "solarPerformanceEarlyDetail",
+      recentAverage,
+      percent,
+    };
+  }
+
+  if (["poor", "fair"].includes(outlook) && percent < 85) {
+    return {
+      tone: "weather",
+      statusKey: "solarPerformanceWeatherLimited",
+      detailKey: "solarPerformanceWeatherDetail",
+      recentAverage,
+      percent,
+    };
+  }
+
+  if (["excellent", "good"].includes(outlook) && percent < 60) {
+    return {
+      tone: "alert",
+      statusKey: "solarPerformanceLow",
+      detailKey: "solarPerformanceLowDetail",
+      recentAverage,
+      percent,
+    };
+  }
+
+  if (percent >= 80) {
+    return {
+      tone: "good",
+      statusKey: "solarPerformanceOnTrack",
+      detailKey: "solarPerformanceOnTrackDetail",
+      recentAverage,
+      percent,
+    };
+  }
+
+  return {
+    tone: "watch",
+    statusKey: "solarPerformanceWatch",
+    detailKey: "solarPerformanceWatchDetail",
+    recentAverage,
+    percent,
+  };
+}
+
+function renderSolarPerformance(payload, weatherPayload = lastWeatherPayload) {
+  if (!payload || !weatherPayload?.enabled || !weatherPayload.current) {
+    return;
+  }
+
+  const performance = getSolarPerformance(payload, weatherPayload);
+  textFields.solarPerformanceCard.dataset.tone = performance.tone;
+  textFields.solarPerformanceStatus.textContent = t(performance.statusKey);
+  textFields.solarPerformanceDetail.textContent = t(performance.detailKey);
+  textFields.solarPerformanceMeta.textContent = interpolate(t("solarPerformanceMeta"), {
+    today: formatKwh(payload.today?.solarProductionKwh),
+    average: performance.recentAverage === null ? "--" : formatKwh(performance.recentAverage),
+    percent: performance.percent === null ? "--" : formatIntegerPercent(performance.percent),
+  });
 }
 
 function setGauge(arcElement, value, max) {
@@ -1272,6 +1425,7 @@ function applyLanguage() {
 
   if (lastWeatherPayload) {
     renderWeather(lastWeatherPayload);
+    renderSolarPerformance(lastPayload, lastWeatherPayload);
   }
 
   if (lastTariff) {
@@ -1432,6 +1586,7 @@ function renderWeather(payload) {
   });
 
   textFields.weatherDaily.replaceChildren(...forecastCards);
+  renderSolarPerformance(lastPayload, payload);
 }
 
 async function loadWeather() {
@@ -2313,6 +2468,7 @@ function renderMetrics(payload) {
   renderGaugeCards(payload);
   renderEnergyInsights(payload);
   renderBalanceBars(payload);
+  renderSolarPerformance(payload);
   renderEnergyFlow(payload);
   renderCharts(payload);
   currentRows = getVisibleRows(payload.dailyTable, payload);

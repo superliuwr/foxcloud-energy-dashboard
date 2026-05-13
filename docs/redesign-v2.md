@@ -160,6 +160,7 @@ not by simply adding solar production plus battery discharge.
 - Self-sufficiency gauge: percentage of home usage supplied by solar/battery.
 - Energy balance card: `PV produced = self-consumption + return to grid`.
 - Solar forecast hint: compare today's production so far against expected weather.
+  - First pass implemented: weather card now explains today's solar output against recent daily averages and weather outlook.
 - Battery readiness card: whether the battery is likely to cover evening peak.
 - Peak window countdown: show time until peak tariff starts/ends.
 - Data quality indicator: live Modbus, FoxCloud, cache, demo, stale, or fallback profile.

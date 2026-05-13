@@ -774,6 +774,52 @@ select {
   line-height: 1.35;
 }
 
+.solar-performance-card {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.55fr) 1fr minmax(180px, 0.55fr);
+  gap: 0.85rem;
+  align-items: center;
+  border: 1px solid rgba(29, 43, 36, 0.08);
+  border-left: 5px solid #64748b;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.86)),
+    var(--surface-strong);
+  padding: 0.9rem 1rem;
+}
+
+.solar-performance-card strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.2rem;
+}
+
+.solar-performance-card p {
+  margin: 0;
+}
+
+.solar-performance-card small {
+  color: var(--muted);
+  font-weight: 800;
+  text-align: right;
+}
+
+.solar-performance-card[data-tone="good"] {
+  border-left-color: #22c55e;
+}
+
+.solar-performance-card[data-tone="watch"] {
+  border-left-color: #f59e0b;
+}
+
+.solar-performance-card[data-tone="alert"] {
+  border-left-color: #ef4444;
+}
+
+.solar-performance-card[data-tone="weather"] {
+  border-left-color: #38bdf8;
+}
+
 .hidden {
   display: none;
 }
@@ -1213,6 +1259,14 @@ tbody tr:hover {
 
   .weather-daily {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .solar-performance-card {
+    grid-template-columns: 1fr;
+  }
+
+  .solar-performance-card small {
+    text-align: left;
   }
 
   .visual-kpi-grid {
