@@ -56,6 +56,7 @@ const metricFields = {
   kpiDailyExport: document.getElementById("kpiDailyExport"),
   kpiSelfSufficiency: document.getElementById("kpiSelfSufficiency"),
   kpiEstimatedSavings: document.getElementById("kpiEstimatedSavings"),
+  energyScoreValue: document.getElementById("energyScoreValue"),
   savingsOverviewToday: document.getElementById("savingsOverviewToday"),
   savingsOverviewWeek: document.getElementById("savingsOverviewWeek"),
   savingsOverviewMonth: document.getElementById("savingsOverviewMonth"),
@@ -100,6 +101,14 @@ const textFields = {
   kpiInverterStatus: document.getElementById("kpiInverterStatus"),
   kpiLastUpdate: document.getElementById("kpiLastUpdate"),
   kpiDataSource: document.getElementById("kpiDataSource"),
+  energyScoreRing: document.getElementById("energyScoreRing"),
+  energyScoreStatus: document.getElementById("energyScoreStatus"),
+  energyScoreDetail: document.getElementById("energyScoreDetail"),
+  energyScoreSelfFactor: document.getElementById("energyScoreSelfFactor"),
+  energyScoreBatteryFactor: document.getElementById("energyScoreBatteryFactor"),
+  energyScoreGridFactor: document.getElementById("energyScoreGridFactor"),
+  energyScoreTempFactor: document.getElementById("energyScoreTempFactor"),
+  energyScoreWeatherFactor: document.getElementById("energyScoreWeatherFactor"),
   savingsOverviewTodayMeta: document.getElementById("savingsOverviewTodayMeta"),
   savingsOverviewWeekMeta: document.getElementById("savingsOverviewWeekMeta"),
   savingsOverviewMonthMeta: document.getElementById("savingsOverviewMonthMeta"),
@@ -284,6 +293,18 @@ const translations = {
     kpiDailyExport: "Daily export",
     kpiSelfSufficiency: "Self sufficiency",
     kpiEstimatedSavings: "Est. savings",
+    energyScoreKicker: "Home energy score",
+    energyScoreTitle: "Energy health score",
+    energyScoreExcellent: "Excellent",
+    energyScoreGood: "Good",
+    energyScoreWatch: "Watch",
+    energyScoreNeedsAttention: "Needs attention",
+    energyScoreDetail: "Based on self-sufficiency, battery level, grid flow, temperature, and today's solar outlook.",
+    energyScoreSelfFactor: "Self {value}",
+    energyScoreBatteryFactor: "Battery {value}",
+    energyScoreGridFactor: "Grid {value}",
+    energyScoreTempFactor: "Temp {value}",
+    energyScoreWeatherFactor: "Weather {value}",
     savingsOverview: "Savings overview",
     savingsOverviewHelp: "Estimated benefit from solar and battery usage across common time ranges.",
     savingsLoading: "Calculating...",
@@ -545,6 +566,18 @@ const translations = {
     kpiDailyExport: "今日回馈",
     kpiSelfSufficiency: "自给率",
     kpiEstimatedSavings: "预估节省",
+    energyScoreKicker: "家庭能源评分",
+    energyScoreTitle: "能源健康评分",
+    energyScoreExcellent: "优秀",
+    energyScoreGood: "良好",
+    energyScoreWatch: "需要留意",
+    energyScoreNeedsAttention: "需要关注",
+    energyScoreDetail: "根据自给率、电池电量、电网流向、温度和今天的发电天气综合估算。",
+    energyScoreSelfFactor: "自给率 {value}",
+    energyScoreBatteryFactor: "电池 {value}",
+    energyScoreGridFactor: "电网 {value}",
+    energyScoreTempFactor: "温度 {value}",
+    energyScoreWeatherFactor: "天气 {value}",
     savingsOverview: "节省金额总览",
     savingsOverviewHelp: "按常用周期估算太阳能和电池带来的电费收益。",
     savingsLoading: "正在计算...",
@@ -806,6 +839,18 @@ const translations = {
     kpiDailyExport: "ส่งออกวันนี้",
     kpiSelfSufficiency: "พึ่งพาตนเอง",
     kpiEstimatedSavings: "ประหยัดโดยประมาณ",
+    energyScoreKicker: "คะแนนพลังงานบ้าน",
+    energyScoreTitle: "คะแนนสุขภาพพลังงาน",
+    energyScoreExcellent: "ยอดเยี่ยม",
+    energyScoreGood: "ดี",
+    energyScoreWatch: "ควรติดตาม",
+    energyScoreNeedsAttention: "ควรดูแล",
+    energyScoreDetail: "อิงจากการพึ่งพาตนเอง ระดับแบตเตอรี่ การไหลของกริด อุณหภูมิ และแนวโน้มโซลาร์วันนี้",
+    energyScoreSelfFactor: "พึ่งตนเอง {value}",
+    energyScoreBatteryFactor: "แบต {value}",
+    energyScoreGridFactor: "กริด {value}",
+    energyScoreTempFactor: "อุณหภูมิ {value}",
+    energyScoreWeatherFactor: "อากาศ {value}",
     savingsOverview: "ภาพรวมเงินที่ประหยัด",
     savingsOverviewHelp: "ประเมินผลประโยชน์จากโซลาร์และแบตเตอรี่ตามช่วงเวลาที่ใช้บ่อย",
     savingsLoading: "กำลังคำนวณ...",
@@ -1111,6 +1156,17 @@ function getSelfSufficiencyStatus(percent) {
   }
 
   return t("needsGridSupport");
+}
+
+function calculateSelfSufficiency(today = {}) {
+  const homeUsage = Number(today.homeUsageKwh ?? today.home_usage ?? 0);
+  const gridConsumption = Number(today.gridConsumptionKwh ?? today.grid_consumption ?? 0);
+
+  if (!Number.isFinite(homeUsage) || homeUsage <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, ((homeUsage - gridConsumption) / homeUsage) * 100));
 }
 
 function getRecentSolarAverage(rows) {
@@ -1804,6 +1860,7 @@ function renderWeather(payload) {
 
   textFields.weatherDaily.replaceChildren(...forecastCards);
   renderSolarPerformance(lastPayload, payload);
+  renderEnergyScore(lastPayload, payload);
 }
 
 async function loadWeather() {
@@ -2601,10 +2658,7 @@ function renderVisualKpis(payload) {
   const latestRow = rows.at(-1) ?? {};
   const previousRow = rows.length > 1 ? rows.at(-2) : null;
   const homeUsage = Number(today.homeUsageKwh ?? latestRow.home_usage ?? 0);
-  const gridConsumption = Number(today.gridConsumptionKwh ?? latestRow.grid_consumption ?? 0);
-  const selfSufficiency = homeUsage > 0
-    ? Math.max(0, Math.min(100, ((homeUsage - gridConsumption) / homeUsage) * 100))
-    : 0;
+  const selfSufficiency = calculateSelfSufficiency(today);
 
   metricFields.kpiDailySolar.textContent = formatKwh(today.solarProductionKwh);
   metricFields.kpiDailyConsumption.textContent = formatKwh(homeUsage);
@@ -2628,6 +2682,129 @@ function renderVisualKpis(payload) {
   textFields.kpiInverterStatus.textContent = payload.device?.status === "online" ? t("online") : t(payload.device?.status ?? "unknown");
   textFields.kpiLastUpdate.textContent = formatTimestamp(payload.live?.updatedAt ?? payload.generatedAt);
   textFields.kpiDataSource.textContent = payload.source ?? "--";
+}
+
+function getGridScore(live) {
+  const importKw = Number(live.gridImportKw ?? 0);
+  const exportKw = Number(live.gridExportKw ?? 0);
+
+  if (exportKw > importKw + 0.05) {
+    return 15;
+  }
+
+  if (importKw <= 0.1) {
+    return 14;
+  }
+
+  if (importKw <= 1) {
+    return 10;
+  }
+
+  if (importKw <= 3) {
+    return 6;
+  }
+
+  return 2;
+}
+
+function getTemperatureScore(live) {
+  const readings = getTemperatureReadings(live);
+
+  if (readings.length === 0) {
+    return 7;
+  }
+
+  const maxTemperature = Math.max(...readings.map((reading) => Number(reading.value)));
+
+  if (maxTemperature >= 65) {
+    return 0;
+  }
+
+  if (maxTemperature >= 50) {
+    return 4;
+  }
+
+  return 10;
+}
+
+function getWeatherScore(weatherPayload) {
+  const outlook = weatherPayload?.current?.solarOutlook;
+
+  if (outlook === "excellent") {
+    return 10;
+  }
+
+  if (outlook === "good") {
+    return 8;
+  }
+
+  if (outlook === "fair") {
+    return 5;
+  }
+
+  if (outlook === "poor") {
+    return 3;
+  }
+
+  return 6;
+}
+
+function getEnergyScore(payload, weatherPayload = lastWeatherPayload) {
+  const today = payload?.today ?? {};
+  const live = payload?.live ?? {};
+  const selfSufficiency = calculateSelfSufficiency(today);
+  const batterySoc = Number(live.batterySocPercent ?? 0);
+  const selfScore = Math.min(45, Math.max(0, selfSufficiency * 0.45));
+  const batteryScore = Math.min(20, Math.max(0, Number.isFinite(batterySoc) ? batterySoc * 0.2 : 0));
+  const gridScore = getGridScore(live);
+  const temperatureScore = getTemperatureScore(live);
+  const weatherScore = getWeatherScore(weatherPayload);
+  const score = Math.round(Math.max(0, Math.min(100, selfScore + batteryScore + gridScore + temperatureScore + weatherScore)));
+  const statusKey = score >= 85
+    ? "energyScoreExcellent"
+    : score >= 70
+      ? "energyScoreGood"
+      : score >= 50
+        ? "energyScoreWatch"
+        : "energyScoreNeedsAttention";
+
+  return {
+    score,
+    statusKey,
+    selfSufficiency,
+    batterySoc: Number.isFinite(batterySoc) ? batterySoc : null,
+    gridFlow: Math.max(Number(live.gridImportKw ?? 0), Number(live.gridExportKw ?? 0)),
+    temperature: getTemperatureInsight(live),
+    weatherOutlook: weatherPayload?.current?.solarOutlook ?? "unknown",
+  };
+}
+
+function renderEnergyScore(payload, weatherPayload = lastWeatherPayload) {
+  if (!payload) {
+    return;
+  }
+
+  const energyScore = getEnergyScore(payload, weatherPayload);
+
+  metricFields.energyScoreValue.textContent = String(energyScore.score);
+  textFields.energyScoreRing.style.setProperty("--score-percent", `${energyScore.score}%`);
+  textFields.energyScoreStatus.textContent = t(energyScore.statusKey);
+  textFields.energyScoreDetail.textContent = t("energyScoreDetail");
+  textFields.energyScoreSelfFactor.textContent = interpolate(t("energyScoreSelfFactor"), {
+    value: formatOptionalPercent(energyScore.selfSufficiency),
+  });
+  textFields.energyScoreBatteryFactor.textContent = interpolate(t("energyScoreBatteryFactor"), {
+    value: formatPercent(energyScore.batterySoc),
+  });
+  textFields.energyScoreGridFactor.textContent = interpolate(t("energyScoreGridFactor"), {
+    value: formatKw(energyScore.gridFlow),
+  });
+  textFields.energyScoreTempFactor.textContent = interpolate(t("energyScoreTempFactor"), {
+    value: t(energyScore.temperature.statusKey),
+  });
+  textFields.energyScoreWeatherFactor.textContent = interpolate(t("energyScoreWeatherFactor"), {
+    value: t(energyScore.weatherOutlook),
+  });
 }
 
 const savingsOverviewCards = [
@@ -2785,6 +2962,7 @@ function renderMetrics(payload) {
   renderBadges(payload);
   renderWarnings(payload.warnings);
   renderVisualKpis(payload);
+  renderEnergyScore(payload);
   renderTrendSnapshot(payload);
   renderGaugeCards(payload);
   renderEnergyInsights(payload);

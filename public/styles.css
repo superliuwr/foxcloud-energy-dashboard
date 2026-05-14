@@ -504,6 +504,67 @@ select {
   color: #86efac;
 }
 
+.energy-score-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) 1fr;
+  gap: 1.25rem;
+  align-items: center;
+  border-color: rgba(15, 23, 42, 0.12);
+  background:
+    radial-gradient(circle at 16% 50%, rgba(34, 197, 94, 0.18), transparent 32%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.9));
+}
+
+.energy-score-ring {
+  --score-percent: 0%;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: min(220px, 100%);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, var(--surface-strong) 0 58%, transparent 59%),
+    conic-gradient(#22c55e var(--score-percent), rgba(84, 101, 93, 0.16) 0);
+  box-shadow: inset 0 0 0 1px rgba(29, 43, 36, 0.06), 0 18px 42px rgba(22, 101, 52, 0.12);
+}
+
+.energy-score-ring strong {
+  display: block;
+  color: #14532d;
+  font-size: clamp(2.3rem, 5vw, 4rem);
+  line-height: 0.95;
+}
+
+.energy-score-ring span {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-weight: 900;
+  text-align: center;
+}
+
+.energy-score-copy h2 {
+  margin-bottom: 0.35rem;
+}
+
+.energy-score-factors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.energy-score-factors span {
+  border: 1px solid rgba(29, 43, 36, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  padding: 0.48rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
 .gauge-panel {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1361,6 +1422,7 @@ tbody tr:hover {
 
 @media (max-width: 980px) {
   .dashboard-overview,
+  .energy-score-panel,
   .balance-panel,
   .location-grid,
   .tariff-grid,
@@ -1381,6 +1443,10 @@ tbody tr:hover {
   .dashboard-topline {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .energy-score-panel {
+    grid-template-columns: 1fr;
   }
 
   .toolbar {
@@ -1650,6 +1716,7 @@ tbody tr:hover {
 
 @media (max-width: 420px) {
   .summary-grid,
+  .energy-score-panel,
   .balance-panel,
   .location-grid,
   .tariff-grid,

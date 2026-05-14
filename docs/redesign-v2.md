@@ -166,6 +166,8 @@ not by simply adding solar production plus battery discharge.
 - Peak window countdown: show time until peak tariff starts/ends.
 - Data quality indicator: live Modbus, FoxCloud, cache, demo, stale, or fallback profile.
 - Export/import net card: whether the home is currently a net exporter or importer.
+- Energy health score: combine self-sufficiency, battery state, grid flow, temperature, and weather into one visual score.
+  - First pass implemented: the top dashboard now includes a 0-100 home energy score with factor chips.
 - Daily comparison: today vs yesterday, and today vs same weekday last week.
   - First pass implemented: visual trend snapshot compares today's key metrics against the recent 7-day average.
 - Battery protection hints: unusually high inverter/battery temperatures.
