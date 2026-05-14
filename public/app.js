@@ -54,6 +54,7 @@ const metricFields = {
   kpiDailySolar: document.getElementById("kpiDailySolar"),
   kpiDailyConsumption: document.getElementById("kpiDailyConsumption"),
   kpiDailyExport: document.getElementById("kpiDailyExport"),
+  kpiNetGrid: document.getElementById("kpiNetGrid"),
   kpiSelfSufficiency: document.getElementById("kpiSelfSufficiency"),
   kpiEstimatedSavings: document.getElementById("kpiEstimatedSavings"),
   energyScoreValue: document.getElementById("energyScoreValue"),
@@ -96,6 +97,7 @@ const textFields = {
   solarPerformanceMeta: document.getElementById("solarPerformanceMeta"),
   kpiDailySolarMeta: document.getElementById("kpiDailySolarMeta"),
   kpiDailyConsumptionMeta: document.getElementById("kpiDailyConsumptionMeta"),
+  kpiNetGridMeta: document.getElementById("kpiNetGridMeta"),
   kpiSelfSufficiencyMeta: document.getElementById("kpiSelfSufficiencyMeta"),
   kpiSystemStatus: document.getElementById("kpiSystemStatus"),
   kpiInverterStatus: document.getElementById("kpiInverterStatus"),
@@ -307,8 +309,11 @@ const translations = {
     kpiDailySolar: "Daily solar",
     kpiDailyConsumption: "Daily consumption",
     kpiDailyExport: "Daily export",
+    kpiNetGrid: "Net grid",
     kpiSelfSufficiency: "Self sufficiency",
     kpiEstimatedSavings: "Est. savings",
+    netGridExporting: "Net exporter today",
+    netGridImporting: "Net importer today",
     energyScoreKicker: "Home energy score",
     energyScoreTitle: "Energy health score",
     energyScoreExcellent: "Excellent",
@@ -598,8 +603,11 @@ const translations = {
     kpiDailySolar: "今日太阳能",
     kpiDailyConsumption: "今日用电",
     kpiDailyExport: "今日回馈",
+    kpiNetGrid: "电网净流向",
     kpiSelfSufficiency: "自给率",
     kpiEstimatedSavings: "预估节省",
+    netGridExporting: "今天净回馈电网",
+    netGridImporting: "今天净从电网取电",
     energyScoreKicker: "家庭能源评分",
     energyScoreTitle: "能源健康评分",
     energyScoreExcellent: "优秀",
@@ -889,8 +897,11 @@ const translations = {
     kpiDailySolar: "โซลาร์วันนี้",
     kpiDailyConsumption: "ใช้ไฟวันนี้",
     kpiDailyExport: "ส่งออกวันนี้",
+    kpiNetGrid: "กริดสุทธิ",
     kpiSelfSufficiency: "พึ่งพาตนเอง",
     kpiEstimatedSavings: "ประหยัดโดยประมาณ",
+    netGridExporting: "วันนี้ส่งออกสุทธิ",
+    netGridImporting: "วันนี้นำเข้าสุทธิ",
     energyScoreKicker: "คะแนนพลังงานบ้าน",
     energyScoreTitle: "คะแนนสุขภาพพลังงาน",
     energyScoreExcellent: "ยอดเยี่ยม",
@@ -2842,10 +2853,13 @@ function renderVisualKpis(payload) {
   const previousRow = rows.length > 1 ? rows.at(-2) : null;
   const homeUsage = Number(today.homeUsageKwh ?? latestRow.home_usage ?? 0);
   const selfSufficiency = calculateSelfSufficiency(today);
+  const netGridKwh = Number(today.returnToGridKwh ?? 0) - Number(today.gridConsumptionKwh ?? 0);
+  const isNetExporter = netGridKwh >= 0;
 
   metricFields.kpiDailySolar.textContent = formatKwh(today.solarProductionKwh);
   metricFields.kpiDailyConsumption.textContent = formatKwh(homeUsage);
   metricFields.kpiDailyExport.textContent = formatKwh(today.returnToGridKwh);
+  metricFields.kpiNetGrid.textContent = formatKwh(Math.abs(netGridKwh));
   metricFields.kpiSelfSufficiency.textContent = formatOptionalPercent(selfSufficiency);
   metricFields.kpiEstimatedSavings.textContent = formatMoney(
     payload.todaySavings?.estimatedTotalBenefit,
@@ -2860,6 +2874,8 @@ function renderVisualKpis(payload) {
     homeUsage,
     previousRow?.home_usage,
   );
+  metricFields.kpiNetGrid.closest(".visual-kpi-card").dataset.mode = isNetExporter ? "export" : "import";
+  textFields.kpiNetGridMeta.textContent = t(isNetExporter ? "netGridExporting" : "netGridImporting");
   textFields.kpiSelfSufficiencyMeta.textContent = getSelfSufficiencyStatus(selfSufficiency);
   textFields.kpiSystemStatus.textContent = t(payload.device?.status ?? "unknown");
   textFields.kpiInverterStatus.textContent = payload.device?.status === "online" ? t("online") : t(payload.device?.status ?? "unknown");

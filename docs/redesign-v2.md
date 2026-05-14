@@ -169,6 +169,7 @@ not by simply adding solar production plus battery discharge.
 - Data quality indicator: live Modbus, FoxCloud, cache, demo, stale, or fallback profile.
   - First pass implemented: the dashboard now shows freshness, source, warning count, and response time in a dedicated data confidence panel.
 - Export/import net card: whether the home is currently a net exporter or importer.
+  - First pass implemented: the top KPI row now includes today's net grid position using return-to-grid minus grid consumption.
 - Energy health score: combine self-sufficiency, battery state, grid flow, temperature, and weather into one visual score.
   - First pass implemented: the top dashboard now includes a 0-100 home energy score with factor chips.
 - Daily comparison: today vs yesterday, and today vs same weekday last week.
