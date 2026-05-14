@@ -170,6 +170,9 @@ const textFields = {
   balanceLoadTotal: document.getElementById("balanceLoadTotal"),
   balanceLoadSelf: document.getElementById("balanceLoadSelf"),
   balanceLoadGrid: document.getElementById("balanceLoadGrid"),
+  balanceSelfRing: document.getElementById("balanceSelfRing"),
+  balanceSelfValue: document.getElementById("balanceSelfValue"),
+  balanceSelfDetail: document.getElementById("balanceSelfDetail"),
   balancePvSelfBar: document.getElementById("balancePvSelfBar"),
   balancePvExportBar: document.getElementById("balancePvExportBar"),
   balanceLoadSelfBar: document.getElementById("balanceLoadSelfBar"),
@@ -412,6 +415,10 @@ const translations = {
     loadCoverage: "Load coverage",
     homeUsageSource: "Home usage source",
     solarBatteryCovered: "Solar + battery",
+    selfSufficiency: "Self sufficiency",
+    selfSufficiencyGauge: "Self-sufficiency gauge",
+    coveredBySolarBattery: "covered",
+    selfSufficiencyDetail: "{covered} covered by solar/battery • {grid} from grid",
     rangeSummary: "Showing",
     liveFlow: "Live Flow",
     energyDistribution: "Energy distribution",
@@ -706,6 +713,10 @@ const translations = {
     loadCoverage: "用电来源",
     homeUsageSource: "家庭用电来源",
     solarBatteryCovered: "太阳能 + 电池",
+    selfSufficiency: "自给率",
+    selfSufficiencyGauge: "自给率仪表盘",
+    coveredBySolarBattery: "已覆盖",
+    selfSufficiencyDetail: "{covered} 由太阳能/电池覆盖 • {grid} 来自电网",
     rangeSummary: "当前显示",
     liveFlow: "实时流向",
     energyDistribution: "能源分布",
@@ -1000,6 +1011,10 @@ const translations = {
     loadCoverage: "แหล่งจ่ายโหลด",
     homeUsageSource: "แหล่งพลังงานของบ้าน",
     solarBatteryCovered: "โซลาร์ + แบตเตอรี่",
+    selfSufficiency: "พึ่งพาตนเอง",
+    selfSufficiencyGauge: "เกจพึ่งพาตนเอง",
+    coveredBySolarBattery: "ครอบคลุม",
+    selfSufficiencyDetail: "{covered} จากโซลาร์/แบตเตอรี่ • {grid} จากกริด",
     rangeSummary: "กำลังแสดง",
     liveFlow: "การไหลแบบสด",
     energyDistribution: "การกระจายพลังงาน",
@@ -1678,11 +1693,20 @@ function renderBalanceBars(payload) {
   textFields.balanceLoadTotal.textContent = formatKwh(homeTotal);
   textFields.balanceLoadSelf.textContent = formatKwh(selfCovered);
   textFields.balanceLoadGrid.textContent = formatKwh(gridConsumption);
+  textFields.balanceSelfValue.textContent = formatOptionalPercent(calculateSelfSufficiency(today));
+  textFields.balanceSelfDetail.textContent = interpolate(t("selfSufficiencyDetail"), {
+    covered: formatKwh(selfCovered),
+    grid: formatKwh(gridConsumption),
+  });
 
   setBarWidth(textFields.balancePvSelfBar, pvSelf, pvTotal || pvSelf + pvExport);
   setBarWidth(textFields.balancePvExportBar, pvExport, pvTotal || pvSelf + pvExport);
   setBarWidth(textFields.balanceLoadSelfBar, selfCovered, homeTotal);
   setBarWidth(textFields.balanceLoadGridBar, gridConsumption, homeTotal);
+  textFields.balanceSelfRing.style.setProperty(
+    "--self-percent",
+    `${Math.max(0, Math.min(100, calculateSelfSufficiency(today) ?? 0)).toFixed(1)}%`,
+  );
 }
 
 function renderTariffSettings(tariff) {
