@@ -565,6 +565,78 @@ select {
   font-weight: 900;
 }
 
+.data-quality-panel {
+  border-color: rgba(20, 184, 166, 0.2);
+  background:
+    radial-gradient(circle at 8% 20%, rgba(20, 184, 166, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 253, 250, 0.88));
+}
+
+.data-quality-panel[data-tone="fresh"] {
+  border-color: rgba(34, 197, 94, 0.26);
+}
+
+.data-quality-panel[data-tone="watch"] {
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+.data-quality-panel[data-tone="stale"] {
+  border-color: rgba(220, 38, 38, 0.28);
+}
+
+.data-quality-status {
+  min-width: 180px;
+  border: 1px solid rgba(29, 43, 36, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.8rem 1rem;
+}
+
+.data-quality-status span,
+.data-quality-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.data-quality-status strong {
+  display: block;
+  margin-top: 0.25rem;
+  color: #0f766e;
+  font-size: 1.35rem;
+}
+
+.data-quality-panel[data-tone="watch"] .data-quality-status strong {
+  color: #b45309;
+}
+
+.data-quality-panel[data-tone="stale"] .data-quality-status strong {
+  color: #b91c1c;
+}
+
+.data-quality-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.data-quality-grid article {
+  border: 1px solid rgba(29, 43, 36, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.85rem;
+}
+
+.data-quality-grid strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
 .tariff-timeline-panel {
   border-color: rgba(245, 158, 11, 0.2);
   background:
@@ -1575,6 +1647,10 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 
+  .data-quality-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .toolbar {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1854,6 +1930,10 @@ tbody tr:hover {
   .visual-kpi-grid,
   .savings-overview-grid,
   .visual-status-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .data-quality-grid {
     grid-template-columns: 1fr;
   }
 

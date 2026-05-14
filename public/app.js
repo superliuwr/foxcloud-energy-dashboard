@@ -109,6 +109,13 @@ const textFields = {
   energyScoreGridFactor: document.getElementById("energyScoreGridFactor"),
   energyScoreTempFactor: document.getElementById("energyScoreTempFactor"),
   energyScoreWeatherFactor: document.getElementById("energyScoreWeatherFactor"),
+  dataQualityPanel: document.getElementById("dataQualityPanel"),
+  dataQualityStatus: document.getElementById("dataQualityStatus"),
+  dataQualityDetail: document.getElementById("dataQualityDetail"),
+  dataQualityFreshness: document.getElementById("dataQualityFreshness"),
+  dataQualitySource: document.getElementById("dataQualitySource"),
+  dataQualityWarnings: document.getElementById("dataQualityWarnings"),
+  dataQualityResponse: document.getElementById("dataQualityResponse"),
   tariffTimelineStatus: document.getElementById("tariffTimelineStatus"),
   tariffTimelineDetail: document.getElementById("tariffTimelineDetail"),
   tariffPeakSegmentA: document.getElementById("tariffPeakSegmentA"),
@@ -314,6 +321,20 @@ const translations = {
     energyScoreGridFactor: "Grid {value}",
     energyScoreTempFactor: "Temp {value}",
     energyScoreWeatherFactor: "Weather {value}",
+    dataQualityKicker: "Data quality",
+    dataQualityTitle: "Live data confidence",
+    dataFreshness: "Data freshness",
+    dataQualityFresh: "Fresh",
+    dataQualityWatch: "Watch",
+    dataQualityStale: "Stale",
+    dataQualityFreshDetail: "Live data looks current and no dashboard warnings are active.",
+    dataQualityWatchDetail: "Data is available, but one or more warnings or older timestamps need attention.",
+    dataQualityStaleDetail: "Dashboard is using stale, cached, or missing live data. Check the container and data source.",
+    dataAgeMinutes: "{minutes}m ago",
+    dataAgeUnknown: "Unknown age",
+    warningsLabel: "Warnings",
+    warningsCount: "{count} warning(s)",
+    noWarnings: "No warnings",
     tariffTimeline: "Electricity price timeline",
     tariffTimelineHelp: "Shows the peak price window and where the current time sits in the day.",
     currentTariff: "Current tariff",
@@ -591,6 +612,20 @@ const translations = {
     energyScoreGridFactor: "电网 {value}",
     energyScoreTempFactor: "温度 {value}",
     energyScoreWeatherFactor: "天气 {value}",
+    dataQualityKicker: "数据质量",
+    dataQualityTitle: "实时数据可信度",
+    dataFreshness: "数据新鲜度",
+    dataQualityFresh: "实时正常",
+    dataQualityWatch: "需要留意",
+    dataQualityStale: "数据偏旧",
+    dataQualityFreshDetail: "实时数据看起来是最新的，目前没有仪表板警告。",
+    dataQualityWatchDetail: "数据可以读取，但有警告或更新时间偏旧，需要留意。",
+    dataQualityStaleDetail: "仪表板正在使用缓存、偏旧或缺失的实时数据，请检查容器和数据来源。",
+    dataAgeMinutes: "{minutes} 分钟前",
+    dataAgeUnknown: "更新时间未知",
+    warningsLabel: "警告",
+    warningsCount: "{count} 个警告",
+    noWarnings: "没有警告",
     tariffTimeline: "电价时间轴",
     tariffTimelineHelp: "显示高峰电价时段，以及当前时间在一天中的位置。",
     currentTariff: "当前电价",
@@ -868,6 +903,20 @@ const translations = {
     energyScoreGridFactor: "กริด {value}",
     energyScoreTempFactor: "อุณหภูมิ {value}",
     energyScoreWeatherFactor: "อากาศ {value}",
+    dataQualityKicker: "คุณภาพข้อมูล",
+    dataQualityTitle: "ความมั่นใจข้อมูลสด",
+    dataFreshness: "ความใหม่ของข้อมูล",
+    dataQualityFresh: "สด",
+    dataQualityWatch: "ควรติดตาม",
+    dataQualityStale: "ข้อมูลเก่า",
+    dataQualityFreshDetail: "ข้อมูลสดดูเป็นปัจจุบันและไม่มีคำเตือน",
+    dataQualityWatchDetail: "มีข้อมูลแล้ว แต่มีคำเตือนหรือเวลาอัปเดตค่อนข้างเก่า",
+    dataQualityStaleDetail: "แดชบอร์ดกำลังใช้ข้อมูลแคช เก่า หรือไม่มีข้อมูลสด ควรตรวจคอนเทนเนอร์และแหล่งข้อมูล",
+    dataAgeMinutes: "{minutes} นาทีที่แล้ว",
+    dataAgeUnknown: "ไม่ทราบอายุข้อมูล",
+    warningsLabel: "คำเตือน",
+    warningsCount: "{count} คำเตือน",
+    noWarnings: "ไม่มีคำเตือน",
     tariffTimeline: "ไทม์ไลน์ค่าไฟ",
     tariffTimelineHelp: "แสดงช่วงค่าไฟพีคและตำแหน่งเวลาปัจจุบันของวัน",
     currentTariff: "ค่าไฟตอนนี้",
@@ -1882,6 +1931,30 @@ async function saveWeatherSettings() {
   }
 }
 
+function getTimestampAgeMinutes(value) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return Math.max(0, Math.round((Date.now() - parsed.getTime()) / 60_000));
+}
+
+function formatDataAge(value) {
+  const ageMinutes = getTimestampAgeMinutes(value);
+
+  if (ageMinutes === null) {
+    return t("dataAgeUnknown");
+  }
+
+  return interpolate(t("dataAgeMinutes"), { minutes: ageMinutes });
+}
+
 function renderWeather(payload) {
   lastWeatherPayload = payload;
 
@@ -1978,6 +2051,50 @@ function renderBadges(payload) {
   ];
 
   textFields.badgeRow.replaceChildren(...badges);
+}
+
+function getDataQuality(payload) {
+  const liveAgeMinutes = getTimestampAgeMinutes(payload.live?.updatedAt);
+  const warningCount = payload.warnings?.length ?? 0;
+  const hasStaleSource = payload.isStale || payload.source === "cache";
+  const hasMissingLiveAge = liveAgeMinutes === null;
+
+  if (hasStaleSource || hasMissingLiveAge || liveAgeMinutes > 15) {
+    return {
+      tone: "stale",
+      statusKey: "dataQualityStale",
+      detailKey: "dataQualityStaleDetail",
+    };
+  }
+
+  if (warningCount > 0 || liveAgeMinutes > 5) {
+    return {
+      tone: "watch",
+      statusKey: "dataQualityWatch",
+      detailKey: "dataQualityWatchDetail",
+    };
+  }
+
+  return {
+    tone: "fresh",
+    statusKey: "dataQualityFresh",
+    detailKey: "dataQualityFreshDetail",
+  };
+}
+
+function renderDataQuality(payload) {
+  const quality = getDataQuality(payload);
+  const warningCount = payload.warnings?.length ?? 0;
+
+  textFields.dataQualityPanel.dataset.tone = quality.tone;
+  textFields.dataQualityStatus.textContent = t(quality.statusKey);
+  textFields.dataQualityDetail.textContent = t(quality.detailKey);
+  textFields.dataQualityFreshness.textContent = formatDataAge(payload.live?.updatedAt);
+  textFields.dataQualitySource.textContent = payload.source ?? "--";
+  textFields.dataQualityWarnings.textContent = warningCount > 0
+    ? interpolate(t("warningsCount"), { count: warningCount })
+    : t("noWarnings");
+  textFields.dataQualityResponse.textContent = formatTimestamp(payload.generatedAt);
 }
 
 function renderWarnings(warnings) {
@@ -3021,6 +3138,7 @@ function renderMetrics(payload) {
 
   renderBadges(payload);
   renderWarnings(payload.warnings);
+  renderDataQuality(payload);
   renderVisualKpis(payload);
   renderEnergyScore(payload);
   renderTariffTimeline(payload.todaySavings);

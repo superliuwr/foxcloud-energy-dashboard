@@ -167,6 +167,7 @@ not by simply adding solar production plus battery discharge.
 - Peak window countdown: show time until peak tariff starts/ends.
   - First visual pass implemented: the dashboard now shows a 24-hour electricity price timeline with the peak window and current time marker.
 - Data quality indicator: live Modbus, FoxCloud, cache, demo, stale, or fallback profile.
+  - First pass implemented: the dashboard now shows freshness, source, warning count, and response time in a dedicated data confidence panel.
 - Export/import net card: whether the home is currently a net exporter or importer.
 - Energy health score: combine self-sufficiency, battery state, grid flow, temperature, and weather into one visual score.
   - First pass implemented: the top dashboard now includes a 0-100 home energy score with factor chips.
