@@ -62,6 +62,7 @@ energy command center:
    - Prefer interval-based calculations when live samples exist.
    - Fall back to daily blended estimates when interval samples are unavailable.
    - Keep tariff values editable by the user and persist them safely.
+   - First visual pass implemented: the dashboard now shows today, this week, this month, last 3 months, last 6 months, and last 12 months savings cards.
 
 4. Mobile-first dashboard mode
    - Keep the existing responsive table behavior.

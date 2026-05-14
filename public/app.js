@@ -56,6 +56,12 @@ const metricFields = {
   kpiDailyExport: document.getElementById("kpiDailyExport"),
   kpiSelfSufficiency: document.getElementById("kpiSelfSufficiency"),
   kpiEstimatedSavings: document.getElementById("kpiEstimatedSavings"),
+  savingsOverviewToday: document.getElementById("savingsOverviewToday"),
+  savingsOverviewWeek: document.getElementById("savingsOverviewWeek"),
+  savingsOverviewMonth: document.getElementById("savingsOverviewMonth"),
+  savingsOverviewLast3: document.getElementById("savingsOverviewLast3"),
+  savingsOverviewLast6: document.getElementById("savingsOverviewLast6"),
+  savingsOverviewLast12: document.getElementById("savingsOverviewLast12"),
   trendSolarToday: document.getElementById("trendSolarToday"),
   trendHomeToday: document.getElementById("trendHomeToday"),
   trendExportToday: document.getElementById("trendExportToday"),
@@ -94,6 +100,12 @@ const textFields = {
   kpiInverterStatus: document.getElementById("kpiInverterStatus"),
   kpiLastUpdate: document.getElementById("kpiLastUpdate"),
   kpiDataSource: document.getElementById("kpiDataSource"),
+  savingsOverviewTodayMeta: document.getElementById("savingsOverviewTodayMeta"),
+  savingsOverviewWeekMeta: document.getElementById("savingsOverviewWeekMeta"),
+  savingsOverviewMonthMeta: document.getElementById("savingsOverviewMonthMeta"),
+  savingsOverviewLast3Meta: document.getElementById("savingsOverviewLast3Meta"),
+  savingsOverviewLast6Meta: document.getElementById("savingsOverviewLast6Meta"),
+  savingsOverviewLast12Meta: document.getElementById("savingsOverviewLast12Meta"),
   trendSolarMeta: document.getElementById("trendSolarMeta"),
   trendHomeMeta: document.getElementById("trendHomeMeta"),
   trendExportMeta: document.getElementById("trendExportMeta"),
@@ -176,6 +188,7 @@ let sortState = {
 };
 let lastPayload = null;
 let lastRangePayload = null;
+let lastSavingsOverview = null;
 let lastWeatherPayload = null;
 let lastTariff = null;
 let lastWeatherSettings = null;
@@ -271,6 +284,9 @@ const translations = {
     kpiDailyExport: "Daily export",
     kpiSelfSufficiency: "Self sufficiency",
     kpiEstimatedSavings: "Est. savings",
+    savingsOverview: "Savings overview",
+    savingsOverviewHelp: "Estimated benefit from solar and battery usage across common time ranges.",
+    savingsLoading: "Calculating...",
     todayVsRecent: "Today vs recent days",
     trendSnapshot: "Energy trend snapshot",
     todayVsRecentHelp: "Compares today with the recent 7-day average, excluding today.",
@@ -529,6 +545,9 @@ const translations = {
     kpiDailyExport: "今日回馈",
     kpiSelfSufficiency: "自给率",
     kpiEstimatedSavings: "预估节省",
+    savingsOverview: "节省金额总览",
+    savingsOverviewHelp: "按常用周期估算太阳能和电池带来的电费收益。",
+    savingsLoading: "正在计算...",
     todayVsRecent: "今日 vs 最近几天",
     trendSnapshot: "能源趋势快照",
     todayVsRecentHelp: "将今天和最近 7 天平均值对比，不包含今天。",
@@ -787,6 +806,9 @@ const translations = {
     kpiDailyExport: "ส่งออกวันนี้",
     kpiSelfSufficiency: "พึ่งพาตนเอง",
     kpiEstimatedSavings: "ประหยัดโดยประมาณ",
+    savingsOverview: "ภาพรวมเงินที่ประหยัด",
+    savingsOverviewHelp: "ประเมินผลประโยชน์จากโซลาร์และแบตเตอรี่ตามช่วงเวลาที่ใช้บ่อย",
+    savingsLoading: "กำลังคำนวณ...",
     todayVsRecent: "วันนี้เทียบช่วงล่าสุด",
     trendSnapshot: "ภาพรวมแนวโน้มพลังงาน",
     todayVsRecentHelp: "เปรียบเทียบวันนี้กับค่าเฉลี่ย 7 วันล่าสุด โดยไม่รวมวันนี้",
@@ -2608,6 +2630,109 @@ function renderVisualKpis(payload) {
   textFields.kpiDataSource.textContent = payload.source ?? "--";
 }
 
+const savingsOverviewCards = [
+  {
+    key: "today",
+    metric: "savingsOverviewToday",
+    meta: "savingsOverviewTodayMeta",
+  },
+  {
+    key: "current_week",
+    metric: "savingsOverviewWeek",
+    meta: "savingsOverviewWeekMeta",
+  },
+  {
+    key: "current_month",
+    metric: "savingsOverviewMonth",
+    meta: "savingsOverviewMonthMeta",
+  },
+  {
+    key: "last_3_months",
+    metric: "savingsOverviewLast3",
+    meta: "savingsOverviewLast3Meta",
+  },
+  {
+    key: "last_6_months",
+    metric: "savingsOverviewLast6",
+    meta: "savingsOverviewLast6Meta",
+  },
+  {
+    key: "last_12_months",
+    metric: "savingsOverviewLast12",
+    meta: "savingsOverviewLast12Meta",
+  },
+];
+
+function renderSavingsOverviewCard(item, savings) {
+  if (!savings) {
+    metricFields[item.metric].textContent = "--";
+    textFields[item.meta].textContent = t("unavailable");
+    return;
+  }
+
+  metricFields[item.metric].textContent = formatMoney(
+    savings.estimatedTotalBenefit,
+    savings.currency,
+  );
+  textFields[item.meta].textContent = formatSavingsMeta(savings);
+}
+
+function renderSavingsOverview(overview) {
+  if (!overview) {
+    return;
+  }
+
+  for (const item of savingsOverviewCards) {
+    renderSavingsOverviewCard(item, overview[item.key]);
+  }
+}
+
+function renderSavingsOverviewLoading(todaySavings) {
+  const [todayCard, ...rangeCards] = savingsOverviewCards;
+
+  renderSavingsOverviewCard(todayCard, todaySavings);
+
+  for (const item of rangeCards) {
+    metricFields[item.metric].textContent = "--";
+    textFields[item.meta].textContent = t("savingsLoading");
+  }
+}
+
+async function fetchRangeSavings(range, year, month) {
+  const response = await fetch(
+    `/api/energy-range?year=${year}&month=${Number(month)}&range=${encodeURIComponent(range)}`,
+  );
+  const payload = await response.json();
+
+  if (!response.ok || payload.error) {
+    throw new Error(payload.error || "Energy range request failed.");
+  }
+
+  return payload.savings;
+}
+
+async function loadSavingsOverview(payload) {
+  const [year, month] = monthPicker.value.split("-");
+  const overview = {
+    today: payload.todaySavings,
+  };
+
+  renderSavingsOverviewLoading(payload.todaySavings);
+
+  const rangeCards = savingsOverviewCards.filter((item) => item.key !== "today");
+  const rangeResults = await Promise.allSettled(
+    rangeCards.map((item) => fetchRangeSavings(item.key, year, month)),
+  );
+
+  rangeResults.forEach((result, index) => {
+    const item = rangeCards[index];
+    overview[item.key] = result.status === "fulfilled" ? result.value : null;
+  });
+
+  lastSavingsOverview = overview;
+  renderSavingsOverview(overview);
+}
+
 function renderMetrics(payload) {
   if (!payload || !payload.live || !payload.today || !payload.device || !payload.chartSeries) {
     throw new Error(payload?.error || "Dashboard API returned an unexpected response.");
@@ -2690,6 +2815,9 @@ async function loadDashboard() {
     await loadWeatherSettings();
     await loadWeather();
     await loadEnergyRange(true);
+    void loadSavingsOverview(payload).catch((error) => {
+      console.warn("Unable to load savings overview", error);
+    });
     statusText.textContent = payload.isStale
       ? t("loadedCached")
       : t("loaded");
@@ -2753,6 +2881,7 @@ languageSelect.addEventListener("change", () => {
       renderTable(currentRows);
       renderPeriodTotals(lastRangePayload);
     }
+    renderSavingsOverview(lastSavingsOverview);
     statusText.textContent = lastPayload.isStale ? t("loadedCached") : t("loaded");
   }
 });
