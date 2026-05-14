@@ -194,6 +194,15 @@ export interface EnergyRangePayload {
   savings: SavingsSummary;
 }
 
+export interface SavingsOverviewPayload {
+  generatedAt: string;
+  requestedPeriod: {
+    year: number;
+    month: number;
+  };
+  ranges: Record<string, SavingsSummary | null>;
+}
+
 export interface RebuildSummary {
   requestedDays: number;
   processedDays: number;

@@ -134,6 +134,7 @@ Implemented API shape:
 
 - `GET /api/dashboard` includes `todaySavings`
 - `GET /api/energy-range` includes `savings`
+- `GET /api/savings-overview` returns common savings ranges in one request
 - `GET /api/tariff` returns the active tariff
 - `PUT /api/tariff` saves validated tariff settings into SQLite
 

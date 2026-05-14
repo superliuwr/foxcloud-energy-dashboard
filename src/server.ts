@@ -9,6 +9,7 @@ import { BadRequestError, parseMonth, parseRange, parseYear } from "./lib/reques
 import {
   getDashboardData,
   getEnergyRangeData,
+  getSavingsOverviewData,
   previewRebuildEnergyRangeCache,
   rebuildEnergyRangeCache,
 } from "./services/dashboardService.js";
@@ -130,6 +131,19 @@ app.get("/api/energy-range", async (req, res, next) => {
     const month = parseMonth(req.query.month, now.getMonth() + 1);
     const range = parseRange(req.query.range);
     const payload = await getEnergyRangeData(range, year, month);
+
+    res.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/savings-overview", async (req, res, next) => {
+  try {
+    const now = new Date();
+    const year = parseYear(req.query.year, now.getFullYear());
+    const month = parseMonth(req.query.month, now.getMonth() + 1);
+    const payload = await getSavingsOverviewData(year, month);
 
     res.json(payload);
   } catch (error) {

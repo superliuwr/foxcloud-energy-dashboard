@@ -25,6 +25,7 @@ import type {
   EnergyRangePayload,
   FoxCloudHistoryDeviceResult,
   FoxCloudHistorySeries,
+  SavingsOverviewPayload,
 } from "../types/foxcloud.js";
 import {
   type LiveSample,
@@ -659,5 +660,43 @@ export async function getModbusEnergyRangeData(
     dailyTable: rows,
     totals: buildEnergyTotals(rows),
     savings: calculateSavings(rows, getElectricityTariff()),
+  };
+}
+
+export async function getModbusSavingsOverviewData(
+  year: number,
+  month: number,
+): Promise<SavingsOverviewPayload> {
+  if (!isValidYearMonth(year, month)) {
+    throw new Error("The requested year or month is invalid.");
+  }
+
+  const ranges = [
+    "current_week",
+    "current_month",
+    "last_3_months",
+    "last_6_months",
+    "last_12_months",
+  ];
+  const tariff = getElectricityTariff();
+  const savingsByRange: SavingsOverviewPayload["ranges"] = {};
+
+  for (const range of ranges) {
+    const startDate = getRangeStartDate(range, year, month);
+    const rows = filterRowsUpToToday(
+      readDailyEnergyRowsByDateRange(
+        env.modbus.deviceId,
+        startDate,
+        getRangeEndDate(range, year, month),
+      ),
+    );
+
+    savingsByRange[range] = calculateSavings(rows, tariff);
+  }
+
+  return {
+    generatedAt: new Date().toISOString(),
+    requestedPeriod: { year, month },
+    ranges: savingsByRange,
   };
 }

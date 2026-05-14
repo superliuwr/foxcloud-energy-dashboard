@@ -2941,19 +2941,6 @@ function renderSavingsOverviewLoading(todaySavings) {
   }
 }
 
-async function fetchRangeSavings(range, year, month) {
-  const response = await fetch(
-    `/api/energy-range?year=${year}&month=${Number(month)}&range=${encodeURIComponent(range)}`,
-  );
-  const payload = await response.json();
-
-  if (!response.ok || payload.error) {
-    throw new Error(payload.error || "Energy range request failed.");
-  }
-
-  return payload.savings;
-}
-
 async function loadSavingsOverview(payload) {
   const [year, month] = monthPicker.value.split("-");
   const overview = {
@@ -2962,15 +2949,22 @@ async function loadSavingsOverview(payload) {
 
   renderSavingsOverviewLoading(payload.todaySavings);
 
-  const rangeCards = savingsOverviewCards.filter((item) => item.key !== "today");
-  const rangeResults = await Promise.allSettled(
-    rangeCards.map((item) => fetchRangeSavings(item.key, year, month)),
-  );
+  try {
+    const response = await fetch(
+      `/api/savings-overview?year=${year}&month=${Number(month)}`,
+    );
+    const savingsPayload = await response.json();
 
-  rangeResults.forEach((result, index) => {
-    const item = rangeCards[index];
-    overview[item.key] = result.status === "fulfilled" ? result.value : null;
-  });
+    if (!response.ok || savingsPayload.error) {
+      throw new Error(savingsPayload.error || "Savings overview request failed.");
+    }
+
+    Object.assign(overview, savingsPayload.ranges ?? {});
+  } catch {
+    for (const item of savingsOverviewCards.filter((card) => card.key !== "today")) {
+      overview[item.key] = null;
+    }
+  }
 
   lastSavingsOverview = overview;
   renderSavingsOverview(overview);

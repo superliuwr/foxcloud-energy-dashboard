@@ -23,11 +23,13 @@ import type {
   FoxCloudRealtimeDataPoint,
   FoxCloudReportSeries,
   RebuildSummary,
+  SavingsOverviewPayload,
 } from "../types/foxcloud.js";
 import { readLatestDashboardPayload, saveDashboardPayload } from "./cacheStore.js";
 import {
   getModbusDashboardData,
   getModbusEnergyRangeData,
+  getModbusSavingsOverviewData,
 } from "./modbusDashboardService.js";
 import {
   getLatestDailyEnergyUpdate,
@@ -1207,6 +1209,43 @@ export async function getEnergyRangeData(
     dailyTable: visibleRows,
     totals: buildEnergyTotals(visibleRows),
     savings: calculateSavings(visibleRows, getElectricityTariff()),
+  };
+}
+
+export async function getSavingsOverviewData(
+  year: number,
+  month: number,
+): Promise<SavingsOverviewPayload> {
+  if (!isValidYearMonth(year, month)) {
+    throw new Error("The requested year or month is invalid.");
+  }
+
+  if (env.dataProvider === "modbus") {
+    return getModbusSavingsOverviewData(year, month);
+  }
+
+  const ranges = [
+    "current_week",
+    "current_month",
+    "last_3_months",
+    "last_6_months",
+    "last_12_months",
+  ];
+  const savingsByRange: SavingsOverviewPayload["ranges"] = {};
+
+  for (const range of ranges) {
+    try {
+      const payload = await getEnergyRangeData(range, year, month);
+      savingsByRange[range] = payload.savings;
+    } catch {
+      savingsByRange[range] = null;
+    }
+  }
+
+  return {
+    generatedAt: new Date().toISOString(),
+    requestedPeriod: { year, month },
+    ranges: savingsByRange,
   };
 }
 
