@@ -168,6 +168,7 @@ not by simply adding solar production plus battery discharge.
 - Daily comparison: today vs yesterday, and today vs same weekday last week.
   - First pass implemented: visual trend snapshot compares today's key metrics against the recent 7-day average.
 - Battery protection hints: unusually high inverter/battery temperatures.
+  - First pass implemented: the insight strip now watches the highest live temperature across battery min/max, battery pack, and inverter readings and flags normal/warm/hot states.
 - Redesign-safe setting panel: user can edit tariff/weather location without touching `.env` later.
   - Tariff editing is implemented and persisted in SQLite.
   - Weather location editing is implemented and persisted in SQLite.

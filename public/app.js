@@ -120,6 +120,9 @@ const textFields = {
   insightBatteryDetail: document.getElementById("insightBatteryDetail"),
   insightGridMode: document.getElementById("insightGridMode"),
   insightGridDetail: document.getElementById("insightGridDetail"),
+  temperatureInsightCard: document.getElementById("temperatureInsightCard"),
+  insightTemperatureStatus: document.getElementById("insightTemperatureStatus"),
+  insightTemperatureDetail: document.getElementById("insightTemperatureDetail"),
   insightSmartHint: document.getElementById("insightSmartHint"),
   insightSmartHintDetail: document.getElementById("insightSmartHintDetail"),
   balancePvTotal: document.getElementById("balancePvTotal"),
@@ -297,6 +300,7 @@ const translations = {
     tariffWindow: "Tariff window",
     batteryReadiness: "Battery readiness",
     gridModeNow: "Grid mode now",
+    temperatureWatch: "Temperature watch",
     smartHint: "Smart hint",
     peakNow: "Peak now",
     offPeakNow: "Off-peak now",
@@ -311,6 +315,18 @@ const translations = {
     gridImportHint: "Importing from grid",
     gridNeutralHint: "Grid nearly balanced",
     gridDetail: "Import {importKw}, export {exportKw}",
+    temperatureNormal: "Normal",
+    temperatureWarm: "Warm",
+    temperatureHot: "Hot",
+    temperatureUnavailable: "No temperature data",
+    temperatureNormalDetail: "Highest reading is {temperature} at {component}.",
+    temperatureWarmDetail: "{component} is warm at {temperature}. Keep airflow and load in mind.",
+    temperatureHotDetail: "{component} is hot at {temperature}. Check ventilation and inverter/battery status.",
+    temperatureUnavailableDetail: "No live battery or inverter temperature is available yet.",
+    batteryMinComponent: "battery min",
+    batteryMaxComponent: "battery max",
+    batteryPackComponent: "battery pack",
+    inverterComponent: "inverter",
     smartHintExporting: "Good time to run flexible loads or keep charging battery.",
     smartHintPeak: "Peak tariff is active; battery support is most valuable now.",
     smartHintLowBattery: "Battery is below 50%; consider saving stored energy for peak hours.",
@@ -542,6 +558,7 @@ const translations = {
     tariffWindow: "电价时段",
     batteryReadiness: "电池晚高峰准备度",
     gridModeNow: "当前电网状态",
+    temperatureWatch: "温度监控",
     smartHint: "智能建议",
     peakNow: "正在高峰电价",
     offPeakNow: "当前非高峰",
@@ -556,6 +573,18 @@ const translations = {
     gridImportHint: "正在从电网取电",
     gridNeutralHint: "电网接近平衡",
     gridDetail: "输入 {importKw}，输出 {exportKw}",
+    temperatureNormal: "温度正常",
+    temperatureWarm: "温度偏热",
+    temperatureHot: "温度过高",
+    temperatureUnavailable: "暂无温度数据",
+    temperatureNormalDetail: "当前最高温度为 {component} 的 {temperature}。",
+    temperatureWarmDetail: "{component} 当前 {temperature}，偏热，建议留意通风和负载。",
+    temperatureHotDetail: "{component} 当前 {temperature}，温度较高，建议检查通风、逆变器和电池状态。",
+    temperatureUnavailableDetail: "暂时没有实时电池或逆变器温度数据。",
+    batteryMinComponent: "电池最低温",
+    batteryMaxComponent: "电池最高温",
+    batteryPackComponent: "电池包",
+    inverterComponent: "逆变器",
     smartHintExporting: "现在适合运行可延后的用电设备，或继续给电池充电。",
     smartHintPeak: "当前是高峰电价，电池支撑最有价值。",
     smartHintLowBattery: "电池低于 50%，建议尽量把电留给高峰时段。",
@@ -787,6 +816,7 @@ const translations = {
     tariffWindow: "ช่วงค่าไฟ",
     batteryReadiness: "ความพร้อมแบตเตอรี่",
     gridModeNow: "สถานะกริดตอนนี้",
+    temperatureWatch: "ตรวจอุณหภูมิ",
     smartHint: "คำแนะนำ",
     peakNow: "ช่วงพีคตอนนี้",
     offPeakNow: "นอกช่วงพีค",
@@ -801,6 +831,18 @@ const translations = {
     gridImportHint: "กำลังใช้ไฟจากกริด",
     gridNeutralHint: "กริดเกือบสมดุล",
     gridDetail: "นำเข้า {importKw}, ส่งออก {exportKw}",
+    temperatureNormal: "ปกติ",
+    temperatureWarm: "ค่อนข้างร้อน",
+    temperatureHot: "ร้อนเกินไป",
+    temperatureUnavailable: "ไม่มีข้อมูลอุณหภูมิ",
+    temperatureNormalDetail: "ค่าสูงสุดคือ {temperature} ที่ {component}",
+    temperatureWarmDetail: "{component} อยู่ที่ {temperature} ค่อนข้างร้อน ควรดูการระบายอากาศและโหลด",
+    temperatureHotDetail: "{component} อยู่ที่ {temperature} ร้อนสูง ควรตรวจการระบายอากาศ อินเวอร์เตอร์ และแบตเตอรี่",
+    temperatureUnavailableDetail: "ยังไม่มีข้อมูลอุณหภูมิแบตเตอรี่หรืออินเวอร์เตอร์แบบสด",
+    batteryMinComponent: "แบตเตอรี่ต่ำสุด",
+    batteryMaxComponent: "แบตเตอรี่สูงสุด",
+    batteryPackComponent: "แพ็กแบตเตอรี่",
+    inverterComponent: "อินเวอร์เตอร์",
     smartHintExporting: "เหมาะกับการใช้โหลดที่ยืดหยุ่น หรือชาร์จแบตเตอรี่ต่อ",
     smartHintPeak: "ช่วงค่าไฟพีคกำลังทำงาน แบตเตอรี่ช่วยคุ้มที่สุดตอนนี้",
     smartHintLowBattery: "แบตเตอรี่ต่ำกว่า 50%; ควรเก็บไว้ใช้ช่วงพีค",
@@ -1294,6 +1336,73 @@ function renderGaugeCards(payload) {
   );
 }
 
+function getTemperatureReadings(live) {
+  return [
+    { key: "batteryMinComponent", value: live.batteryMinTemperatureCelsius ?? live.batteryTemperatureCelsius },
+    { key: "batteryMaxComponent", value: live.batteryMaxTemperatureCelsius },
+    { key: "batteryPackComponent", value: live.batteryPackTemperatureCelsius },
+    { key: "inverterComponent", value: live.inverterTemperatureCelsius },
+  ].filter((reading) => Number.isFinite(Number(reading.value)));
+}
+
+function getTemperatureInsight(live) {
+  const readings = getTemperatureReadings(live);
+
+  if (readings.length === 0) {
+    return {
+      tone: "normal",
+      statusKey: "temperatureUnavailable",
+      detailKey: "temperatureUnavailableDetail",
+      component: "",
+      temperature: "",
+    };
+  }
+
+  const hottest = readings.reduce((maxReading, reading) => (
+    Number(reading.value) > Number(maxReading.value) ? reading : maxReading
+  ));
+  const temperature = Number(hottest.value);
+
+  if (temperature >= 65) {
+    return {
+      tone: "hot",
+      statusKey: "temperatureHot",
+      detailKey: "temperatureHotDetail",
+      component: t(hottest.key),
+      temperature: formatTemperature(temperature),
+    };
+  }
+
+  if (temperature >= 50) {
+    return {
+      tone: "warm",
+      statusKey: "temperatureWarm",
+      detailKey: "temperatureWarmDetail",
+      component: t(hottest.key),
+      temperature: formatTemperature(temperature),
+    };
+  }
+
+  return {
+    tone: "normal",
+    statusKey: "temperatureNormal",
+    detailKey: "temperatureNormalDetail",
+    component: t(hottest.key),
+    temperature: formatTemperature(temperature),
+  };
+}
+
+function renderTemperatureInsight(live) {
+  const insight = getTemperatureInsight(live);
+
+  textFields.temperatureInsightCard.dataset.tone = insight.tone;
+  textFields.insightTemperatureStatus.textContent = t(insight.statusKey);
+  textFields.insightTemperatureDetail.textContent = interpolate(t(insight.detailKey), {
+    component: insight.component,
+    temperature: insight.temperature,
+  });
+}
+
 function renderEnergyInsights(payload) {
   const live = payload.live ?? {};
   const savings = payload.todaySavings ?? {};
@@ -1331,6 +1440,8 @@ function renderEnergyInsights(payload) {
     importKw: formatKw(gridImportKw),
     exportKw: formatKw(gridExportKw),
   });
+
+  renderTemperatureInsight(live);
 
   const smartHintKey = tariff.isPeak
     ? "smartHintPeak"
