@@ -109,6 +109,15 @@ const textFields = {
   energyScoreGridFactor: document.getElementById("energyScoreGridFactor"),
   energyScoreTempFactor: document.getElementById("energyScoreTempFactor"),
   energyScoreWeatherFactor: document.getElementById("energyScoreWeatherFactor"),
+  tariffTimelineStatus: document.getElementById("tariffTimelineStatus"),
+  tariffTimelineDetail: document.getElementById("tariffTimelineDetail"),
+  tariffPeakSegmentA: document.getElementById("tariffPeakSegmentA"),
+  tariffPeakSegmentB: document.getElementById("tariffPeakSegmentB"),
+  tariffCurrentMarker: document.getElementById("tariffCurrentMarker"),
+  tariffCurrentMarkerLabel: document.getElementById("tariffCurrentMarkerLabel"),
+  tariffTimelinePeakRate: document.getElementById("tariffTimelinePeakRate"),
+  tariffTimelineOffPeakRate: document.getElementById("tariffTimelineOffPeakRate"),
+  tariffTimelineFeedInRate: document.getElementById("tariffTimelineFeedInRate"),
   savingsOverviewTodayMeta: document.getElementById("savingsOverviewTodayMeta"),
   savingsOverviewWeekMeta: document.getElementById("savingsOverviewWeekMeta"),
   savingsOverviewMonthMeta: document.getElementById("savingsOverviewMonthMeta"),
@@ -305,6 +314,10 @@ const translations = {
     energyScoreGridFactor: "Grid {value}",
     energyScoreTempFactor: "Temp {value}",
     energyScoreWeatherFactor: "Weather {value}",
+    tariffTimeline: "Electricity price timeline",
+    tariffTimelineHelp: "Shows the peak price window and where the current time sits in the day.",
+    currentTariff: "Current tariff",
+    nowLabel: "Now",
     savingsOverview: "Savings overview",
     savingsOverviewHelp: "Estimated benefit from solar and battery usage across common time ranges.",
     savingsLoading: "Calculating...",
@@ -578,6 +591,10 @@ const translations = {
     energyScoreGridFactor: "电网 {value}",
     energyScoreTempFactor: "温度 {value}",
     energyScoreWeatherFactor: "天气 {value}",
+    tariffTimeline: "电价时间轴",
+    tariffTimelineHelp: "显示高峰电价时段，以及当前时间在一天中的位置。",
+    currentTariff: "当前电价",
+    nowLabel: "现在",
     savingsOverview: "节省金额总览",
     savingsOverviewHelp: "按常用周期估算太阳能和电池带来的电费收益。",
     savingsLoading: "正在计算...",
@@ -851,6 +868,10 @@ const translations = {
     energyScoreGridFactor: "กริด {value}",
     energyScoreTempFactor: "อุณหภูมิ {value}",
     energyScoreWeatherFactor: "อากาศ {value}",
+    tariffTimeline: "ไทม์ไลน์ค่าไฟ",
+    tariffTimelineHelp: "แสดงช่วงค่าไฟพีคและตำแหน่งเวลาปัจจุบันของวัน",
+    currentTariff: "ค่าไฟตอนนี้",
+    nowLabel: "ตอนนี้",
     savingsOverview: "ภาพรวมเงินที่ประหยัด",
     savingsOverviewHelp: "ประเมินผลประโยชน์จากโซลาร์และแบตเตอรี่ตามช่วงเวลาที่ใช้บ่อย",
     savingsLoading: "กำลังคำนวณ...",
@@ -1365,9 +1386,54 @@ function getTariffStatus(savings) {
   return {
     isPeak,
     peakWindow: `${peakStart}-${peakEnd}`,
+    peakStart,
+    peakEnd,
+    startMinutes: start,
+    endMinutes: end,
+    currentMinutes: current,
     detailKey: isPeak ? "peakEndsIn" : "peakStartsIn",
     detailMinutes: isPeak ? minutesUntilEnd : minutesUntilStart,
   };
+}
+
+function setTimelineSegment(element, leftPercent, widthPercent) {
+  if (widthPercent <= 0) {
+    element.hidden = true;
+    return;
+  }
+
+  element.hidden = false;
+  element.style.left = `${leftPercent.toFixed(2)}%`;
+  element.style.width = `${widthPercent.toFixed(2)}%`;
+}
+
+function renderTariffTimeline(savings) {
+  const tariff = getTariffStatus(savings);
+  const dayMinutes = 24 * 60;
+  const startPercent = (tariff.startMinutes / dayMinutes) * 100;
+  const endPercent = ((tariff.endMinutes + 1) / dayMinutes) * 100;
+  const currentPercent = (tariff.currentMinutes / dayMinutes) * 100;
+
+  if (tariff.startMinutes <= tariff.endMinutes) {
+    setTimelineSegment(textFields.tariffPeakSegmentA, startPercent, Math.max(endPercent - startPercent, 0));
+    setTimelineSegment(textFields.tariffPeakSegmentB, 0, 0);
+  } else {
+    setTimelineSegment(textFields.tariffPeakSegmentA, 0, endPercent);
+    setTimelineSegment(textFields.tariffPeakSegmentB, startPercent, 100 - startPercent);
+  }
+
+  textFields.tariffCurrentMarker.style.left = `${currentPercent.toFixed(2)}%`;
+  textFields.tariffCurrentMarkerLabel.textContent = t("nowLabel");
+  textFields.tariffTimelineStatus.textContent = tariff.isPeak ? t("peakNow") : t("offPeakNow");
+  textFields.tariffTimelineDetail.textContent = `${interpolate(t(tariff.detailKey), {
+    time: formatDurationMinutes(tariff.detailMinutes),
+  })} · ${interpolate(t("peakWindowDetail"), {
+    window: tariff.peakWindow,
+    rate: formatRate(savings?.peakRate, savings?.currency),
+  })}`;
+  textFields.tariffTimelinePeakRate.textContent = formatRate(savings?.peakRate, savings?.currency);
+  textFields.tariffTimelineOffPeakRate.textContent = formatRate(savings?.offPeakRate, savings?.currency);
+  textFields.tariffTimelineFeedInRate.textContent = formatRate(savings?.feedInRate, savings?.currency);
 }
 
 function renderGaugeCards(payload) {
@@ -2963,6 +3029,7 @@ function renderMetrics(payload) {
   renderWarnings(payload.warnings);
   renderVisualKpis(payload);
   renderEnergyScore(payload);
+  renderTariffTimeline(payload.todaySavings);
   renderTrendSnapshot(payload);
   renderGaugeCards(payload);
   renderEnergyInsights(payload);

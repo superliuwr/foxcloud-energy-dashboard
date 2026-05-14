@@ -164,6 +164,7 @@ not by simply adding solar production plus battery discharge.
   - First pass implemented: weather card now explains today's solar output against recent daily averages and weather outlook.
 - Battery readiness card: whether the battery is likely to cover evening peak.
 - Peak window countdown: show time until peak tariff starts/ends.
+  - First visual pass implemented: the dashboard now shows a 24-hour electricity price timeline with the peak window and current time marker.
 - Data quality indicator: live Modbus, FoxCloud, cache, demo, stale, or fallback profile.
 - Export/import net card: whether the home is currently a net exporter or importer.
 - Energy health score: combine self-sufficiency, battery state, grid flow, temperature, and weather into one visual score.

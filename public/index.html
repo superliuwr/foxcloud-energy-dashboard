@@ -193,6 +193,39 @@
           </div>
         </section>
 
+        <section class="panel tariff-timeline-panel" aria-live="polite">
+          <div class="panel-heading compact-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="tariffWindow">Tariff window</p>
+              <h2 data-i18n="tariffTimeline">Electricity price timeline</h2>
+              <p id="tariffTimelineDetail" class="muted-copy">--</p>
+            </div>
+            <div class="tariff-timeline-now">
+              <span data-i18n="currentTariff">Current tariff</span>
+              <strong id="tariffTimelineStatus">--</strong>
+            </div>
+          </div>
+          <div class="tariff-timeline-track" aria-hidden="true">
+            <span id="tariffPeakSegmentA" class="tariff-peak-segment"></span>
+            <span id="tariffPeakSegmentB" class="tariff-peak-segment"></span>
+            <span id="tariffCurrentMarker" class="tariff-current-marker">
+              <b id="tariffCurrentMarkerLabel">--</b>
+            </span>
+          </div>
+          <div class="tariff-timeline-labels">
+            <span>00:00</span>
+            <span>06:00</span>
+            <span>12:00</span>
+            <span>18:00</span>
+            <span>24:00</span>
+          </div>
+          <div class="tariff-rate-grid">
+            <span><b data-i18n="peakRate">Peak rate</b> <strong id="tariffTimelinePeakRate">--</strong></span>
+            <span><b data-i18n="offPeakRate">Off-peak rate</b> <strong id="tariffTimelineOffPeakRate">--</strong></span>
+            <span><b data-i18n="feedInRate">Feed-in rate</b> <strong id="tariffTimelineFeedInRate">--</strong></span>
+          </div>
+        </section>
+
         <section class="panel savings-overview-panel" aria-live="polite">
           <div class="panel-heading compact-heading">
             <div>
