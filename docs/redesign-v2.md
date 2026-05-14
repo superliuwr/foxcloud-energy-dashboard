@@ -166,6 +166,7 @@ not by simply adding solar production plus battery discharge.
 - Data quality indicator: live Modbus, FoxCloud, cache, demo, stale, or fallback profile.
 - Export/import net card: whether the home is currently a net exporter or importer.
 - Daily comparison: today vs yesterday, and today vs same weekday last week.
+  - First pass implemented: visual trend snapshot compares today's key metrics against the recent 7-day average.
 - Battery protection hints: unusually high inverter/battery temperatures.
 - Redesign-safe setting panel: user can edit tariff/weather location without touching `.env` later.
   - Tariff editing is implemented and persisted in SQLite.

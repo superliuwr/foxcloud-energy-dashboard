@@ -174,6 +174,44 @@
           </div>
         </section>
 
+        <section class="panel trend-panel" aria-live="polite">
+          <div class="panel-heading compact-heading">
+            <div>
+              <p class="panel-kicker" data-i18n="todayVsRecent">Today vs recent days</p>
+              <h2 data-i18n="trendSnapshot">Energy trend snapshot</h2>
+              <p class="muted-copy" data-i18n="todayVsRecentHelp">
+                Compares today with the recent 7-day average, excluding today.
+              </p>
+            </div>
+          </div>
+          <div class="trend-grid">
+            <article class="trend-card trend-solar">
+              <span data-i18n="pvProduced">PV produced</span>
+              <strong id="trendSolarToday">--</strong>
+              <small id="trendSolarMeta">--</small>
+              <div class="trend-bar"><span id="trendSolarBar" style="width: 0%"></span></div>
+            </article>
+            <article class="trend-card trend-home">
+              <span data-i18n="homeUsage">Home usage</span>
+              <strong id="trendHomeToday">--</strong>
+              <small id="trendHomeMeta">--</small>
+              <div class="trend-bar"><span id="trendHomeBar" style="width: 0%"></span></div>
+            </article>
+            <article class="trend-card trend-export">
+              <span data-i18n="returnToGrid">Return to grid</span>
+              <strong id="trendExportToday">--</strong>
+              <small id="trendExportMeta">--</small>
+              <div class="trend-bar"><span id="trendExportBar" style="width: 0%"></span></div>
+            </article>
+            <article class="trend-card trend-import">
+              <span data-i18n="gridConsumption">Grid consumption</span>
+              <strong id="trendGridToday">--</strong>
+              <small id="trendGridMeta">--</small>
+              <div class="trend-bar"><span id="trendGridBar" style="width: 0%"></span></div>
+            </article>
+          </div>
+        </section>
+
         <section class="gauge-panel" aria-live="polite">
           <article class="gauge-card gauge-solar">
             <div class="gauge-card-head">

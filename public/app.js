@@ -56,6 +56,10 @@ const metricFields = {
   kpiDailyExport: document.getElementById("kpiDailyExport"),
   kpiSelfSufficiency: document.getElementById("kpiSelfSufficiency"),
   kpiEstimatedSavings: document.getElementById("kpiEstimatedSavings"),
+  trendSolarToday: document.getElementById("trendSolarToday"),
+  trendHomeToday: document.getElementById("trendHomeToday"),
+  trendExportToday: document.getElementById("trendExportToday"),
+  trendGridToday: document.getElementById("trendGridToday"),
   gaugeSolarValue: document.getElementById("gaugeSolarValue"),
   gaugeBatteryValue: document.getElementById("gaugeBatteryValue"),
   gaugeHomeValue: document.getElementById("gaugeHomeValue"),
@@ -90,6 +94,14 @@ const textFields = {
   kpiInverterStatus: document.getElementById("kpiInverterStatus"),
   kpiLastUpdate: document.getElementById("kpiLastUpdate"),
   kpiDataSource: document.getElementById("kpiDataSource"),
+  trendSolarMeta: document.getElementById("trendSolarMeta"),
+  trendHomeMeta: document.getElementById("trendHomeMeta"),
+  trendExportMeta: document.getElementById("trendExportMeta"),
+  trendGridMeta: document.getElementById("trendGridMeta"),
+  trendSolarBar: document.getElementById("trendSolarBar"),
+  trendHomeBar: document.getElementById("trendHomeBar"),
+  trendExportBar: document.getElementById("trendExportBar"),
+  trendGridBar: document.getElementById("trendGridBar"),
   gaugeSolarArc: document.getElementById("gaugeSolarArc"),
   gaugeBatteryArc: document.getElementById("gaugeBatteryArc"),
   gaugeHomeArc: document.getElementById("gaugeHomeArc"),
@@ -256,6 +268,10 @@ const translations = {
     kpiDailyExport: "Daily export",
     kpiSelfSufficiency: "Self sufficiency",
     kpiEstimatedSavings: "Est. savings",
+    todayVsRecent: "Today vs recent days",
+    trendSnapshot: "Energy trend snapshot",
+    todayVsRecentHelp: "Compares today with the recent 7-day average, excluding today.",
+    trendMeta: "Recent avg {average} • {percent}% of average",
     exportedToGrid: "Exported to grid",
     ofYesterday: "{percent}% of yesterday",
     noYesterdayData: "No yesterday data",
@@ -497,6 +513,10 @@ const translations = {
     kpiDailyExport: "今日回馈",
     kpiSelfSufficiency: "自给率",
     kpiEstimatedSavings: "预估节省",
+    todayVsRecent: "今日 vs 最近几天",
+    trendSnapshot: "能源趋势快照",
+    todayVsRecentHelp: "将今天和最近 7 天平均值对比，不包含今天。",
+    trendMeta: "最近平均 {average} • 相当于平均值 {percent}%",
     exportedToGrid: "已回馈电网",
     ofYesterday: "相当于昨天 {percent}%",
     noYesterdayData: "暂无昨天数据",
@@ -738,6 +758,10 @@ const translations = {
     kpiDailyExport: "ส่งออกวันนี้",
     kpiSelfSufficiency: "พึ่งพาตนเอง",
     kpiEstimatedSavings: "ประหยัดโดยประมาณ",
+    todayVsRecent: "วันนี้เทียบช่วงล่าสุด",
+    trendSnapshot: "ภาพรวมแนวโน้มพลังงาน",
+    todayVsRecentHelp: "เปรียบเทียบวันนี้กับค่าเฉลี่ย 7 วันล่าสุด โดยไม่รวมวันนี้",
+    trendMeta: "ค่าเฉลี่ยล่าสุด {average} • {percent}% ของค่าเฉลี่ย",
     exportedToGrid: "ส่งออกเข้ากริด",
     ofYesterday: "{percent}% ของเมื่อวาน",
     noYesterdayData: "ไม่มีข้อมูลเมื่อวาน",
@@ -1026,19 +1050,23 @@ function getSelfSufficiencyStatus(percent) {
 }
 
 function getRecentSolarAverage(rows) {
+  return getRecentAverage(rows, "pv_production");
+}
+
+function getRecentAverage(rows, key) {
   const todayKey = formatLocalDateKey();
-  const historicalRows = getLatestDailyRows(rows)
+  const historicalValues = getLatestDailyRows(rows)
     .filter((row) => row.date && row.date < todayKey)
     .slice(-7)
-    .map((row) => Number(row.pv_production ?? 0))
+    .map((row) => Number(row[key] ?? 0))
     .filter((value) => Number.isFinite(value) && value > 0);
 
-  if (historicalRows.length === 0) {
+  if (historicalValues.length === 0) {
     return null;
   }
 
-  const total = historicalRows.reduce((sum, value) => sum + value, 0);
-  return total / historicalRows.length;
+  const total = historicalValues.reduce((sum, value) => sum + value, 0);
+  return total / historicalValues.length;
 }
 
 function getSolarPerformance(payload, weatherPayload) {
@@ -1121,6 +1149,62 @@ function renderSolarPerformance(payload, weatherPayload = lastWeatherPayload) {
     today: formatKwh(payload.today?.solarProductionKwh),
     average: performance.recentAverage === null ? "--" : formatKwh(performance.recentAverage),
     percent: performance.percent === null ? "--" : formatIntegerPercent(performance.percent),
+  });
+}
+
+function setTrendBar(element, todayValue, averageValue) {
+  const percent = averageValue > 0 ? Math.max(0, Math.min(140, (todayValue / averageValue) * 100)) : 0;
+  element.style.width = `${Math.min(percent, 100).toFixed(1)}%`;
+}
+
+function renderTrendMetric({ todayElement, metaElement, barElement, todayValue, averageValue }) {
+  todayElement.textContent = formatKwh(todayValue);
+
+  if (!averageValue) {
+    metaElement.textContent = t("noYesterdayData");
+    setTrendBar(barElement, 0, 0);
+    return;
+  }
+
+  const percent = Math.round((todayValue / averageValue) * 100);
+  metaElement.textContent = interpolate(t("trendMeta"), {
+    average: formatKwh(averageValue),
+    percent,
+  });
+  setTrendBar(barElement, todayValue, averageValue);
+}
+
+function renderTrendSnapshot(payload) {
+  const rows = payload?.dailyTable ?? [];
+  const today = payload?.today ?? {};
+
+  renderTrendMetric({
+    todayElement: metricFields.trendSolarToday,
+    metaElement: textFields.trendSolarMeta,
+    barElement: textFields.trendSolarBar,
+    todayValue: Number(today.solarProductionKwh ?? 0),
+    averageValue: getRecentAverage(rows, "pv_production"),
+  });
+  renderTrendMetric({
+    todayElement: metricFields.trendHomeToday,
+    metaElement: textFields.trendHomeMeta,
+    barElement: textFields.trendHomeBar,
+    todayValue: Number(today.homeUsageKwh ?? 0),
+    averageValue: getRecentAverage(rows, "home_usage"),
+  });
+  renderTrendMetric({
+    todayElement: metricFields.trendExportToday,
+    metaElement: textFields.trendExportMeta,
+    barElement: textFields.trendExportBar,
+    todayValue: Number(today.returnToGridKwh ?? 0),
+    averageValue: getRecentAverage(rows, "daily_feedin"),
+  });
+  renderTrendMetric({
+    todayElement: metricFields.trendGridToday,
+    metaElement: textFields.trendGridMeta,
+    barElement: textFields.trendGridBar,
+    todayValue: Number(today.gridConsumptionKwh ?? 0),
+    averageValue: getRecentAverage(rows, "grid_consumption"),
   });
 }
 
@@ -2465,6 +2549,7 @@ function renderMetrics(payload) {
   renderBadges(payload);
   renderWarnings(payload.warnings);
   renderVisualKpis(payload);
+  renderTrendSnapshot(payload);
   renderGaugeCards(payload);
   renderEnergyInsights(payload);
   renderBalanceBars(payload);
