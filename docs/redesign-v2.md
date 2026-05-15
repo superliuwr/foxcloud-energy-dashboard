@@ -164,6 +164,8 @@ not by simply adding solar production plus battery discharge.
   - First pass implemented: the balance section now includes a circular self-sufficiency gauge with covered-vs-grid detail.
 - Energy balance card: `PV produced = self-consumption + return to grid`.
   - Expanded pass implemented: the balance section now includes battery day balance and grid day balance cards.
+- Savings forecast card: estimate likely savings if the selected period's daily average continues.
+  - First pass implemented: the period panel now shows daily average, monthly run-rate, and annual run-rate estimates.
 - Solar forecast hint: compare today's production so far against expected weather.
   - First pass implemented: weather card now explains today's solar output against recent daily averages and weather outlook.
 - Battery readiness card: whether the battery is likely to cover evening peak.

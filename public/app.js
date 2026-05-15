@@ -56,6 +56,9 @@ const metricFields = {
   periodExportCredit: document.getElementById("periodExportCredit"),
   periodAvoidedImportKwh: document.getElementById("periodAvoidedImportKwh"),
   periodExportedKwh: document.getElementById("periodExportedKwh"),
+  periodDailyAverageSavings: document.getElementById("periodDailyAverageSavings"),
+  periodMonthlyForecast: document.getElementById("periodMonthlyForecast"),
+  periodAnnualForecast: document.getElementById("periodAnnualForecast"),
   kpiDailySolar: document.getElementById("kpiDailySolar"),
   kpiDailyConsumption: document.getElementById("kpiDailyConsumption"),
   kpiDailyExport: document.getElementById("kpiDailyExport"),
@@ -205,6 +208,7 @@ const textFields = {
   balanceGridImportBar: document.getElementById("balanceGridImportBar"),
   periodAvoidedImportBar: document.getElementById("periodAvoidedImportBar"),
   periodExportCreditBar: document.getElementById("periodExportCreditBar"),
+  periodSavingsForecastMeta: document.getElementById("periodSavingsForecastMeta"),
   tariffStatusText: document.getElementById("tariffStatusText"),
   tariffPeakStartInput: document.getElementById("tariffPeakStartInput"),
   tariffPeakEndInput: document.getElementById("tariffPeakEndInput"),
@@ -331,6 +335,12 @@ const translations = {
     exportCredit: "Export credit",
     avoidedImportKwh: "Avoided import kWh",
     exportedKwh: "Exported kWh",
+    savingsForecast: "Savings forecast",
+    savingsForecastTitle: "Run-rate estimate",
+    dailyAverageSavings: "Daily average",
+    monthlyRunRate: "Monthly run-rate",
+    annualRunRate: "Annual run-rate",
+    savingsForecastMeta: "Based on {days} day(s) in {range}; this is an estimate, not a bill.",
     tariffSettings: "Electricity tariff",
     tariffSettingsTitle: "Savings settings",
     tariffSettingsHelp: "Edit your import and feed-in rates here. Settings are saved in SQLite and survive container rebuilds.",
@@ -665,6 +675,12 @@ const translations = {
     exportCredit: "回馈电网收益",
     avoidedImportKwh: "少买电量",
     exportedKwh: "回馈电量",
+    savingsForecast: "节省金额预测",
+    savingsForecastTitle: "按当前速度估算",
+    dailyAverageSavings: "每日平均",
+    monthlyRunRate: "月度预测",
+    annualRunRate: "年度预测",
+    savingsForecastMeta: "基于 {range} 的 {days} 天数据估算；这是预测，不是账单。",
     tariffSettings: "电价设置",
     tariffSettingsTitle: "节省金额设置",
     tariffSettingsHelp: "在这里修改用电电价和回馈电价。设置会保存到 SQLite，重建容器后仍会保留。",
@@ -999,6 +1015,12 @@ const translations = {
     exportCredit: "เครดิตส่งออกไฟ",
     avoidedImportKwh: "หลีกเลี่ยงนำเข้า kWh",
     exportedKwh: "ส่งออก kWh",
+    savingsForecast: "พยากรณ์เงินที่ประหยัด",
+    savingsForecastTitle: "ประมาณการตามอัตราปัจจุบัน",
+    dailyAverageSavings: "เฉลี่ยต่อวัน",
+    monthlyRunRate: "ประมาณการต่อเดือน",
+    annualRunRate: "ประมาณการต่อปี",
+    savingsForecastMeta: "อิงจากข้อมูล {days} วันใน {range}; เป็นการประมาณ ไม่ใช่บิลจริง",
     tariffSettings: "อัตราค่าไฟ",
     tariffSettingsTitle: "ตั้งค่าการประหยัด",
     tariffSettingsHelp: "แก้ไขอัตราค่าไฟนำเข้าและรับซื้อไฟคืนได้ที่นี่ ข้อมูลจะบันทึกใน SQLite และไม่หายเมื่อสร้างคอนเทนเนอร์ใหม่",
@@ -2738,11 +2760,27 @@ function getSelectedRangeLabel() {
   return selectedOption?.textContent ?? t("currentMonth");
 }
 
+function getSelectedMonthDayCount() {
+  const [year, month] = monthPicker.value.split("-").map(Number);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month)) {
+    return 30.44;
+  }
+
+  return new Date(year, month, 0).getDate();
+}
+
 function renderPeriodTotals(payload) {
   const savings = payload.savings ?? {};
   const totalBenefit = Number(savings.estimatedTotalBenefit ?? 0);
   const avoidedSavings = Number(savings.estimatedSavings ?? 0);
   const exportCredit = Number(savings.exportCredit ?? 0);
+  const daysWithData = payload.dailyTable?.length ?? 0;
+  const dailyAverageSavings = daysWithData > 0 ? totalBenefit / daysWithData : 0;
+  const monthlyForecast = dailyAverageSavings * (
+    tableRangeSelect.value === "current_month" ? getSelectedMonthDayCount() : 30.44
+  );
+  const annualForecast = dailyAverageSavings * 365;
 
   metricFields.periodSolarProduction.textContent = formatKwh(payload.totals?.solarProductionKwh);
   metricFields.periodHomeUsage.textContent = formatKwh(payload.totals?.homeUsageKwh);
@@ -2760,7 +2798,14 @@ function renderPeriodTotals(payload) {
   metricFields.periodExportCredit.textContent = formatMoney(exportCredit, savings.currency);
   metricFields.periodAvoidedImportKwh.textContent = formatKwh(savings.avoidedGridImportKwh);
   metricFields.periodExportedKwh.textContent = formatKwh(savings.exportedKwh);
+  metricFields.periodDailyAverageSavings.textContent = formatMoney(dailyAverageSavings, savings.currency);
+  metricFields.periodMonthlyForecast.textContent = formatMoney(monthlyForecast, savings.currency);
+  metricFields.periodAnnualForecast.textContent = formatMoney(annualForecast, savings.currency);
   textFields.periodSavingsMeta.textContent = formatSavingsMeta(savings);
+  textFields.periodSavingsForecastMeta.textContent = interpolate(t("savingsForecastMeta"), {
+    days: daysWithData,
+    range: getSelectedRangeLabel(),
+  });
   setBarWidth(textFields.periodAvoidedImportBar, avoidedSavings, totalBenefit);
   setBarWidth(textFields.periodExportCreditBar, exportCredit, totalBenefit);
 
