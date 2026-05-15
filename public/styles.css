@@ -930,6 +930,69 @@ select {
   background: linear-gradient(180deg, #ef4444, #dc2626);
 }
 
+.energy-coach-panel {
+  border-color: rgba(15, 118, 110, 0.18);
+  background:
+    radial-gradient(circle at 6% 8%, rgba(20, 184, 166, 0.14), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(245, 250, 248, 0.9));
+}
+
+.energy-coach-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.energy-coach-card {
+  position: relative;
+  min-height: 142px;
+  border: 1px solid rgba(29, 43, 36, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.76);
+  padding: 1rem 1rem 1rem 1.15rem;
+  overflow: hidden;
+}
+
+.energy-coach-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+  background: linear-gradient(180deg, #22c55e, #14b8a6);
+}
+
+.energy-coach-card[data-tone="watch"]::before {
+  background: linear-gradient(180deg, #f59e0b, #f97316);
+}
+
+.energy-coach-card[data-tone="alert"]::before {
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+}
+
+.energy-coach-card > span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.energy-coach-card strong {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--ink);
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  line-height: 1.05;
+}
+
+.energy-coach-card small {
+  display: block;
+  margin-top: 0.55rem;
+  color: var(--muted);
+  line-height: 1.38;
+}
+
 .balance-panel {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1660,6 +1723,7 @@ tbody tr:hover {
   .dashboard-overview,
   .energy-score-panel,
   .balance-panel,
+  .energy-coach-grid,
   .location-grid,
   .tariff-grid,
   .chart-grid,
@@ -1962,6 +2026,7 @@ tbody tr:hover {
   .summary-grid,
   .energy-score-panel,
   .balance-panel,
+  .energy-coach-grid,
   .location-grid,
   .tariff-grid,
   .totals-grid,

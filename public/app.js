@@ -164,6 +164,15 @@ const textFields = {
   insightTemperatureDetail: document.getElementById("insightTemperatureDetail"),
   insightSmartHint: document.getElementById("insightSmartHint"),
   insightSmartHintDetail: document.getElementById("insightSmartHintDetail"),
+  coachVerdictCard: document.getElementById("coachVerdictCard"),
+  coachVerdictStatus: document.getElementById("coachVerdictStatus"),
+  coachVerdictDetail: document.getElementById("coachVerdictDetail"),
+  coachPeakCard: document.getElementById("coachPeakCard"),
+  coachPeakStatus: document.getElementById("coachPeakStatus"),
+  coachPeakDetail: document.getElementById("coachPeakDetail"),
+  coachWeatherCard: document.getElementById("coachWeatherCard"),
+  coachWeatherStatus: document.getElementById("coachWeatherStatus"),
+  coachWeatherDetail: document.getElementById("coachWeatherDetail"),
   balancePvTotal: document.getElementById("balancePvTotal"),
   balancePvSelf: document.getElementById("balancePvSelf"),
   balancePvExport: document.getElementById("balancePvExport"),
@@ -410,6 +419,29 @@ const translations = {
     smartHintPeak: "Peak tariff is active; battery support is most valuable now.",
     smartHintLowBattery: "Battery is below 50%; consider saving stored energy for peak hours.",
     smartHintNormal: "System looks steady. Keep an eye on weather and peak tariff window.",
+    energyCoachKicker: "Energy coach",
+    energyCoachTitle: "Actionable home energy tips",
+    coachVerdictLabel: "Today verdict",
+    coachPeakLabel: "Peak plan",
+    coachWeatherLabel: "Tomorrow solar",
+    coachVerdictExcellent: "Strong solar day",
+    coachVerdictGood: "Balanced day",
+    coachVerdictWatch: "Watch grid use",
+    coachVerdictAlert: "Grid-heavy day",
+    coachVerdictExportDetail: "Self-sufficiency {self} with net export {net}. Good day to shift flexible loads.",
+    coachVerdictImportDetail: "Self-sufficiency {self} with net import {net}. Consider reducing flexible loads during peak.",
+    coachPeakReady: "Ready for peak",
+    coachPeakMedium: "Some peak cover",
+    coachPeakLow: "Low battery for peak",
+    coachPeakActive: "Peak tariff active",
+    coachPeakDetail: "Battery {soc}. Peak window {window}. Current grid flow {grid}.",
+    coachTomorrowExcellent: "Excellent solar chance",
+    coachTomorrowGood: "Good solar chance",
+    coachTomorrowFair: "Mixed solar day",
+    coachTomorrowPoor: "Solar may be limited",
+    coachWeatherUnavailable: "Forecast unavailable",
+    coachWeatherDetail: "{date}: {condition}, {outlook} outlook, rain {rain}.",
+    coachWeatherUnavailableDetail: "Weather forecast is not available yet. Check weather settings or refresh later.",
     energyBalance: "Energy balance",
     pvDistribution: "PV distribution",
     loadCoverage: "Load coverage",
@@ -708,6 +740,29 @@ const translations = {
     smartHintPeak: "当前是高峰电价，电池支撑最有价值。",
     smartHintLowBattery: "电池低于 50%，建议尽量把电留给高峰时段。",
     smartHintNormal: "系统状态稳定，继续关注天气和高峰电价时段。",
+    energyCoachKicker: "能源建议",
+    energyCoachTitle: "可执行的家庭能源建议",
+    coachVerdictLabel: "今天总结",
+    coachPeakLabel: "高峰计划",
+    coachWeatherLabel: "明日发电",
+    coachVerdictExcellent: "太阳能表现强",
+    coachVerdictGood: "整体平衡",
+    coachVerdictWatch: "留意电网用电",
+    coachVerdictAlert: "今天较依赖电网",
+    coachVerdictExportDetail: "自给率 {self}，净回馈 {net}。适合安排可延后的用电。",
+    coachVerdictImportDetail: "自给率 {self}，净取电 {net}。高峰时段可考虑减少可延后的用电。",
+    coachPeakReady: "高峰准备充分",
+    coachPeakMedium: "可覆盖部分高峰",
+    coachPeakLow: "高峰电量偏低",
+    coachPeakActive: "正在高峰电价",
+    coachPeakDetail: "电池 {soc}。高峰时段 {window}。当前电网流向 {grid}。",
+    coachTomorrowExcellent: "明天非常适合发电",
+    coachTomorrowGood: "明天适合发电",
+    coachTomorrowFair: "明天发电一般",
+    coachTomorrowPoor: "明天发电可能受限",
+    coachWeatherUnavailable: "暂无天气预报",
+    coachWeatherDetail: "{date}：{condition}，发电天气 {outlook}，降雨 {rain}。",
+    coachWeatherUnavailableDetail: "天气预报暂不可用，请检查天气设置或稍后刷新。",
     energyBalance: "能源平衡",
     pvDistribution: "光伏去向",
     loadCoverage: "用电来源",
@@ -1006,6 +1061,29 @@ const translations = {
     smartHintPeak: "ช่วงค่าไฟพีคกำลังทำงาน แบตเตอรี่ช่วยคุ้มที่สุดตอนนี้",
     smartHintLowBattery: "แบตเตอรี่ต่ำกว่า 50%; ควรเก็บไว้ใช้ช่วงพีค",
     smartHintNormal: "ระบบค่อนข้างนิ่ง ติดตามอากาศและช่วงค่าไฟพีคต่อไป",
+    energyCoachKicker: "โค้ชพลังงาน",
+    energyCoachTitle: "คำแนะนำพลังงานที่ทำได้จริง",
+    coachVerdictLabel: "สรุปวันนี้",
+    coachPeakLabel: "แผนช่วงพีค",
+    coachWeatherLabel: "โซลาร์พรุ่งนี้",
+    coachVerdictExcellent: "โซลาร์วันนี้แข็งแรง",
+    coachVerdictGood: "วันนี้สมดุลดี",
+    coachVerdictWatch: "ติดตามการใช้กริด",
+    coachVerdictAlert: "วันนี้พึ่งกริดมาก",
+    coachVerdictExportDetail: "พึ่งตนเอง {self} และส่งออกสุทธิ {net} เหมาะกับการย้ายโหลดที่ยืดหยุ่น",
+    coachVerdictImportDetail: "พึ่งตนเอง {self} และนำเข้าสุทธิ {net} ควรลดโหลดที่ยืดหยุ่นช่วงพีค",
+    coachPeakReady: "พร้อมสำหรับช่วงพีค",
+    coachPeakMedium: "รองรับพีคได้บางส่วน",
+    coachPeakLow: "แบตต่ำสำหรับช่วงพีค",
+    coachPeakActive: "ค่าไฟพีคกำลังทำงาน",
+    coachPeakDetail: "แบตเตอรี่ {soc} ช่วงพีค {window} การไหลกริดตอนนี้ {grid}",
+    coachTomorrowExcellent: "โอกาสโซลาร์ดีมาก",
+    coachTomorrowGood: "โอกาสโซลาร์ดี",
+    coachTomorrowFair: "โซลาร์พอใช้",
+    coachTomorrowPoor: "โซลาร์อาจถูกจำกัด",
+    coachWeatherUnavailable: "ไม่มีพยากรณ์",
+    coachWeatherDetail: "{date}: {condition}, แนวโน้ม {outlook}, ฝน {rain}",
+    coachWeatherUnavailableDetail: "ยังไม่มีพยากรณ์อากาศ ตรวจการตั้งค่าอากาศหรือลองรีเฟรชภายหลัง",
     energyBalance: "สมดุลพลังงาน",
     pvDistribution: "การกระจาย PV",
     loadCoverage: "แหล่งจ่ายโหลด",
@@ -1673,6 +1751,115 @@ function renderEnergyInsights(payload) {
   textFields.insightSmartHintDetail.textContent = formatSavingsMeta(savings);
 }
 
+function setCoachCard(card, tone, statusKey, detail) {
+  card.dataset.tone = tone;
+  const statusId = card.id.replace("Card", "Status");
+  const detailId = card.id.replace("Card", "Detail");
+
+  document.getElementById(statusId).textContent = t(statusKey);
+  document.getElementById(detailId).textContent = detail;
+}
+
+function renderEnergyCoach(payload, weatherPayload = lastWeatherPayload) {
+  if (!payload?.today || !payload?.live) {
+    return;
+  }
+
+  const today = payload.today;
+  const live = payload.live;
+  const selfSufficiency = calculateSelfSufficiency(today) ?? 0;
+  const netGridKwh = Number(today.returnToGridKwh ?? 0) - Number(today.gridConsumptionKwh ?? 0);
+  const isNetExporter = netGridKwh >= 0;
+  const verdictTone = selfSufficiency >= 70
+    ? "good"
+    : selfSufficiency >= 50
+      ? "watch"
+      : "alert";
+  const verdictStatus = selfSufficiency >= 90 && isNetExporter
+    ? "coachVerdictExcellent"
+    : selfSufficiency >= 70
+      ? "coachVerdictGood"
+      : selfSufficiency >= 50
+        ? "coachVerdictWatch"
+        : "coachVerdictAlert";
+  const verdictDetail = interpolate(
+    t(isNetExporter ? "coachVerdictExportDetail" : "coachVerdictImportDetail"),
+    {
+      self: formatOptionalPercent(selfSufficiency),
+      net: formatKwh(Math.abs(netGridKwh)),
+    },
+  );
+
+  setCoachCard(textFields.coachVerdictCard, verdictTone, verdictStatus, verdictDetail);
+
+  const tariff = getTariffStatus(payload.todaySavings ?? {});
+  const batterySoc = Number(live.batterySocPercent ?? 0);
+  const gridImportKw = Number(live.gridImportKw ?? 0);
+  const gridExportKw = Number(live.gridExportKw ?? 0);
+  const gridFlow = gridExportKw >= gridImportKw
+    ? `${t("exporting")} ${formatKw(gridExportKw)}`
+    : `${t("importing")} ${formatKw(gridImportKw)}`;
+  const peakTone = batterySoc >= 70
+    ? "good"
+    : batterySoc >= 40
+      ? "watch"
+      : "alert";
+  const peakStatus = tariff.isPeak
+    ? "coachPeakActive"
+    : batterySoc >= 70
+      ? "coachPeakReady"
+      : batterySoc >= 40
+        ? "coachPeakMedium"
+        : "coachPeakLow";
+
+  setCoachCard(
+    textFields.coachPeakCard,
+    tariff.isPeak && batterySoc < 40 ? "alert" : peakTone,
+    peakStatus,
+    interpolate(t("coachPeakDetail"), {
+      soc: formatPercent(live.batterySocPercent),
+      window: tariff.peakWindow,
+      grid: gridFlow,
+    }),
+  );
+
+  const tomorrow = weatherPayload?.daily?.[1] ?? null;
+
+  if (!weatherPayload?.enabled || !tomorrow) {
+    setCoachCard(
+      textFields.coachWeatherCard,
+      "watch",
+      "coachWeatherUnavailable",
+      t("coachWeatherUnavailableDetail"),
+    );
+    return;
+  }
+
+  const weatherTone = tomorrow.solarOutlook === "excellent" || tomorrow.solarOutlook === "good"
+    ? "good"
+    : tomorrow.solarOutlook === "fair"
+      ? "watch"
+      : "alert";
+  const weatherStatus = {
+    excellent: "coachTomorrowExcellent",
+    good: "coachTomorrowGood",
+    fair: "coachTomorrowFair",
+    poor: "coachTomorrowPoor",
+  }[tomorrow.solarOutlook] ?? "coachTomorrowFair";
+
+  setCoachCard(
+    textFields.coachWeatherCard,
+    weatherTone,
+    weatherStatus,
+    interpolate(t("coachWeatherDetail"), {
+      date: formatWeatherDate(tomorrow.date),
+      condition: t(tomorrow.conditionKey),
+      outlook: t(tomorrow.solarOutlook),
+      rain: formatOptionalPercent(tomorrow.precipitationProbabilityMaxPercent),
+    }),
+  );
+}
+
 function setBarWidth(element, value, total) {
   const percent = total > 0 ? Math.max(0, Math.min(100, (Number(value ?? 0) / total) * 100)) : 0;
   element.style.width = `${percent.toFixed(1)}%`;
@@ -2035,6 +2222,7 @@ function renderWeather(payload) {
   textFields.weatherDaily.replaceChildren(...forecastCards);
   renderSolarPerformance(lastPayload, payload);
   renderEnergyScore(lastPayload, payload);
+  renderEnergyCoach(lastPayload, payload);
 }
 
 async function loadWeather() {
@@ -3185,6 +3373,7 @@ function renderMetrics(payload) {
   renderTrendSnapshot(payload);
   renderGaugeCards(payload);
   renderEnergyInsights(payload);
+  renderEnergyCoach(payload);
   renderBalanceBars(payload);
   renderSolarPerformance(payload);
   renderEnergyFlow(payload);

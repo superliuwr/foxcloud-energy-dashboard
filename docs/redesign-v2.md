@@ -165,6 +165,8 @@ not by simply adding solar production plus battery discharge.
 - Solar forecast hint: compare today's production so far against expected weather.
   - First pass implemented: weather card now explains today's solar output against recent daily averages and weather outlook.
 - Battery readiness card: whether the battery is likely to cover evening peak.
+- Energy coach panel: combine today's energy verdict, peak plan, and tomorrow's solar outlook into simple action hints.
+  - First pass implemented: the dashboard now shows a three-card energy coach using existing dashboard and weather data.
 - Peak window countdown: show time until peak tariff starts/ends.
   - First visual pass implemented: the dashboard now shows a 24-hour electricity price timeline with the peak window and current time marker.
 - Data quality indicator: live Modbus, FoxCloud, cache, demo, stale, or fallback profile.
