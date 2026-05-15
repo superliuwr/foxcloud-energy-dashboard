@@ -63,6 +63,10 @@ const metricFields = {
   periodGridEnergyCost: document.getElementById("periodGridEnergyCost"),
   periodNetCostAfterExport: document.getElementById("periodNetCostAfterExport"),
   periodBillBenefit: document.getElementById("periodBillBenefit"),
+  periodBestSolar: document.getElementById("periodBestSolar"),
+  periodHighestUsage: document.getElementById("periodHighestUsage"),
+  periodBestExport: document.getElementById("periodBestExport"),
+  periodBestSavings: document.getElementById("periodBestSavings"),
   kpiDailySolar: document.getElementById("kpiDailySolar"),
   kpiDailyConsumption: document.getElementById("kpiDailyConsumption"),
   kpiDailyExport: document.getElementById("kpiDailyExport"),
@@ -214,6 +218,10 @@ const textFields = {
   periodExportCreditBar: document.getElementById("periodExportCreditBar"),
   periodSavingsForecastMeta: document.getElementById("periodSavingsForecastMeta"),
   periodBillImpactMeta: document.getElementById("periodBillImpactMeta"),
+  periodBestSolarMeta: document.getElementById("periodBestSolarMeta"),
+  periodHighestUsageMeta: document.getElementById("periodHighestUsageMeta"),
+  periodBestExportMeta: document.getElementById("periodBestExportMeta"),
+  periodBestSavingsMeta: document.getElementById("periodBestSavingsMeta"),
   tariffStatusText: document.getElementById("tariffStatusText"),
   tariffPeakStartInput: document.getElementById("tariffPeakStartInput"),
   tariffPeakEndInput: document.getElementById("tariffPeakEndInput"),
@@ -353,6 +361,13 @@ const translations = {
     netCostAfterExport: "Net after export credit",
     estimatedBenefit: "Estimated benefit",
     billImpactMeta: "Compares estimated grid cost if all home usage came from the grid against actual grid use and export credit.",
+    periodHighlights: "Period highlights",
+    periodHighlightsTitle: "Best days in this range",
+    bestSolarDay: "Best solar day",
+    highestUsageDay: "Highest usage day",
+    bestExportDay: "Best export day",
+    bestSavingsDay: "Best savings day",
+    noPeriodData: "No data in selected range",
     tariffSettings: "Electricity tariff",
     tariffSettingsTitle: "Savings settings",
     tariffSettingsHelp: "Edit your import and feed-in rates here. Settings are saved in SQLite and survive container rebuilds.",
@@ -700,6 +715,13 @@ const translations = {
     netCostAfterExport: "扣除回馈收益后",
     estimatedBenefit: "预估收益",
     billImpactMeta: "对比“全部家庭用电都从电网购买”的估算成本，以及实际电网用电和回馈收益后的结果。",
+    periodHighlights: "周期亮点",
+    periodHighlightsTitle: "这个范围里的最佳日期",
+    bestSolarDay: "发电最好的一天",
+    highestUsageDay: "用电最高的一天",
+    bestExportDay: "回馈最多的一天",
+    bestSavingsDay: "最省钱的一天",
+    noPeriodData: "所选范围暂无数据",
     tariffSettings: "电价设置",
     tariffSettingsTitle: "节省金额设置",
     tariffSettingsHelp: "在这里修改用电电价和回馈电价。设置会保存到 SQLite，重建容器后仍会保留。",
@@ -1047,6 +1069,13 @@ const translations = {
     netCostAfterExport: "สุทธิหลังเครดิตส่งออก",
     estimatedBenefit: "ผลประโยชน์โดยประมาณ",
     billImpactMeta: "เปรียบเทียบค่าไฟโดยประมาณหากใช้ไฟบ้านทั้งหมดจากกริด กับการใช้กริดจริงและเครดิตส่งออก",
+    periodHighlights: "ไฮไลต์ช่วงเวลา",
+    periodHighlightsTitle: "วันที่ดีที่สุดในช่วงนี้",
+    bestSolarDay: "วันที่ผลิตโซลาร์ดีที่สุด",
+    highestUsageDay: "วันที่ใช้ไฟสูงสุด",
+    bestExportDay: "วันที่ส่งออกสูงสุด",
+    bestSavingsDay: "วันที่ประหยัดสูงสุด",
+    noPeriodData: "ไม่มีข้อมูลในช่วงที่เลือก",
     tariffSettings: "อัตราค่าไฟ",
     tariffSettingsTitle: "ตั้งค่าการประหยัด",
     tariffSettingsHelp: "แก้ไขอัตราค่าไฟนำเข้าและรับซื้อไฟคืนได้ที่นี่ ข้อมูลจะบันทึกใน SQLite และไม่หายเมื่อสร้างคอนเทนเนอร์ใหม่",
@@ -2796,6 +2825,62 @@ function getSelectedMonthDayCount() {
   return new Date(year, month, 0).getDate();
 }
 
+function getDailyRowNumber(row, key) {
+  return Number(row?.[key] ?? 0);
+}
+
+function findMaxDailyRow(rows, getValue) {
+  return rows.reduce(
+    (best, row) => {
+      const value = Number(getValue(row) ?? 0);
+
+      if (!best || value > best.value) {
+        return { row, value };
+      }
+
+      return best;
+    },
+    null,
+  );
+}
+
+function estimateDailyBenefit(row, savings) {
+  const avoidedImportKwh = Math.max(
+    getDailyRowNumber(row, "home_usage") - getDailyRowNumber(row, "grid_consumption"),
+    0,
+  );
+  const exportKwh = Math.max(getDailyRowNumber(row, "daily_feedin"), 0);
+
+  return avoidedImportKwh * Number(savings.blendedImportRate ?? 0)
+    + exportKwh * Number(savings.feedInRate ?? 0);
+}
+
+function renderPeriodHighlight(valueElement, metaElement, highlight, formatter) {
+  if (!highlight?.row) {
+    valueElement.textContent = "--";
+    metaElement.textContent = t("noPeriodData");
+    return;
+  }
+
+  valueElement.textContent = formatter(highlight.value);
+  metaElement.textContent = highlight.row.date;
+}
+
+function renderPeriodHighlights(rows, savings) {
+  const dailyRows = Array.isArray(rows) ? rows : [];
+  const bestSolar = findMaxDailyRow(dailyRows, (row) => getDailyRowNumber(row, "generation"));
+  const highestUsage = findMaxDailyRow(dailyRows, (row) => getDailyRowNumber(row, "home_usage"));
+  const bestExport = findMaxDailyRow(dailyRows, (row) => getDailyRowNumber(row, "daily_feedin"));
+  const bestSavings = findMaxDailyRow(dailyRows, (row) => estimateDailyBenefit(row, savings));
+
+  renderPeriodHighlight(metricFields.periodBestSolar, textFields.periodBestSolarMeta, bestSolar, formatKwh);
+  renderPeriodHighlight(metricFields.periodHighestUsage, textFields.periodHighestUsageMeta, highestUsage, formatKwh);
+  renderPeriodHighlight(metricFields.periodBestExport, textFields.periodBestExportMeta, bestExport, formatKwh);
+  renderPeriodHighlight(metricFields.periodBestSavings, textFields.periodBestSavingsMeta, bestSavings, (value) =>
+    formatMoney(value, savings.currency)
+  );
+}
+
 function renderPeriodTotals(payload) {
   const savings = payload.savings ?? {};
   const totalBenefit = Number(savings.estimatedTotalBenefit ?? 0);
@@ -2844,6 +2929,7 @@ function renderPeriodTotals(payload) {
     range: getSelectedRangeLabel(),
   });
   textFields.periodBillImpactMeta.textContent = t("billImpactMeta");
+  renderPeriodHighlights(payload.dailyTable, savings);
   setBarWidth(textFields.periodAvoidedImportBar, avoidedSavings, totalBenefit);
   setBarWidth(textFields.periodExportCreditBar, exportCredit, totalBenefit);
 

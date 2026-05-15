@@ -168,6 +168,8 @@ not by simply adding solar production plus battery discharge.
   - First pass implemented: the period panel now shows daily average, monthly run-rate, and annual run-rate estimates.
 - Bill impact card: show the money story behind the energy totals.
   - First pass implemented: the period panel now compares estimated no-solar/no-battery grid cost, actual grid energy cost, export credit impact, and net benefit.
+- Period highlights card: surface useful best-day callouts without asking users to scan the daily table.
+  - First pass implemented: the period panel now highlights best solar day, highest usage day, best export day, and estimated best savings day.
 - Solar forecast hint: compare today's production so far against expected weather.
   - First pass implemented: weather card now explains today's solar output against recent daily averages and weather outlook.
 - Battery readiness card: whether the battery is likely to cover evening peak.
