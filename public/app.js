@@ -67,6 +67,10 @@ const metricFields = {
   periodHighestUsage: document.getElementById("periodHighestUsage"),
   periodBestExport: document.getElementById("periodBestExport"),
   periodBestSavings: document.getElementById("periodBestSavings"),
+  periodBatteryRatio: document.getElementById("periodBatteryRatio"),
+  periodBatteryNet: document.getElementById("periodBatteryNet"),
+  periodBatteryThroughput: document.getElementById("periodBatteryThroughput"),
+  periodBatteryMode: document.getElementById("periodBatteryMode"),
   kpiDailySolar: document.getElementById("kpiDailySolar"),
   kpiDailyConsumption: document.getElementById("kpiDailyConsumption"),
   kpiDailyExport: document.getElementById("kpiDailyExport"),
@@ -222,6 +226,9 @@ const textFields = {
   periodHighestUsageMeta: document.getElementById("periodHighestUsageMeta"),
   periodBestExportMeta: document.getElementById("periodBestExportMeta"),
   periodBestSavingsMeta: document.getElementById("periodBestSavingsMeta"),
+  periodBatteryRatioMeta: document.getElementById("periodBatteryRatioMeta"),
+  periodBatteryNetMeta: document.getElementById("periodBatteryNetMeta"),
+  periodBatteryModeMeta: document.getElementById("periodBatteryModeMeta"),
   tariffStatusText: document.getElementById("tariffStatusText"),
   tariffPeakStartInput: document.getElementById("tariffPeakStartInput"),
   tariffPeakEndInput: document.getElementById("tariffPeakEndInput"),
@@ -368,6 +375,21 @@ const translations = {
     bestExportDay: "Best export day",
     bestSavingsDay: "Best savings day",
     noPeriodData: "No data in selected range",
+    batteryPerformance: "Battery performance",
+    batteryPerformanceTitle: "How the battery behaved",
+    batteryDischargeChargeRatio: "Discharge / charge ratio",
+    batteryRatioEstimateMeta: "Estimate only. Start/end battery level can move this above or below true round-trip efficiency.",
+    batteryNetBalance: "Net battery balance",
+    batteryThroughput: "Battery throughput",
+    batteryThroughputMeta: "Charge and discharge activity",
+    batteryMode: "Battery mode",
+    batteryNetCharged: "Net charged",
+    batteryNetDischarged: "Net discharged",
+    batteryNetBalanced: "Nearly balanced",
+    batteryModeCharging: "Storing more",
+    batteryModeDischarging: "Using stored energy",
+    batteryModeBalanced: "Balanced cycling",
+    batteryModeMeta: "Based on total charge minus total discharge in the selected range.",
     tariffSettings: "Electricity tariff",
     tariffSettingsTitle: "Savings settings",
     tariffSettingsHelp: "Edit your import and feed-in rates here. Settings are saved in SQLite and survive container rebuilds.",
@@ -722,6 +744,21 @@ const translations = {
     bestExportDay: "回馈最多的一天",
     bestSavingsDay: "最省钱的一天",
     noPeriodData: "所选范围暂无数据",
+    batteryPerformance: "电池表现",
+    batteryPerformanceTitle: "电池在这个周期里的状态",
+    batteryDischargeChargeRatio: "放电 / 充电比例",
+    batteryRatioEstimateMeta: "仅为估算。周期开始/结束电池电量不同，会让它高于或低于真实往返效率。",
+    batteryNetBalance: "电池净平衡",
+    batteryThroughput: "电池吞吐量",
+    batteryThroughputMeta: "充电和放电活动量",
+    batteryMode: "电池模式",
+    batteryNetCharged: "净充入",
+    batteryNetDischarged: "净放出",
+    batteryNetBalanced: "基本平衡",
+    batteryModeCharging: "更多在储能",
+    batteryModeDischarging: "更多在用储能",
+    batteryModeBalanced: "充放电平衡",
+    batteryModeMeta: "根据所选范围内的总充电量减去总放电量估算。",
     tariffSettings: "电价设置",
     tariffSettingsTitle: "节省金额设置",
     tariffSettingsHelp: "在这里修改用电电价和回馈电价。设置会保存到 SQLite，重建容器后仍会保留。",
@@ -1076,6 +1113,21 @@ const translations = {
     bestExportDay: "วันที่ส่งออกสูงสุด",
     bestSavingsDay: "วันที่ประหยัดสูงสุด",
     noPeriodData: "ไม่มีข้อมูลในช่วงที่เลือก",
+    batteryPerformance: "ประสิทธิภาพแบตเตอรี่",
+    batteryPerformanceTitle: "พฤติกรรมแบตเตอรี่ในช่วงนี้",
+    batteryDischargeChargeRatio: "สัดส่วนคายไฟ / ชาร์จ",
+    batteryRatioEstimateMeta: "เป็นค่าประมาณเท่านั้น ระดับแบตต้น/ปลายช่วงอาจทำให้ต่างจากประสิทธิภาพจริง",
+    batteryNetBalance: "สมดุลสุทธิแบตเตอรี่",
+    batteryThroughput: "พลังงานผ่านแบตเตอรี่",
+    batteryThroughputMeta: "กิจกรรมการชาร์จและคายไฟ",
+    batteryMode: "โหมดแบตเตอรี่",
+    batteryNetCharged: "ชาร์จสุทธิ",
+    batteryNetDischarged: "คายไฟสุทธิ",
+    batteryNetBalanced: "เกือบสมดุล",
+    batteryModeCharging: "เก็บพลังงานมากกว่า",
+    batteryModeDischarging: "ใช้พลังงานที่เก็บไว้มากกว่า",
+    batteryModeBalanced: "ชาร์จ/คายไฟสมดุล",
+    batteryModeMeta: "อิงจากพลังงานชาร์จรวมลบพลังงานคายไฟรวมในช่วงที่เลือก",
     tariffSettings: "อัตราค่าไฟ",
     tariffSettingsTitle: "ตั้งค่าการประหยัด",
     tariffSettingsHelp: "แก้ไขอัตราค่าไฟนำเข้าและรับซื้อไฟคืนได้ที่นี่ ข้อมูลจะบันทึกใน SQLite และไม่หายเมื่อสร้างคอนเทนเนอร์ใหม่",
@@ -2881,6 +2933,34 @@ function renderPeriodHighlights(rows, savings) {
   );
 }
 
+function renderBatteryPerformance(totals) {
+  const chargedKwh = Number(totals?.energyGoingIntoBatteryKwh ?? 0);
+  const dischargedKwh = Number(totals?.energyComingOutOfBatteryKwh ?? 0);
+  const dischargeChargeRatio = chargedKwh > 0 ? (dischargedKwh / chargedKwh) * 100 : null;
+  const netKwh = chargedKwh - dischargedKwh;
+  const netAbsKwh = Math.abs(netKwh);
+  const throughputKwh = (chargedKwh + dischargedKwh) / 2;
+  const balanceThresholdKwh = 0.5;
+  const netLabelKey = netAbsKwh < balanceThresholdKwh
+    ? "batteryNetBalanced"
+    : netKwh > 0
+      ? "batteryNetCharged"
+      : "batteryNetDischarged";
+  const modeLabelKey = netAbsKwh < balanceThresholdKwh
+    ? "batteryModeBalanced"
+    : netKwh > 0
+      ? "batteryModeCharging"
+      : "batteryModeDischarging";
+
+  metricFields.periodBatteryRatio.textContent = formatOptionalPercent(dischargeChargeRatio);
+  metricFields.periodBatteryNet.textContent = formatKwh(netAbsKwh);
+  metricFields.periodBatteryThroughput.textContent = formatKwh(throughputKwh);
+  metricFields.periodBatteryMode.textContent = t(modeLabelKey);
+  textFields.periodBatteryRatioMeta.textContent = t("batteryRatioEstimateMeta");
+  textFields.periodBatteryNetMeta.textContent = t(netLabelKey);
+  textFields.periodBatteryModeMeta.textContent = t("batteryModeMeta");
+}
+
 function renderPeriodTotals(payload) {
   const savings = payload.savings ?? {};
   const totalBenefit = Number(savings.estimatedTotalBenefit ?? 0);
@@ -2930,6 +3010,7 @@ function renderPeriodTotals(payload) {
   });
   textFields.periodBillImpactMeta.textContent = t("billImpactMeta");
   renderPeriodHighlights(payload.dailyTable, savings);
+  renderBatteryPerformance(payload.totals);
   setBarWidth(textFields.periodAvoidedImportBar, avoidedSavings, totalBenefit);
   setBarWidth(textFields.periodExportCreditBar, exportCredit, totalBenefit);
 
