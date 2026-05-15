@@ -500,6 +500,42 @@
             </div>
             <p id="balanceSelfDetail" class="muted-copy">--</p>
           </article>
+
+          <article class="balance-card">
+            <div class="panel-heading compact-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="batteryDayBalance">Battery day balance</p>
+                <h2 id="balanceBatteryMode">--</h2>
+              </div>
+              <strong id="balanceBatteryNet">--</strong>
+            </div>
+            <div class="stacked-bar" aria-hidden="true">
+              <span id="balanceBatteryChargeBar" class="bar-battery-charge" style="width: 0%"></span>
+              <span id="balanceBatteryDischargeBar" class="bar-battery-discharge" style="width: 0%"></span>
+            </div>
+            <div class="balance-legend">
+              <span><i class="legend-dot bar-battery-charge"></i><b data-i18n="intoBattery">Into battery</b> <strong id="balanceBatteryCharge">--</strong></span>
+              <span><i class="legend-dot bar-battery-discharge"></i><b data-i18n="outOfBattery">Out of battery</b> <strong id="balanceBatteryDischarge">--</strong></span>
+            </div>
+          </article>
+
+          <article class="balance-card">
+            <div class="panel-heading compact-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="gridDayBalance">Grid day balance</p>
+                <h2 id="balanceGridMode">--</h2>
+              </div>
+              <strong id="balanceGridNet">--</strong>
+            </div>
+            <div class="stacked-bar" aria-hidden="true">
+              <span id="balanceGridExportBar" class="bar-grid-export" style="width: 0%"></span>
+              <span id="balanceGridImportBar" class="bar-grid-import" style="width: 0%"></span>
+            </div>
+            <div class="balance-legend">
+              <span><i class="legend-dot bar-grid-export"></i><b data-i18n="returnToGrid">Return to grid</b> <strong id="balanceGridExport">--</strong></span>
+              <span><i class="legend-dot bar-grid-import"></i><b data-i18n="gridConsumption">Grid consumption</b> <strong id="balanceGridImport">--</strong></span>
+            </div>
+          </article>
         </section>
 
         <section class="panel tariff-panel" aria-live="polite">

@@ -187,10 +187,22 @@ const textFields = {
   balanceSelfRing: document.getElementById("balanceSelfRing"),
   balanceSelfValue: document.getElementById("balanceSelfValue"),
   balanceSelfDetail: document.getElementById("balanceSelfDetail"),
+  balanceBatteryMode: document.getElementById("balanceBatteryMode"),
+  balanceBatteryNet: document.getElementById("balanceBatteryNet"),
+  balanceBatteryCharge: document.getElementById("balanceBatteryCharge"),
+  balanceBatteryDischarge: document.getElementById("balanceBatteryDischarge"),
+  balanceGridMode: document.getElementById("balanceGridMode"),
+  balanceGridNet: document.getElementById("balanceGridNet"),
+  balanceGridExport: document.getElementById("balanceGridExport"),
+  balanceGridImport: document.getElementById("balanceGridImport"),
   balancePvSelfBar: document.getElementById("balancePvSelfBar"),
   balancePvExportBar: document.getElementById("balancePvExportBar"),
   balanceLoadSelfBar: document.getElementById("balanceLoadSelfBar"),
   balanceLoadGridBar: document.getElementById("balanceLoadGridBar"),
+  balanceBatteryChargeBar: document.getElementById("balanceBatteryChargeBar"),
+  balanceBatteryDischargeBar: document.getElementById("balanceBatteryDischargeBar"),
+  balanceGridExportBar: document.getElementById("balanceGridExportBar"),
+  balanceGridImportBar: document.getElementById("balanceGridImportBar"),
   periodAvoidedImportBar: document.getElementById("periodAvoidedImportBar"),
   periodExportCreditBar: document.getElementById("periodExportCreditBar"),
   tariffStatusText: document.getElementById("tariffStatusText"),
@@ -464,6 +476,13 @@ const translations = {
     selfSufficiencyGauge: "Self-sufficiency gauge",
     coveredBySolarBattery: "covered",
     selfSufficiencyDetail: "{covered} covered by solar/battery • {grid} from grid",
+    batteryDayBalance: "Battery day balance",
+    gridDayBalance: "Grid day balance",
+    netCharging: "Net charging",
+    netDischarging: "Net discharging",
+    netExporting: "Net exporting",
+    netImporting: "Net importing",
+    balanced: "Balanced",
     rangeSummary: "Showing",
     liveFlow: "Live Flow",
     energyDistribution: "Energy distribution",
@@ -791,6 +810,13 @@ const translations = {
     selfSufficiencyGauge: "自给率仪表盘",
     coveredBySolarBattery: "已覆盖",
     selfSufficiencyDetail: "{covered} 由太阳能/电池覆盖 • {grid} 来自电网",
+    batteryDayBalance: "电池日平衡",
+    gridDayBalance: "电网日平衡",
+    netCharging: "净充电",
+    netDischarging: "净放电",
+    netExporting: "净回馈",
+    netImporting: "净取电",
+    balanced: "接近平衡",
     rangeSummary: "当前显示",
     liveFlow: "实时流向",
     energyDistribution: "能源分布",
@@ -1118,6 +1144,13 @@ const translations = {
     selfSufficiencyGauge: "เกจพึ่งพาตนเอง",
     coveredBySolarBattery: "ครอบคลุม",
     selfSufficiencyDetail: "{covered} จากโซลาร์/แบตเตอรี่ • {grid} จากกริด",
+    batteryDayBalance: "สมดุลแบตวันนี้",
+    gridDayBalance: "สมดุลกริดวันนี้",
+    netCharging: "ชาร์จสุทธิ",
+    netDischarging: "คายประจุสุทธิ",
+    netExporting: "ส่งออกสุทธิ",
+    netImporting: "นำเข้าสุทธิ",
+    balanced: "ใกล้สมดุล",
     rangeSummary: "กำลังแสดง",
     liveFlow: "การไหลแบบสด",
     energyDistribution: "การกระจายพลังงาน",
@@ -1898,6 +1931,11 @@ function renderBalanceBars(payload) {
   const homeTotal = Number(today.homeUsageKwh ?? 0);
   const gridConsumption = Math.max(Number(today.gridConsumptionKwh ?? 0), 0);
   const selfCovered = Math.max(homeTotal - gridConsumption, 0);
+  const batteryCharge = Math.max(Number(today.energyGoingIntoBatteryKwh ?? 0), 0);
+  const batteryDischarge = Math.max(Number(today.energyComingOutOfBatteryKwh ?? 0), 0);
+  const batteryNet = batteryCharge - batteryDischarge;
+  const gridNet = pvExport - gridConsumption;
+  const nearZeroThreshold = 0.05;
 
   textFields.balancePvTotal.textContent = formatKwh(pvTotal);
   textFields.balancePvSelf.textContent = formatKwh(pvSelf);
@@ -1910,11 +1948,27 @@ function renderBalanceBars(payload) {
     covered: formatKwh(selfCovered),
     grid: formatKwh(gridConsumption),
   });
+  textFields.balanceBatteryMode.textContent = Math.abs(batteryNet) <= nearZeroThreshold
+    ? t("balanced")
+    : t(batteryNet > 0 ? "netCharging" : "netDischarging");
+  textFields.balanceBatteryNet.textContent = formatKwh(Math.abs(batteryNet));
+  textFields.balanceBatteryCharge.textContent = formatKwh(batteryCharge);
+  textFields.balanceBatteryDischarge.textContent = formatKwh(batteryDischarge);
+  textFields.balanceGridMode.textContent = Math.abs(gridNet) <= nearZeroThreshold
+    ? t("balanced")
+    : t(gridNet > 0 ? "netExporting" : "netImporting");
+  textFields.balanceGridNet.textContent = formatKwh(Math.abs(gridNet));
+  textFields.balanceGridExport.textContent = formatKwh(pvExport);
+  textFields.balanceGridImport.textContent = formatKwh(gridConsumption);
 
   setBarWidth(textFields.balancePvSelfBar, pvSelf, pvTotal || pvSelf + pvExport);
   setBarWidth(textFields.balancePvExportBar, pvExport, pvTotal || pvSelf + pvExport);
   setBarWidth(textFields.balanceLoadSelfBar, selfCovered, homeTotal);
   setBarWidth(textFields.balanceLoadGridBar, gridConsumption, homeTotal);
+  setBarWidth(textFields.balanceBatteryChargeBar, batteryCharge, batteryCharge + batteryDischarge);
+  setBarWidth(textFields.balanceBatteryDischargeBar, batteryDischarge, batteryCharge + batteryDischarge);
+  setBarWidth(textFields.balanceGridExportBar, pvExport, pvExport + gridConsumption);
+  setBarWidth(textFields.balanceGridImportBar, gridConsumption, pvExport + gridConsumption);
   textFields.balanceSelfRing.style.setProperty(
     "--self-percent",
     `${Math.max(0, Math.min(100, calculateSelfSufficiency(today) ?? 0)).toFixed(1)}%`,
