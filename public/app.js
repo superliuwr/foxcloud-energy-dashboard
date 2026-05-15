@@ -71,6 +71,9 @@ const metricFields = {
   periodBatteryNet: document.getElementById("periodBatteryNet"),
   periodBatteryThroughput: document.getElementById("periodBatteryThroughput"),
   periodBatteryMode: document.getElementById("periodBatteryMode"),
+  periodSolarSelfUsed: document.getElementById("periodSolarSelfUsed"),
+  periodSolarExported: document.getElementById("periodSolarExported"),
+  periodSolarUtilizationTotal: document.getElementById("periodSolarUtilizationTotal"),
   kpiDailySolar: document.getElementById("kpiDailySolar"),
   kpiDailyConsumption: document.getElementById("kpiDailyConsumption"),
   kpiDailyExport: document.getElementById("kpiDailyExport"),
@@ -229,6 +232,11 @@ const textFields = {
   periodBatteryRatioMeta: document.getElementById("periodBatteryRatioMeta"),
   periodBatteryNetMeta: document.getElementById("periodBatteryNetMeta"),
   periodBatteryModeMeta: document.getElementById("periodBatteryModeMeta"),
+  periodSolarUtilizationMeta: document.getElementById("periodSolarUtilizationMeta"),
+  periodSolarSelfUseRate: document.getElementById("periodSolarSelfUseRate"),
+  periodSolarExportRate: document.getElementById("periodSolarExportRate"),
+  periodSolarSelfUseBar: document.getElementById("periodSolarSelfUseBar"),
+  periodSolarExportBar: document.getElementById("periodSolarExportBar"),
   tariffStatusText: document.getElementById("tariffStatusText"),
   tariffPeakStartInput: document.getElementById("tariffPeakStartInput"),
   tariffPeakEndInput: document.getElementById("tariffPeakEndInput"),
@@ -390,6 +398,15 @@ const translations = {
     batteryModeDischarging: "Using stored energy",
     batteryModeBalanced: "Balanced cycling",
     batteryModeMeta: "Based on total charge minus total discharge in the selected range.",
+    solarUtilization: "Solar utilization",
+    solarUtilizationTitle: "Where the solar energy went",
+    solarSelfUsed: "Self-used solar",
+    solarExported: "Exported solar",
+    solarUtilizationTotal: "Total solar",
+    solarUtilizationTotalMeta: "Selected period production",
+    solarUtilizationMeta: "{selfRate} self-used · {exportRate} exported",
+    selfUseRateLabel: "{rate} self-use rate",
+    exportRateLabel: "{rate} export rate",
     tariffSettings: "Electricity tariff",
     tariffSettingsTitle: "Savings settings",
     tariffSettingsHelp: "Edit your import and feed-in rates here. Settings are saved in SQLite and survive container rebuilds.",
@@ -759,6 +776,15 @@ const translations = {
     batteryModeDischarging: "更多在用储能",
     batteryModeBalanced: "充放电平衡",
     batteryModeMeta: "根据所选范围内的总充电量减去总放电量估算。",
+    solarUtilization: "太阳能利用率",
+    solarUtilizationTitle: "太阳能去了哪里",
+    solarSelfUsed: "自家用掉的太阳能",
+    solarExported: "回馈电网的太阳能",
+    solarUtilizationTotal: "太阳能总发电",
+    solarUtilizationTotalMeta: "所选周期总发电量",
+    solarUtilizationMeta: "自用 {selfRate} · 回馈 {exportRate}",
+    selfUseRateLabel: "自用率 {rate}",
+    exportRateLabel: "回馈率 {rate}",
     tariffSettings: "电价设置",
     tariffSettingsTitle: "节省金额设置",
     tariffSettingsHelp: "在这里修改用电电价和回馈电价。设置会保存到 SQLite，重建容器后仍会保留。",
@@ -1128,6 +1154,15 @@ const translations = {
     batteryModeDischarging: "ใช้พลังงานที่เก็บไว้มากกว่า",
     batteryModeBalanced: "ชาร์จ/คายไฟสมดุล",
     batteryModeMeta: "อิงจากพลังงานชาร์จรวมลบพลังงานคายไฟรวมในช่วงที่เลือก",
+    solarUtilization: "การใช้โซลาร์",
+    solarUtilizationTitle: "พลังงานโซลาร์ไปที่ไหน",
+    solarSelfUsed: "โซลาร์ที่ใช้เอง",
+    solarExported: "โซลาร์ที่ส่งออก",
+    solarUtilizationTotal: "โซลาร์ทั้งหมด",
+    solarUtilizationTotalMeta: "การผลิตในช่วงที่เลือก",
+    solarUtilizationMeta: "ใช้เอง {selfRate} · ส่งออก {exportRate}",
+    selfUseRateLabel: "อัตราใช้เอง {rate}",
+    exportRateLabel: "อัตราส่งออก {rate}",
     tariffSettings: "อัตราค่าไฟ",
     tariffSettingsTitle: "ตั้งค่าการประหยัด",
     tariffSettingsHelp: "แก้ไขอัตราค่าไฟนำเข้าและรับซื้อไฟคืนได้ที่นี่ ข้อมูลจะบันทึกใน SQLite และไม่หายเมื่อสร้างคอนเทนเนอร์ใหม่",
@@ -2961,6 +2996,30 @@ function renderBatteryPerformance(totals) {
   textFields.periodBatteryModeMeta.textContent = t("batteryModeMeta");
 }
 
+function renderSolarUtilization(totals) {
+  const solarKwh = Number(totals?.solarProductionKwh ?? 0);
+  const selfUsedKwh = Number(totals?.selfConsumptionKwh ?? 0);
+  const exportedKwh = Number(totals?.returnToGridKwh ?? 0);
+  const selfUseRate = solarKwh > 0 ? (selfUsedKwh / solarKwh) * 100 : null;
+  const exportRate = solarKwh > 0 ? (exportedKwh / solarKwh) * 100 : null;
+
+  metricFields.periodSolarSelfUsed.textContent = formatKwh(selfUsedKwh);
+  metricFields.periodSolarExported.textContent = formatKwh(exportedKwh);
+  metricFields.periodSolarUtilizationTotal.textContent = formatKwh(solarKwh);
+  textFields.periodSolarSelfUseRate.textContent = interpolate(t("selfUseRateLabel"), {
+    rate: formatOptionalPercent(selfUseRate),
+  });
+  textFields.periodSolarExportRate.textContent = interpolate(t("exportRateLabel"), {
+    rate: formatOptionalPercent(exportRate),
+  });
+  textFields.periodSolarUtilizationMeta.textContent = interpolate(t("solarUtilizationMeta"), {
+    selfRate: formatOptionalPercent(selfUseRate),
+    exportRate: formatOptionalPercent(exportRate),
+  });
+  setBarWidth(textFields.periodSolarSelfUseBar, selfUsedKwh, solarKwh);
+  setBarWidth(textFields.periodSolarExportBar, exportedKwh, solarKwh);
+}
+
 function renderPeriodTotals(payload) {
   const savings = payload.savings ?? {};
   const totalBenefit = Number(savings.estimatedTotalBenefit ?? 0);
@@ -3011,6 +3070,7 @@ function renderPeriodTotals(payload) {
   textFields.periodBillImpactMeta.textContent = t("billImpactMeta");
   renderPeriodHighlights(payload.dailyTable, savings);
   renderBatteryPerformance(payload.totals);
+  renderSolarUtilization(payload.totals);
   setBarWidth(textFields.periodAvoidedImportBar, avoidedSavings, totalBenefit);
   setBarWidth(textFields.periodExportCreditBar, exportCredit, totalBenefit);
 

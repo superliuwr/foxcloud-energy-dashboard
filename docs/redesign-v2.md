@@ -172,6 +172,8 @@ not by simply adding solar production plus battery discharge.
   - First pass implemented: the period panel now highlights best solar day, highest usage day, best export day, and estimated best savings day.
 - Battery performance card: explain selected-period battery behavior without digging through chart bars.
   - First pass implemented: the period panel now shows discharge/charge ratio, net battery balance, throughput, and a simple battery mode.
+- Solar utilization card: show where selected-period solar production went.
+  - First pass implemented: the period panel now shows self-used solar, exported solar, self-use rate, and export rate with a stacked bar.
 - Solar forecast hint: compare today's production so far against expected weather.
   - First pass implemented: weather card now explains today's solar output against recent daily averages and weather outlook.
 - Battery readiness card: whether the battery is likely to cover evening peak.

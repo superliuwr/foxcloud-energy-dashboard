@@ -763,6 +763,36 @@
               </article>
             </div>
           </div>
+          <div class="solar-utilization-card">
+            <div class="panel-heading compact-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="solarUtilization">Solar utilization</p>
+                <h2 data-i18n="solarUtilizationTitle">Where the solar energy went</h2>
+              </div>
+              <p id="periodSolarUtilizationMeta" class="muted-copy">--</p>
+            </div>
+            <div class="solar-utilization-bar" aria-hidden="true">
+              <span id="periodSolarSelfUseBar" class="solar-self-use-bar" style="width: 0%"></span>
+              <span id="periodSolarExportBar" class="solar-export-use-bar" style="width: 0%"></span>
+            </div>
+            <div class="solar-utilization-grid">
+              <article>
+                <span data-i18n="solarSelfUsed">Self-used solar</span>
+                <strong id="periodSolarSelfUsed">--</strong>
+                <small id="periodSolarSelfUseRate">--</small>
+              </article>
+              <article>
+                <span data-i18n="solarExported">Exported solar</span>
+                <strong id="periodSolarExported">--</strong>
+                <small id="periodSolarExportRate">--</small>
+              </article>
+              <article>
+                <span data-i18n="solarUtilizationTotal">Total solar</span>
+                <strong id="periodSolarUtilizationTotal">--</strong>
+                <small data-i18n="solarUtilizationTotalMeta">Selected period production</small>
+              </article>
+            </div>
+          </div>
         </section>
 
         <section class="dashboard-overview">
