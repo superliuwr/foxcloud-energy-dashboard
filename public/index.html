@@ -598,6 +598,25 @@
               <small id="periodSavingsMeta" class="muted-copy">--</small>
             </article>
           </div>
+          <div class="savings-breakdown-card">
+            <div class="panel-heading compact-heading">
+              <div>
+                <p class="panel-kicker" data-i18n="savingsBreakdown">Savings breakdown</p>
+                <h2 data-i18n="savingsBreakdownTitle">Where the benefit comes from</h2>
+              </div>
+              <strong id="periodSavingsBreakdownTotal">--</strong>
+            </div>
+            <div class="savings-breakdown-bar" aria-hidden="true">
+              <span id="periodAvoidedImportBar" class="savings-avoided-bar" style="width: 0%"></span>
+              <span id="periodExportCreditBar" class="savings-export-bar" style="width: 0%"></span>
+            </div>
+            <div class="savings-breakdown-grid">
+              <span><i class="legend-dot savings-avoided-bar"></i><b data-i18n="avoidedImportSavings">Avoided import</b> <strong id="periodAvoidedImportSavings">--</strong></span>
+              <span><i class="legend-dot savings-export-bar"></i><b data-i18n="exportCredit">Export credit</b> <strong id="periodExportCredit">--</strong></span>
+              <span><i class="legend-dot"></i><b data-i18n="avoidedImportKwh">Avoided import kWh</b> <strong id="periodAvoidedImportKwh">--</strong></span>
+              <span><i class="legend-dot"></i><b data-i18n="exportedKwh">Exported kWh</b> <strong id="periodExportedKwh">--</strong></span>
+            </div>
+          </div>
         </section>
 
         <section class="dashboard-overview">
